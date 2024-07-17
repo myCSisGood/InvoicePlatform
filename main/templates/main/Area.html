@@ -1,0 +1,66 @@
+{% extends "Mainpage.html" %}
+
+{% block main %}
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-6">
+        <div class="bg-white p-5 rounded shadow">
+            <h2 class="text-2xl font-semibold mb-4">選擇地區</h2>
+            <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="county" class="block text-lg font-medium text-gray-700">縣/市</label>
+                    <select id="county" name="county" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">請選擇縣/市</option>
+                        {% for county in counties %}
+                            <option value="{{ county.id }}">{{ county.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
+                    <select id="district" name="district" style="max-height: 150px; overflow-y: auto;" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">請選擇行政區</option>
+                    </select>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" onclick="location.href='{% url 'main:getMainpage' %}'" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
+                        <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back to Home
+                    </button>
+                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
+                        <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
+                    </button>
+                </div>
+                
+                
+                
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#county').change(function() {
+                var countyId = $(this).val();
+                $.ajax({
+                    url: "{% url 'main:getDistrict' %}",
+                    data: {
+                        'countyId': countyId
+                    },
+                    success: function(data) {
+                        var districtSelect = $('#district');
+                        districtSelect.empty();
+                        districtSelect.append('<option value="">請選擇行政區</option>');
+                        $.each(data.districts, function(index, value) {
+                            districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                        });
+                    },
+                    error: function() {
+                        alert('Error loading districts');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+{% endblock %}

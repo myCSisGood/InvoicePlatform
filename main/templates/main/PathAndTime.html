@@ -1,0 +1,62 @@
+{% extends "Mainpage.html" %}
+
+{% block main %}
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-6">
+        <div class="bg-white p-5 rounded shadow border border-gray-300">
+            <h2 class="text-2xl font-semibold mb-4">請選擇時間和通路</h2>
+            <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
+                {% csrf_token %}
+                <div class="flex justify-between mb-4">
+                    <div class="w-1/2 pr-2">
+                        <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
+                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="w-1/2 pl-2">
+                        <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
+                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
+                    <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        {% for store in stores %}
+                        <option value="{{ store.id }}" {% if storeId == store.id %}selected{% endif %}>{{ store.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
+                        <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
+                    </button>
+                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
+                        <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            flatpickr(".datetimepicker", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true, 
+                    dateFormat: "Y-m", 
+                    altFormat: "F Y", 
+                })],
+            });
+        });
+    </script>
+</body>
+{% endblock %}

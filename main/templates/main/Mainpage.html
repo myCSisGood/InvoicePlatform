@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
+    <style>
+      #sidebar {
+        margin-top: 77px; /* Adjust this value if the height of the header changes */
+      }
+    </style>
+</head>
+<body class="bg-gray-100">
+  
+  <nav class="p-5 bg-white shadow fixed top-0 left-0 w-full z-20">
+    <div class="flex justify-between items-center w-full">
+      <span class="text-2xl font-[Poppins] cursor-pointer">Invoice Platform</span>
+      <span class="text-3xl cursor-pointer mx-2 block">
+        <ion-icon name="menu" onclick="toggleSidebar()"></ion-icon>
+      </span>
+    </div>
+  </nav>
+
+  <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-10" onclick="closeSidebar()"></div>
+
+  <div class="flex">
+    <div id="sidebar" class="w-64 h-screen bg-gray-800 text-white fixed top-0 left-0 transition-transform transform -translate-x-full z-20">
+      <ul class="py-4">
+        <li class="px-6 py-2">
+          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+            <ion-icon name="home-outline" class="text-2xl"></ion-icon>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="relative px-6 py-2">
+          <button onclick="toggleDrawMenu()" class="w-full flex items-center space-x-4 hover:bg-gray-700">
+            <ion-icon name="create-outline" class="text-2xl"></ion-icon>
+            <span>Draw Network Picture</span>
+          </button>
+          <ul id="drawMenu" class="hidden mt-1 bg-gray-700 text-white rounded shadow-lg">
+            <li class="px-4 py-2 hover:bg-gray-600">
+              <a href="#">A Sort of Picture</a>
+            </li>
+            <li class="px-4 py-2 hover:bg-gray-600">
+              <a href="{% url 'main:drawBuyWith' %}">Another Sort of Picture</a>
+            </li>
+          </ul>
+        </li>
+        <li class="px-6 py-2">
+          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+            <ion-icon name="analytics-outline" class="text-2xl"></ion-icon>
+            <span>Analyzing Customer</span>
+          </a>
+        </li>
+        <li class="px-6 py-2">
+          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+            <ion-icon name="cloud-upload-outline" class="text-2xl"></ion-icon>
+            <span>Upload Invoice</span>
+          </a>
+        </li>
+        <li class="px-6 py-2">
+          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+            <ion-icon name="images-outline" class="text-2xl"></ion-icon>
+            <span>Stored Picture</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="flex-1 p-10 text-2xl font-bold mt-16">
+      {% block main %}
+        這邊是Dashboard
+      {% endblock %}
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    }
+
+    function toggleDrawMenu() {
+      const drawMenu = document.getElementById('drawMenu');
+      drawMenu.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
