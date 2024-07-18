@@ -10,16 +10,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
     <style>
       #sidebar {
-        margin-top: 77px; /* Adjust this value if the height of the header changes */
+        margin-top: 56px; /* Adjust this value if the height of the header changes */
       }
     </style>
 </head>
 <body class="bg-gray-100">
   
-  <nav class="p-5 bg-white shadow fixed top-0 left-0 w-full z-20">
+  <nav class="p-3 bg-white shadow fixed top-0 left-0 w-full z-20">
     <div class="flex justify-between items-center w-full">
-      <span class="text-2xl font-[Poppins] cursor-pointer">Invoice Platform</span>
-      <span class="text-3xl cursor-pointer mx-2 block">
+      <span class="text-xl font-[Poppins] cursor-pointer">Invoice Platform</span>
+      <span class="text-2xl cursor-pointer mx-2 block">
         <ion-icon name="menu" onclick="toggleSidebar()"></ion-icon>
       </span>
     </div>
@@ -43,7 +43,7 @@
           </button>
           <ul id="drawMenu" class="hidden mt-1 bg-gray-700 text-white rounded shadow-lg">
             <li class="px-4 py-2 hover:bg-gray-600">
-              <a href="#">A Sort of Picture</a>
+              <a href="{% url 'main:drawPath' %}">A Sort of Picture</a>
             </li>
             <li class="px-4 py-2 hover:bg-gray-600">
               <a href="{% url 'main:drawBuyWith' %}">Another Sort of Picture</a>
@@ -71,7 +71,7 @@
       </ul>
     </div>
 
-    <div class="flex-1 p-10 text-2xl font-bold mt-16">
+    <div class="flex-1 p-10 text-2xl font-bold mt-12">
       {% block main %}
         這邊是Dashboard
       {% endblock %}

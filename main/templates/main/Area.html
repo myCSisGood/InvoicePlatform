@@ -5,7 +5,11 @@
     <div class="container mx-auto mt-6">
         <div class="bg-white p-5 rounded shadow">
             <h2 class="text-2xl font-semibold mb-4">選擇地區</h2>
+            {% if pictureType == 1 %}
             <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area">
+            {% elif pictureType == 2 %}
+            <form method="POST" action="{% url 'main:drawPath' %}?step=select_area">
+            {% endif %}
                 {% csrf_token %}
                 <div class="mb-4">
                     <label for="county" class="block text-lg font-medium text-gray-700">縣/市</label>
@@ -55,9 +59,6 @@
                             districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
                         });
                     },
-                    error: function() {
-                        alert('Error loading districts');
-                    }
                 });
             });
         });

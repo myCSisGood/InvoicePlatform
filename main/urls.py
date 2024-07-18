@@ -15,4 +15,5 @@ urlpatterns = [
     path('tags/', views.getSmallTags, name='getSmallTags'),
     path('product/', views.getProducts, name='getProducts'),
     path('draw_buy_with/', views.drawBuyWith, name='drawBuyWith'),
+    path('draw_product_in_path/', views.drawPath, name='drawPath'),
 ]

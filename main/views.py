@@ -10,6 +10,9 @@ from django.http import JsonResponse
 import io
 import pandas as pd
 
+BUY_WITH = 1
+PRODUCT_IN_PATH = 2
+
 
 def uploadFile(request):
     if request.method == 'POST':
@@ -135,7 +138,8 @@ def drawBuyWith(request):
             request, 'Area.html', {
                 'counties': counties,
                 'selectedCounty': selectedCounty,
-                'selectedDistrict': selectedDistrict
+                'selectedDistrict': selectedDistrict,
+                'pictureType': BUY_WITH
             }
         )
 
@@ -175,14 +179,53 @@ def drawBuyWith(request):
             smallTagId = request.POST.get('smallTag')
             request.session['bigTagId'] = bigTagId
             request.session['smallTagId'] = smallTagId
-            print("okokokokookko")
-            # return redirect('/final_step/') # Replace with the actual final step URL
+            return redirect('/draw_buy_with/?step=display_picture')
 
         return render(
             request, 'Tag.html', {
                 'bigTags': bigTags,
                 'bigTagId': selectedBigTag,
-                'smallTagId': selectedSmallTag
+                'smallTagId': selectedSmallTag,
+                'pictureType': BUY_WITH
+            }
+        )
+
+    elif step == 'display_picture':
+        startTime = request.session.get('startTime', '')
+        endTime = request.session.get('endTime', '')
+        countyId = request.session.get('selectedCounty', '')
+        districtId = request.session.get('selectedDistrict', '')
+
+        counties = County.objects.all()
+        districts = District.objects.filter(county_id=countyId) if countyId else []
+        # paths = Path.objects.all() # Replace with actual logic to fetch paths if needed
+
+        if request.method == 'POST':
+            startTime = request.POST.get('start_time')
+            endTime = request.POST.get('end_time')
+            countyId = request.POST.get('county')
+            districtId = request.POST.get('district')
+            # pathId = request.POST.get('path')
+
+            request.session['startTime'] = startTime
+            request.session['endTime'] = endTime
+            request.session['selectedCounty'] = countyId
+            request.session['selectedDistrict'] = districtId
+            # request.session['selectedPath'] = pathId
+
+        return render(
+            request,
+            'Display.html',
+            {
+                'startTime': startTime,
+                'endTime': endTime,
+                'counties': counties,
+                'districts': districts,
+                # 'paths': paths,
+                'selectedCounty': countyId,
+                'selectedDistrict': districtId,
+                'selectedPath': request.session.get('selectedPath', ''),
+                'picture_url': 'path/to/generated/picture.jpg' # Replace with actual logic to get the picture URL
             }
         )
 
@@ -191,3 +234,73 @@ def drawBuyWith(request):
 
 ##防呆
 ##資料篩選
+
+
+def drawPath(request):
+    step = request.GET.get('step', 'select_area')
+
+    if step == 'select_area':
+        counties = County.objects.all()
+        selectedCounty = request.session.get('selectedCounty', '')
+        selectedDistrict = request.session.get('selectedDistrict', '')
+
+        if request.method == 'POST':
+            countyId = request.POST.get('county')
+            districtId = request.POST.get('district')
+            request.session['selectedCounty'] = countyId
+            request.session['selectedDistrict'] = districtId
+            return redirect('/draw_product_in_path/?step=select_path_time')
+
+        return render(
+            request, 'Area.html', {
+                'counties': counties,
+                'selectedCounty': selectedCounty,
+                'selectedDistrict': selectedDistrict,
+                'pictureType': PRODUCT_IN_PATH
+            }
+        )
+
+    elif step == 'select_time':
+        selectedStartTime = request.session.get('startTime', '')
+        selectedEndTime = request.session.get('endTime', '')
+
+        if request.method == 'POST':
+            startTime = request.POST.get('start_time')
+            endTime = request.POST.get('end_time')
+            request.session['startTime'] = startTime
+            request.session['endTime'] = endTime
+
+            return redirect('/draw_product_in_path/?step=select_tag')
+
+        return render(request, 'Time.html', {
+            'startTime': selectedStartTime,
+            'endTime': selectedEndTime,
+        })
+
+    elif step == 'select_tag':
+        bigTags = ItemBigTag.objects.all()
+        selectedBigTag = request.session.get('bigTagId', '')
+        selectedSmallTag = request.session.get('smallTagId', '')
+
+        if request.method == 'POST':
+            bigTagId = request.POST.get('bigTag')
+            smallTagId = request.POST.get('smallTag')
+            request.session['bigTagId'] = bigTagId
+            request.session['smallTagId'] = smallTagId
+            print("okokokokookko")
+            # return redirect('/final_step/') # Replace with the actual final step URL
+
+        return render(
+            request, 'Tag.html', {
+                'bigTags': bigTags,
+                'bigTagId': selectedBigTag,
+                'smallTagId': selectedSmallTag,
+                'pictureType': PRODUCT_IN_PATH
+            }
+        )
+
+    return redirect('/draw_product_in_path/?step=select_area')
+
+
+def displayPicture(request):
+    return render(request, 'Display.html')
