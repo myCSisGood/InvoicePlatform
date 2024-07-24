@@ -6,14 +6,11 @@ app_name = 'main'
 urlpatterns = [
     path('mainpage/', views.getMainpage, name='getMainpage'),
     path('file/upload/', views.uploadFile, name='uploadFile'),
-    # path('menu/', views.getMenupage, name='getMenupage'),
-    path('area/', views.getAreaMenu, name='getAreaMenu'),
     path('district/', views.getDistrict, name='getDistrict'),
-    # path('select_area/', views.selectArea, name='selectArea'),
-    path('path&time/', views.getPTimeMenu, name='getPTimeMenu'),
-    path('product/', views.getProductMenu, name='getProductMenu'),
     path('tags/', views.getSmallTags, name='getSmallTags'),
     path('product/', views.getProducts, name='getProducts'),
     path('draw_buy_with/', views.drawBuyWith, name='drawBuyWith'),
     path('draw_product_in_path/', views.drawPath, name='drawPath'),
+    path('display_and_revise/', views.displayPicture, name='displayPicture'),
+    path('info/', views.showInfo, name='showInfo'),
 ]
