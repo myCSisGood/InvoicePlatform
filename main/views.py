@@ -51,13 +51,6 @@ def getMainpage(request):
     return render(request, 'Mainpage.html')
 
 
-def getProductMenu(request):
-    bigTags = ItemBigTag.objects.all()
-    smallTags = ItemSmallTag.objects.all()
-
-    return render(request, 'Tag.html', {'bigTags': bigTags, 'smallTags': smallTags})
-
-
 def getSmallTags(request):
     bigId = request.GET.get('bigId')
     smallTags = ItemSmallTag.objects.filter(bigTag_id=bigId)
@@ -74,15 +67,6 @@ def getProducts(request):
     return JsonResponse({'products': productList})
 
 
-def getPTimeMenu(request):
-    return render(request, 'PathAndTime.html')
-
-
-def getAreaMenu(request):
-    counties = County.objects.all()
-    return render(request, 'Area.html', {'counties': counties, 'districts': []})
-
-
 def getDistrict(request):
     countyId = request.GET.get('countyId')
     districts = District.objects.filter(county_id=countyId)
@@ -91,35 +75,8 @@ def getDistrict(request):
     ###行政區太多會往上跑的問題待修正
 
 
-def selectArea(request):
-    if request.method == 'POST':
-        countyId = request.POST.get('county')
-        districtId = request.POST.get('district')
-        request.session['selectedCounty'] = countyId
-        request.session['selectedDistrict'] = districtId
-
-
-def selectPathAndTime(request):
-    if request.method == 'POST':
-        startTime = request.POST.get('start_time')
-        endTime = request.POST.get('end_time')
-        # storeId = request.POST.get('store')
-        request.session['startTime'] = startTime
-        request.session['endTime'] = endTime
-        # request.session['storeId'] = storeId
-        return redirect('selectTag')
-
-
-def selectTag(request):
-    if request.method == 'POST':
-        bigTagId = request.POST.get('bigTag')
-        smallTagId = request.POST.get('smallTag')
-        request.session['bigTagId'] = bigTagId
-        request.session['smallTagId'] = smallTagId
-        return redirect('finalStep') # Redirect to the final step or another view
-
-
 def drawBuyWith(request):
+    displayType = request.GET.get('displayType', 'Articulation Points')
     step = request.GET.get('step', 'select_area')
 
     if step == 'select_area':
@@ -225,11 +182,26 @@ def drawBuyWith(request):
                 'selectedCounty': countyId,
                 'selectedDistrict': districtId,
                 'selectedPath': request.session.get('selectedPath', ''),
-                'picture_url': 'path/to/generated/picture.jpg' # Replace with actual logic to get the picture URL
+                #'picture': 圖片
+                'displayType': displayType
             }
         )
 
     return redirect('/draw_buy_with/?step=select_area')
+
+
+def showInfo(request):
+    displayType = request.GET.get('displayType', 'Articulation Points')
+    content = ""
+
+    if displayType == "Articulation Points":
+        content = "Information about Articulation Points."
+    elif displayType == "Bridges":
+        content = "Information about Bridges."
+    elif displayType == "Community":
+        content = "Information about Community."
+
+    return JsonResponse({"content": content})
 
 
 ##防呆
