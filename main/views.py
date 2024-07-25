@@ -16,6 +16,8 @@ from django.db import connection
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
+RFM = 3
+RFM_WITH_PRODUCT = 4
 
 
 def uploadFile(request):
@@ -101,7 +103,14 @@ def _selectArea(request):
         request.session['districtName'] = districtName
         request.session['selectedCounty'] = countyId
         request.session['selectedDistrict'] = districtId
-        return redirect('/draw_buy_with/?step=select_path_time')
+        if pictureType == BUY_WITH:
+            return redirect('/draw_buy_with/?step=select_path_time')
+        elif pictureType == PRODUCT_IN_PATH:
+            return redirect('/draw_product_in_path/?step=select_time')
+        elif pictureType == RFM:
+            return redirect('/rfm/?step=select_path_time')
+        else:
+            return redirect('/rfm_with_product/?step=select_path_time')
 
     return render(
         request, 'Area.html', {
@@ -141,7 +150,35 @@ def _selectPathAndTime(request):
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
         request.session['store'] = storeName
-        return redirect('/draw_buy_with/?step=select_tag')
+        if pictureType == BUY_WITH:
+            return redirect('/draw_buy_with/?step=select_tag')
+        elif pictureType == PRODUCT_IN_PATH:
+            return redirect('/draw_product_in_path/?step=select_tag')
+        elif pictureType == RFM:
+            return redirect('/rfm/?step=display_picture')
+        else:
+            return redirect('/rfm_with_product/?step=select_tag')
+    if pictureType == PRODUCT_IN_PATH:
+        return render(
+            request,
+            'Time.html',
+            {
+                # 'stores': stores,
+                'startTime': selectedStartTime,
+                'endTime': selectedEndTime,
+            }
+        )
+    else:
+        return render(
+            request,
+            'PathAndTime.html',
+            {
+                # 'stores': stores,
+                'startTime': selectedStartTime,
+                'endTime': selectedEndTime,
+                'pictureType': pictureType,
+            }
+        )
 
     return render(
         request, 'PathAndTime.html', {
@@ -164,8 +201,12 @@ def _selectTag(request):
         smallTagName = ItemSmallTag.objects.get(id=smallTagId).name
         request.session['bigTagName'] = bigTagName
         request.session['smallTagName'] = smallTagName
-        return redirect('/draw_buy_with/?step=display_picture')
-
+        if pictureType == BUY_WITH:
+            return redirect('/draw_buy_with/?step=display_picture')
+        elif pictureType == PRODUCT_IN_PATH:
+            return redirect('/draw_product_in_path/?step=display_picture')
+        else:
+            return redirect('/rfm_with_product/?step=display_picture')
     return render(
         request, 'Tag.html', {
             'bigTags': bigTags,
@@ -205,22 +246,39 @@ def _displayPic(request, displayType):
         request.session['store'] = store
         # request.session['selectedPath'] = pathId
 
+    if pictureType == BUY_WITH:
+        return render(
+            request,
+            'Display.html',
+            {
+                'startTime': startTime,
+                'endTime': endTime,
+                'counties': counties,
+                'districts': districts,
+                'selectedCounty': countyId,
+                'selectedDistrict': districtId,
+                'selectedPath': request.session.get('selectedPath', ''),
+                'displayType': displayType
+            }
+        )
+    else:
+        return render(
+            request,
+            'ProductInPath.html',
+            {
+                'startTime': startTime,
+                'endTime': endTime,
+                'counties': counties,
+                'districts': districts,
+                # 'stores': stores,
+                'selectedCounty': countyId,
+                'selectedDistrict': districtId,
+                'selectedPath': request.session.get('selectedPath', ''),
+                # 'picture': graph_html,
+            }
+        )
     graphHtml = _drawPic(countyName, districtName, smallTagName, startTime, endTime, store)
     stores = _filterStores(districtName)
-    return render(
-        request, 'Display.html', {
-            'startTime': startTime,
-            'endTime': endTime,
-            'counties': counties,
-            'districts': districts,
-            'stores': stores,
-            'selectedCounty': countyId,
-            'selectedDistrict': districtId,
-            'selectedPath': request.session.get('selectedPath', ''),
-            'picture': graphHtml,
-            'displayType': displayType
-        }
-    )
 
 
 def _drawPic(countyName, districtName, item_tag, startTime, endTime, store):
@@ -267,6 +325,8 @@ def showInfo(request):
         content = "Information about Bridges."
     elif displayType == "Community":
         content = "Information about Community."
+    else:
+        content = "Information about Regular."
 
     return JsonResponse({"content": content})
 
@@ -301,6 +361,9 @@ def drawPath(request):
     elif step == 'select_tag':
         return _selectTag(request)
 
+    elif step == 'display_picture':
+        return _displayPic(request, pictureType)
+
     return redirect('/draw_product_in_path/?step=select_area')
 
 
@@ -329,3 +392,55 @@ def getDeeperInsight(request):
 
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)
+
+
+def drawRFM(request):
+    step = request.GET.get('step', 'select_area')
+    pictureType = RFM
+    if step == 'select_area':
+        return _selectArea(request, pictureType)
+
+    elif step == 'select_path_time':
+        return _selectPathAndTime(request, pictureType)
+
+    elif step == 'display_picture':
+        return _displayRFM(request)
+
+    return redirect('/rfm/?step=select_area')
+
+
+def drawRFMwithProduct(request):
+    step = request.GET.get('step', 'select_area')
+    pictureType = RFM_WITH_PRODUCT
+    if step == 'select_area':
+        return _selectArea(request, pictureType)
+
+    elif step == 'select_path_time':
+        return _selectPathAndTime(request, pictureType)
+
+    elif step == 'select_tag':
+        return _selectTag(request, pictureType)
+
+    elif step == 'display_picture':
+        return _displayRFM(request)
+
+    return redirect('/rfm_with_product/?step=select_area')
+
+
+def _displayRFM(request):
+    rfms = [
+        "Champions", "Loyal Accounts", "Low Spenders", "Potential Loyalist", "Promising", "New Active Accounts",
+        "Need Attention", "About to Sleep", "At Risk", "Lost"
+    ]
+
+    if request.method == "POST":
+        rfmType = request.POST.get('district', 'Potential Loyalist')
+    else:
+        rfmType = 'Potential Loyalist'
+
+    context = {
+        'rfmType': rfmType,
+        'rfms': rfms,
+    }
+
+    return render(request, 'RFM.html', context)
