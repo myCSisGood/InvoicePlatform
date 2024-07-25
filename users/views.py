@@ -20,7 +20,7 @@ def signUp(request):
         if form.is_valid():
             user = form.save()
             messages.success(request, '註冊成功！請重新登入')
-            return redirect('login')
+            return redirect('users:login')
 
     else:
         form = SignupForm()
@@ -50,7 +50,7 @@ def logIn(request):
 
 def logOut(request):
     logout(request)
-    return redirect('getHomePage')
+    return redirect('users:getHomePage')
 
 
 def changePassword(request):

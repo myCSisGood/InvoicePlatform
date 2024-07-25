@@ -1,5 +1,5 @@
-{% extends "_base.html" %}
-{% block content %}
+{% extends "Mainpage.html" %}
+{% block main %}
 <div class="flex w-full h-screen items-center justify-center bg-grey-lighter">
     <label class="w-70 flex flex-col items-center px-16 py-24 bg-white text-blue rounded-lg shadow-lg tracking-wide uppercase border border-blue cursor-pointer hover:bg-blue">
         <svg class="w-20 h-20 hover:text-white" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -33,4 +33,4 @@ function updateFileName(input) {
     document.getElementById('uploadButton').classList.remove('opacity-0', 'pointer-events-none');
 }
 </script>
-{% endblock content %}
+{% endblock main %}
