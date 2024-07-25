@@ -4,14 +4,15 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from .forms import UploadFileForm
 from .models import UploadedFile
-# from .bert.test import BertModel
+from .bert.test import BertModel
 from .models import County, District, ItemBigTag, ItemSmallTag
 from django.http import JsonResponse
 import io
 import pandas as pd
 from .graph.networks import ProductNetwork
-# import networks
-# import psycopg2
+import networks
+import psycopg2
+from django.db import connection
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -64,10 +65,16 @@ def getSmallTags(request):
     ###directly select smallTag and Product?
 def getProducts(request):
     smallId = request.GET.get('smallId')
-    productList = []
+    smallTagName = ItemSmallTag.objects.get(id=smallId).name
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT DISTINCT item_name FROM test WHERE item_tag = %s", [smallTagName])
+        rows = cursor.fetchall()
+
+    # 将结果直接转换为列表
+    product = [row[0] for row in rows]
     # products = Product.objects.filter(smallTag_id=smallId)
     # productList = list(products.values('id', 'name'))
-    return JsonResponse({'products': productList})
+    return JsonResponse({'products': product})
 
 
 def getDistrict(request):
@@ -78,7 +85,7 @@ def getDistrict(request):
     ###行政區太多會往上跑的問題待修正
 
 
-def _selectArea(request, pictureType):
+def _selectArea(request):
     counties = County.objects.all()
     selectedCounty = request.session.get('selectedCounty', '')
     selectedDistrict = request.session.get('selectedDistrict', '')
@@ -94,33 +101,33 @@ def _selectArea(request, pictureType):
         request.session['districtName'] = districtName
         request.session['selectedCounty'] = countyId
         request.session['selectedDistrict'] = districtId
-        if pictureType == BUY_WITH:
-            return redirect('/draw_buy_with/?step=select_path_time')
-        else:
-            return redirect('/draw_product_in_path/?step=select_time')
+        return redirect('/draw_buy_with/?step=select_path_time')
 
     return render(
         request, 'Area.html', {
             'counties': counties,
             'selectedCounty': selectedCounty,
             'selectedDistrict': selectedDistrict,
-            'pictureType': pictureType
+            'pictureType': BUY_WITH
         }
     )
 
 
-#after choosing the district narrow the stores
-# def _filterSores(csvPath, districtName):
-#     df = pd.read_csv(csvPath)
-#     data = df[df['city_area'] == districtName]
-#     stores = data['store_brand_name'].unique()
-#     return stores
+#after choosing the district narrow down the stores
+def _filterStores(districtName):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT DISTINCT store_brand_name FROM test WHERE city_area = %s", [districtName])
+        rows = cursor.fetchall()
+
+    # 将结果直接转换为列表
+    storeBrands = [row[0] for row in rows]
+    return storeBrands
 
 
-def _selectPathAndTime(request, pictureType):
+def _selectPathAndTime(request):
 
     districtName = request.session.get('districtName', '')
-    # stores = _filterSores("/Users/willa/Desktop/Graduation/300000_cleaned.csv", districtName)
+    stores = _filterStores(districtName)
 
     # stores = Store.objects.all()
     selectedStartTime = request.session.get('startTime', '')
@@ -134,33 +141,18 @@ def _selectPathAndTime(request, pictureType):
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
         request.session['store'] = storeName
-        if pictureType == BUY_WITH:
-            return redirect('/draw_buy_with/?step=select_tag')
-        else:
-            return redirect('/draw_product_in_path/?step=select_tag')
-    if pictureType == BUY_WITH:
-        return render(
-            request,
-            'PathAndTime.html',
-            {
-                # 'stores': stores,
-                'startTime': selectedStartTime,
-                'endTime': selectedEndTime,
-            }
-        )
-    else:
-        return render(
-            request,
-            'Time.html',
-            {
-                # 'stores': stores,
-                'startTime': selectedStartTime,
-                'endTime': selectedEndTime,
-            }
-        )
+        return redirect('/draw_buy_with/?step=select_tag')
+
+    return render(
+        request, 'PathAndTime.html', {
+            'stores': stores,
+            'startTime': selectedStartTime,
+            'endTime': selectedEndTime,
+        }
+    )
 
 
-def _selectTag(request, pictureType):
+def _selectTag(request):
     bigTags = ItemBigTag.objects.all()
     selectedBigTag = request.session.get('bigTagId', '')
     selectedSmallTag = request.session.get('smallTagId', '')
@@ -172,22 +164,19 @@ def _selectTag(request, pictureType):
         smallTagName = ItemSmallTag.objects.get(id=smallTagId).name
         request.session['bigTagName'] = bigTagName
         request.session['smallTagName'] = smallTagName
-        if pictureType == BUY_WITH:
-            return redirect('/draw_buy_with/?step=display_picture')
-        else:
-            return redirect('/draw_product_in_path/?step=display_picture')
+        return redirect('/draw_buy_with/?step=display_picture')
 
     return render(
         request, 'Tag.html', {
             'bigTags': bigTags,
             'bigTagId': selectedBigTag,
             'smallTagId': selectedSmallTag,
-            'pictureType': pictureType
+            'pictureType': BUY_WITH
         }
     )
 
 
-def _displayPic(request, pictureType, displayType=None):
+def _displayPic(request, displayType):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
     countyId = request.session.get('selectedCounty', '')
@@ -216,60 +205,54 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['store'] = store
         # request.session['selectedPath'] = pathId
 
-    # graph_html = _drawPic(countyName, districtName, smallTagName, startTime, endTime, store)
-    # stores = _filterSores("/Users/willa/Desktop/Graduation/300000_cleaned.csv", districtName)
-    if pictureType == BUY_WITH:
-        return render(
-            request,
-            'Display.html',
-            {
-                'startTime': startTime,
-                'endTime': endTime,
-                'counties': counties,
-                'districts': districts,
-                # 'stores': stores,
-                'selectedCounty': countyId,
-                'selectedDistrict': districtId,
-                'selectedPath': request.session.get('selectedPath', ''),
-                # 'picture': graph_html,
-                'displayType': displayType
-            }
-        )
-    else:
-        return redirect('/draw_product_in_path/?step=display_picture')
+    graphHtml = _drawPic(countyName, districtName, smallTagName, startTime, endTime, store)
+    stores = _filterStores(districtName)
+    return render(
+        request, 'Display.html', {
+            'startTime': startTime,
+            'endTime': endTime,
+            'counties': counties,
+            'districts': districts,
+            'stores': stores,
+            'selectedCounty': countyId,
+            'selectedDistrict': districtId,
+            'selectedPath': request.session.get('selectedPath', ''),
+            'picture': graphHtml,
+            'displayType': displayType
+        }
+    )
 
 
-# def _drawPic(countyName, districtName, item_tag, startTime, endTime, store):
-# conn = psycopg2.connect(database="mydatabase", user="postgres", password="0000", host="127.0.0.1", port="5432")
-# cur = conn.cursor()
-# network = ProductNetwork(cur)
-# network.query(
-#     county=countyName,
-#     city_area=districtName,
-#     item_tag=item_tag,
-#     datatime_lower_bound=startTime,
-#     datatime_upper_bound=endTime,
-#     store_brand_name=store
-# )
-# result = network.execute()
-# return result
+def _drawPic(countyName, districtName, item_tag, startTime, endTime, store):
+    conn = psycopg2.connect(database="mydatabase", user="postgres", password="0000", host="127.0.0.1", port="5432")
+    cur = conn.cursor()
+    network = ProductNetwork(cur)
+    network.query(
+        county=countyName,
+        city_area=districtName,
+        item_tag=item_tag,
+        datatime_lower_bound=startTime,
+        datatime_upper_bound=endTime,
+        store_brand_name=store
+    )
+    result = network.execute()
+    return result
 
 
 def drawBuyWith(request):
-    pictureType = BUY_WITH
     displayType = request.GET.get('displayType', 'Regular')
     step = request.GET.get('step', 'select_area')
     if step == 'select_area':
-        return _selectArea(request, pictureType)
+        return _selectArea(request)
 
     elif step == 'select_path_time':
-        return _selectPathAndTime(request, pictureType)
+        return _selectPathAndTime(request)
 
     elif step == 'select_tag':
-        return _selectTag(request, pictureType)
+        return _selectTag(request)
 
     elif step == 'display_picture':
-        return _displayPic(request, pictureType, displayType)
+        return _displayPic(request, displayType)
 
     return redirect('/draw_buy_with/?step=select_area')
 
@@ -294,15 +277,29 @@ def showInfo(request):
 
 def drawPath(request):
     step = request.GET.get('step', 'select_area')
-    pictureType = PRODUCT_IN_PATH
+
     if step == 'select_area':
-        return _selectArea(request, pictureType)
+        return _selectArea(request)
 
     elif step == 'select_time':
-        return _selectPathAndTime(request, pictureType)
+        selectedStartTime = request.session.get('startTime', '')
+        selectedEndTime = request.session.get('endTime', '')
+
+        if request.method == 'POST':
+            startTime = request.POST.get('start_time')
+            endTime = request.POST.get('end_time')
+            request.session['startTime'] = startTime
+            request.session['endTime'] = endTime
+
+            return redirect('/draw_product_in_path/?step=select_tag')
+
+        return render(request, 'Time.html', {
+            'startTime': selectedStartTime,
+            'endTime': selectedEndTime,
+        })
 
     elif step == 'select_tag':
-        return _selectTag(request, pictureType)
+        return _selectTag(request)
 
     return redirect('/draw_product_in_path/?step=select_area')
 
