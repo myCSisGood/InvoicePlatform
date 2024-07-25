@@ -11,6 +11,8 @@ urlpatterns = [
     path('product/', views.getProducts, name='getProducts'),
     path('draw_buy_with/', views.drawBuyWith, name='drawBuyWith'),
     path('draw_product_in_path/', views.drawPath, name='drawPath'),
-    path('display_and_revise/', views.displayPicture, name='displayPicture'),
     path('info/', views.showInfo, name='showInfo'),
+    path('deeper_insight/', views.getDeeperInsight, name='getDeeperInsight'),
+    path('analysis/', views.analyze, name='analyze'),
+    path('display_overtime/', views.displayOvertime, name='displayOvertime'),
 ]
