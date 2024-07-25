@@ -21,10 +21,12 @@
                 <div class="mb-4">
                     <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
                     <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="" selected></option>
                         {% for store in stores %}
-                        <option value="{{ store.id }}" {% if storeId == store.id %}selected{% endif %}>{{ store.name }}</option>
+                        <option value="{{ store }}" >{{ store }}</option>
                         {% endfor %}
                     </select>
+                    
                 </div>
                 <div class="flex justify-between">
                     <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">

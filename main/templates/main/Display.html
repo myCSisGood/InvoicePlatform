@@ -34,7 +34,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
             <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
                 <div class="flex justify-center mt-4 flex-grow overflow-auto">
-                    <img src="/mnt/data/A_simple_drawing_of_a_conceptual_diagram_with_labe.png" alt="Generated Picture" class="w-full h-auto rounded shadow">
+                    {{picture|safe}}
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
                     <a href="{% url 'main:displayOvertime'}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
@@ -52,10 +52,10 @@
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
                     <div>
                         <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
-                        <select id="path" name="path" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">請選擇通路</option>
-                            {% for path in paths %}
-                                <option value="{{ path.id }}" {% if path.id == selectedPath %}selected{% endif %}>{{ path.name }}</option>
+                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="" selected></option>
+                            {% for store in stores %}
+                            <option value="{{ store }}" >{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -116,12 +116,28 @@
                 <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Community" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
                     <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Community
                 </a>
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Regular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Regular
+                </a>
             {% elif displayType == "Bridges" %}
                 <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Community" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
                     <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Show with Community
                 </a>
                 <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Articulation Points" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
                     <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Articulation Points
+                </a>
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Regular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Regular
+                </a>
+            {% elif displayType == "Regular" %}
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Articulation Points" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Show with Articulation Points
+                </a>
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Bridges" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Bridges
+                </a>
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Community" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Community
                 </a>
             {% else %}
                 <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Articulation Points" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
@@ -130,6 +146,10 @@
                 <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Bridges" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
                     <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Bridges
                 </a>
+                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Regular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Regular
+                </a>
+
             {% endif %}
         </div>
     </div>
