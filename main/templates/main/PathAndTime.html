@@ -20,6 +20,7 @@
 
                 <div class="mb-4">
                     <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
+                    <input type="text" id="pathFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋通路...">
                     <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="" selected></option>
                         {% for store in stores %}
@@ -59,6 +60,12 @@
                 })],
             });
         });
+        $('#pathFilter').on('input', function() {
+                var filterValue = $(this).val().toLowerCase();
+                $('#path option').each(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(filterValue) > -1);
+                });
+            });
     </script>
 </body>
 {% endblock %}
