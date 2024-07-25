@@ -5,7 +5,7 @@
     <div class="container mx-auto mt-6">
         <div class="bg-white p-5 rounded shadow border border-gray-300">
             <h2 class="text-2xl font-semibold mb-4">請選擇時間和通路</h2>
-            {% if pictureType == 2 %}
+            {% if pictureType == 1 %}
             <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
             {% elif pictureType == 3 %}
             <form method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">

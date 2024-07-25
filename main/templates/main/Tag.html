@@ -34,7 +34,7 @@
                     <label for="product" class="block text-lg font-medium text-gray-700">選擇產品</label>
                     <input type="text" id="productFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋產品...">
                     <select id="product" name="product" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">請先選擇子分類</option>
+                        <option value="">請選擇產品</option>
                     </select>
                 </div>
                 <div class="flex justify-between">
@@ -100,7 +100,7 @@
                         productSelect.empty();
                         productSelect.append('<option value="">請選擇產品</option>');
                         $.each(data.products, function(index, value) {
-                            productSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                            productSelect.append('<option value="' + value + '">' + value + '</option>');
                         });
                     }
                 });
