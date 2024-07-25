@@ -57,7 +57,7 @@
           </a>
         </li>
         <li class="px-6 py-2">
-          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+          <a href="{% url 'main:uploadFile' %}" class="flex items-center space-x-4 hover:bg-gray-700">
             <ion-icon name="cloud-upload-outline" class="text-2xl"></ion-icon>
             <span>Upload Invoice</span>
           </a>
@@ -69,6 +69,12 @@
           </a>
         </li>
       </ul>
+      <div class="px-6 py-4 mb-0">
+        <a href="{% url 'users:logout' %}" class="flex items-center space-x-4 hover:bg-gray-700">
+          <ion-icon name="log-out-outline" class="text-2xl"></ion-icon>
+          <span>Log Out</span>
+        </a>
+      </div>
     </div>
 
     <div class="flex-1 p-10 text-2xl font-bold mt-12">
