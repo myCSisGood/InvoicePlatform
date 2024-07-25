@@ -302,8 +302,6 @@ def showInfo(request):
 
     if displayType == "Articulation Points":
         content = "Information about Articulation Points."
-    elif displayType == "Bridges":
-        content = "Information about Bridges."
     elif displayType == "Community":
         content = "Information about Community."
     else:
