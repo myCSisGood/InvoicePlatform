@@ -1,0 +1,136 @@
+{% extends "Mainpage.html" %}
+
+{% block main %}
+<body class="bg-gray-50 h-screen">
+
+    <div class="container mx-auto py-4 h-full flex flex-col">
+        <div class="flex items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 mr-2">Path Ranking</h2>
+
+        </div>
+
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
+            <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
+                <div class="flex justify-center mt-4 flex-grow overflow-auto">
+                    {{picture|safe}}
+                </div>
+                <div class="absolute bottom-4 right-4 flex space-x-2">
+                    <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
+                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-4 h-full overflow-auto">
+                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+                    {% csrf_token %}
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
+
+                    <div>
+                        <label for="district" class="block text-lg font-medium text-gray-700">地區</label>
+                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">請選擇地區</option>
+                            {% for district in districts %}
+                                <option value="{{ district.id }}" {% if district.id == selectedDistrict %}selected{% endif %}>{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+
+                    <div class="flex justify-between">
+                        <a href="{% url 'main:drawPath' %}?select_area"  class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
+                            Draw Another Picture
+                        </a>
+                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+                {% comment %}
+                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4 text-right">
+                    {% csrf_token %}
+                {% endcomment %}
+                
+                    <div>
+                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose One Path to Draw Buy With Picture</label>
+                        <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Path</option>
+                            {% for option in options %}
+                                <option value="{{ option.id }}">{{ option.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <a href="{% url 'main:drawBuyWith' %}?step=display_picture" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                        Go
+                    </a>
+                    
+                {% comment %}
+                </form>
+                {% endcomment %}
+            </div>
+        </div>
+
+        
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            flatpickr("#startTime", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                })],
+            });
+
+            flatpickr("#endTime", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                })],
+            });
+
+            $('#county').change(function() {
+                var countyId = $(this).val();
+                $.ajax({
+                    url: "{% url 'main:getDistrict' %}",
+                    data: {
+                        'countyId': countyId
+                    },
+                    success: function(data) {
+                        var districtSelect = $('#district');
+                        districtSelect.empty();
+                        districtSelect.append('<option value="">請選擇行政區</option>');
+                        $.each(data.districts, function(index, value) {
+                            districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                        });
+                    },
+                });
+            });
+
+          
+        });
+    </script>
+</body>
+{% endblock %}
