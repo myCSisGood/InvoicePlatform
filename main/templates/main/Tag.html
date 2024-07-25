@@ -9,6 +9,8 @@
             <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_tag">
             {% elif pictureType == 2 %}
             <form method="POST" action="{% url 'main:drawPath' %}?step=select_tag">
+            {% elif pictureType == 4 %}
+            <form method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_tag">
             {% endif %}
                 {% csrf_token %}
                 <div class="mb-4">
