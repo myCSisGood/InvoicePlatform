@@ -213,7 +213,9 @@ def _displayPic(request, displayType, pictureType):
     districts = District.objects.filter(county_id=countyId) if countyId else []
 
     # paths = Path.objects.all() # Replace with actual logic to fetch paths if needed
-    graphHtml = _drawPic(countyName, districtName, smallTagName, startTime, endTime, store)
+    relationship, articulationPoint, communities = _drawPic(
+        countyName, districtName, smallTagName, startTime, endTime, store
+    )
     stores = _filterStores(districtName)
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
@@ -242,7 +244,9 @@ def _displayPic(request, displayType, pictureType):
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
                 'stores': stores,
-                'picture': graphHtml,
+                'picture_regular': relationship,
+                'picture_articulation': articulationPoint,
+                'picture_community': communities,
             }
         )
     else:
@@ -262,19 +266,20 @@ def _displayPic(request, displayType, pictureType):
 
 
 def _drawPic(countyName, districtName, item_tag, startTime, endTime, store):
-    conn = psycopg2.connect(database="mydatabase", user="postgres", password="0000", host="127.0.0.1", port="5432")
-    cur = conn.cursor()
-    network = ProductNetwork(cur)
+
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
     network.query(
         county=countyName,
-        city_area=districtName,
         item_tag=item_tag,
-        datatime_lower_bound=startTime,
-        datatime_upper_bound=endTime,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
         store_brand_name=store
     )
-    result = network.execute()
-    return result
+    network.execute_query()
+    network.analysis(limits=100)
+    network.create_network()
+    relationship, articulationPoint, communities = network.vis_all_graph()
+    return relationship, articulationPoint, communities
 
 
 def drawBuyWith(request):
