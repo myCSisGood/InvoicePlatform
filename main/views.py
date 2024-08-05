@@ -115,7 +115,6 @@ def _selectArea(request, pictureType):
 
 ###這邊會改成有分類的前幾+交易量前幾###
 def _filterStores(countyName, districtName=None):
-    print(countyName)
     if districtName:
         with connection.cursor() as cursor:
             cursor.execute(
@@ -142,17 +141,17 @@ def _filterBigTags(request):
     query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
     params = [countyName]
 
-    if districtName:
-        query += " AND city_area = %s"
-        params.append(districtName)
+    # if districtName:
+    #     query += " AND city_area = %s"
+    #     params.append(districtName)
 
     if selectedStartTime:
-        query += " AND datetime >= %s"
-        params.append(selectedStartTime)
+        query += " AND datetime >= %s::date"
+        params.append(f"{selectedStartTime}-01")
 
     if selectedEndTime:
-        query += " AND datetime <= %s"
-        params.append(selectedEndTime)
+        query += " AND datetime < (%s::date + interval '1 month')"
+        params.append(f"{selectedEndTime}-01")
 
     if selectedStore:
         query += " AND store_brand_name = %s"
@@ -163,14 +162,12 @@ def _filterBigTags(request):
         rows = cursor.fetchall()
 
     smallTags = [row[0] for row in rows]
-    bigTags = set()
     ###暫時反向尋找，之後建立大標籤之欄位###
-    for tag in smallTags:
-        smallTag = ItemSmallTag.objects.get(name=tag)
-        bigTags.add(smallTag.bigTag.name)
-
-    bigTags = list(bigTags)
-    return bigTags
+    bigTags = ItemSmallTag.objects.filter(name__in=smallTags).values_list('bigTag__name', flat=True).distinct()
+    bigTagsList = list(bigTags)
+    for b in bigTags:
+        print(b)
+    return bigTagsList
 
 
 def _selectPathAndTime(request, pictureType):
