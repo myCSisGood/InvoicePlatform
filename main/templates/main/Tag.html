@@ -19,7 +19,7 @@
                     <select id="bigTag" name="bigTag" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="">請選擇分類</option>
                         {% for tag in bigTags %}
-                            <option value="{{ tag.id }}" {% if bigTagId == tag.id %}selected{% endif %}>{{ tag.name }}</option>
+                            <option value="{{ tag.name}}" {% if bigTag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -74,27 +74,27 @@
             });
 
             $('#bigTag').change(function() {
-                var bigTagId = $(this).val();
+                var bigtag = $(this).val();
                 $.ajax({
                     url: '{% url "main:getSmallTags" %}',
-                    data: { 'bigId': bigTagId },
+                    data: { 'bigtag': bigtag },
                     success: function(data) {
                         var smallTagSelect = $('#smallTag');
                         smallTagSelect.empty();
                         smallTagSelect.append('<option value="">請選擇項目</option>');
                         $.each(data.smallTags, function(index, value) {
-                            smallTagSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                            smallTagSelect.append('<option value="' + value.name + '">' + value.name + '</option>');
                         });
-                        smallTagSelect.val('{{ smallTagId }}'); // Restore previous selection
+                        smallTagSelect.val('{{ smallTag }}'); 
                     }
                 });
             });
 
             $('#smallTag').change(function() {
-                var smallTagId = $(this).val();
+                var smallTag = $(this).val();
                 $.ajax({
                     url: '{% url "main:getProducts" %}',  
-                    data: { 'smallId': smallTagId },
+                    data: { 'smallTag': smallTag },
                     success: function(data) {
                         var productSelect = $('#product');
                         productSelect.empty();
@@ -106,11 +106,11 @@
                 });
             });
 
-            var selectedBigTag = "{{ bigTagId }}";
+            var selectedBigTag = "{{ bigTag }}";
             if (selectedBigTag) {
                 $('#bigTag').val(selectedBigTag).change();
             }
-            var selectedSmallTag = "{{ smallTagId }}";
+            var selectedSmallTag = "{{ smallTag }}";
             if (selectedSmallTag) {
                 $('#smallTag').val(selectedSmallTag).change();
             }

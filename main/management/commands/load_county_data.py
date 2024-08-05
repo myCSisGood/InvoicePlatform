@@ -11,8 +11,7 @@ class Command(BaseCommand):
         path = os.path.join(os.path.dirname(__file__), 'TW.csv')
         if not os.path.exists(path):
             raise CommandError(f'File "{path}" does not exist')
-
-        with open(path, mode='r', encoding='utf-8') as file:
+        with open(path, mode='r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             headers = next(reader)
             for header in headers:
