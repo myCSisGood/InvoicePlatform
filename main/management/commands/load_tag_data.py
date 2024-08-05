@@ -28,7 +28,7 @@ class Command(BaseCommand):
                             )
                         else:
                             self.stdout.write(
-                                self.style.SUCCESS(f'SmallTag "{smallTag.name}" in "{smallTag.name}" already exists')
+                                self.style.SUCCESS(f'SmallTag "{smallTag.name}" in "{bigTag.name}" already exists')
                             )
 
         self.stdout.write(self.style.SUCCESS('Data successfully loaded'))

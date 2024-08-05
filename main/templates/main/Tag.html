@@ -19,7 +19,7 @@
                     <select id="bigTag" name="bigTag" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="">請選擇分類</option>
                         {% for tag in bigTags %}
-                            <option value="{{ tag.name}}" {% if bigTag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+                            <option value="{{tag}}" >{{ tag }}</option>
                         {% endfor %}
                     </select>
                 </div>
