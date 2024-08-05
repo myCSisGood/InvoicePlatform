@@ -6,22 +6,22 @@
         <div class="bg-white p-5 rounded shadow border border-gray-300">
             <h2 class="text-2xl font-semibold mb-4">請選擇時間和通路</h2>
             {% if pictureType == 1 %}
-            <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
+            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
             {% elif pictureType == 3 %}
-            <form method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
+            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
             {% elif pictureType == 4 %}
-            <form method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
+            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
             {% endif %}
             
                 {% csrf_token %}
                 <div class="flex justify-between mb-4">
                     <div class="w-1/2 pr-2">
                         <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ startTime }}">
                     </div>
                     <div class="w-1/2 pl-2">
                         <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ endTime }}">
                     </div>
                 </div>
 
@@ -29,18 +29,22 @@
                     <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
                     <input type="text" id="pathFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋通路...">
                     <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" selected></option>
+                        <option value="" disabled selected>請選擇通路</option>
                         {% for store in stores %}
-                        <option value="{{ store }}" >{{ store }}</option>
+                        <option value="{{ store }}" {% if store == storeName %}selected{% endif %}>{{ store }}</option>
                         {% endfor %}
                     </select>
-                    
                 </div>
+                {% if errorMessage %}
+                <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
+                {% else %}
+                <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">開始時間必須早於結束時間</div>
+                {% endif %}
                 <div class="flex justify-between">
                     <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
                         <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
                     </button>
-                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
+                    <button type="submit" id="nextButton" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
                         <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
                     </button>
                 </div>
@@ -58,21 +62,48 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            flatpickr(".datetimepicker", {
+            var startPicker = flatpickr("#start_time", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
                     shorthand: true, 
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
+                onValueUpdate: function(selectedDates, dateStr, instance) {
+                    endPicker.set('minDate', dateStr);
+                }
             });
-        });
-        $('#pathFilter').on('input', function() {
+
+            var endPicker = flatpickr("#end_time", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true, 
+                    dateFormat: "Y-m", 
+                    altFormat: "F Y", 
+                })],
+                onValueUpdate: function(selectedDates, dateStr, instance) {
+                    startPicker.set('maxDate', dateStr);
+                }
+            });
+
+            $('#pathFilter').on('input', function() {
                 var filterValue = $(this).val().toLowerCase();
-                $('#path option').each(function() {
+                $('#store option').each(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(filterValue) > -1);
                 });
             });
+
+            $('#pathAndTimeForm').submit(function(event) {
+                var startTime = $('#start_time').val();
+                var endTime = $('#end_time').val();
+                if (new Date(startTime) >= new Date(endTime)) {
+                    $('#errorMessage').text('開始時間必須早於結束時間').show();
+                    event.preventDefault();
+                } else {
+                    $('#errorMessage').hide();
+                }
+            });
+        });
     </script>
 </body>
 {% endblock %}

@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.utils.dateparse import parse_date
 from .forms import UploadFileForm
 from .models import UploadedFile
 from .Bert.test import BertModel
@@ -87,28 +88,29 @@ def getDistrict(request):
 def _selectArea(request, pictureType):
     counties = County.objects.all()
     selectedCounty = request.session.get('selectedCounty', '')
-    # selectedDistrict = request.session.get('selectedDistrict', '')
+    errorMessage = ""
 
     if request.method == 'POST':
         county = request.POST.get('county')
-        request.session['selectedCounty'] = county
-        if pictureType == BUY_WITH:
-            return redirect('/draw_buy_with/?step=select_path_time')
-        elif pictureType == PRODUCT_IN_PATH:
-            return redirect('/draw_product_in_path/?step=select_time')
-        elif pictureType == RFM:
-            return redirect('/rfm/?step=select_path_time')
-        elif pictureType == RFM_WITH_PRODUCT:
-            return redirect('/rfm_with_product/?step=select_path_time')
+        if not county:
+            errorMessage = "請選擇縣/市"
+        else:
+            request.session['selectedCounty'] = county
+            if pictureType == BUY_WITH:
+                return redirect('/draw_buy_with/?step=select_path_time')
+            elif pictureType == PRODUCT_IN_PATH:
+                return redirect('/draw_product_in_path/?step=select_time')
+            elif pictureType == RFM:
+                return redirect('/rfm/?step=select_path_time')
+            elif pictureType == RFM_WITH_PRODUCT:
+                return redirect('/rfm_with_product/?step=select_path_time')
 
     return render(
-        request,
-        'Area.html',
-        {
+        request, 'Area.html', {
             'counties': counties,
             'selectedCounty': selectedCounty,
-            # 'selectedDistrict': selectedDistrict,
-            'pictureType': pictureType
+            'pictureType': pictureType,
+            'errorMessage': errorMessage
         }
     )
 
@@ -165,8 +167,6 @@ def _filterBigTags(request):
     ###暫時反向尋找，之後建立大標籤之欄位###
     bigTags = ItemSmallTag.objects.filter(name__in=smallTags).values_list('bigTag__name', flat=True).distinct()
     bigTagsList = list(bigTags)
-    for b in bigTags:
-        print(b)
     return bigTagsList
 
 
@@ -175,10 +175,11 @@ def _selectPathAndTime(request, pictureType):
     districtName = request.session.get('districtName', '')
     stores = _filterStores(countyName)
 
-    # stores = Store.objects.all()
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    selectedStore = request.session.get('store', '')
+    storeName = request.session.get('store', '')
+    errorMessage = request.GET.get('error_message', '')
+    print(errorMessage)
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
@@ -186,20 +187,29 @@ def _selectPathAndTime(request, pictureType):
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
         request.session['store'] = storeName
-        if pictureType == BUY_WITH:
-            return redirect('/draw_buy_with/?step=select_tag')
-        elif pictureType == PRODUCT_IN_PATH:
-            return redirect('/draw_product_in_path/?step=select_tag')
-        elif pictureType == RFM:
-            return redirect('/rfm/?step=display_picture')
-        elif pictureType == RFM_WITH_PRODUCT:
-            return redirect('/rfm_with_product/?step=select_tag')
+
+        startDate = parse_date(startTime)
+        endDate = parse_date(endTime)
+
+        if startDate and endDate and startDate >= endDate:
+            errorMessage = "開始時間必須早於結束時間"
+        else:
+            if pictureType == BUY_WITH:
+                return redirect('/draw_buy_with/?step=select_tag')
+            elif pictureType == PRODUCT_IN_PATH:
+                return redirect('/draw_product_in_path/?step=select_tag')
+            elif pictureType == RFM:
+                return redirect('/rfm/?step=display_picture')
+            elif pictureType == RFM_WITH_PRODUCT:
+                return redirect('/rfm_with_product/?step=select_tag')
+
     if pictureType == PRODUCT_IN_PATH:
         return render(
             request, 'Time.html', {
                 'stores': stores,
                 'startTime': selectedStartTime,
                 'endTime': selectedEndTime,
+                'errorMessage': errorMessage,
             }
         )
     else:
@@ -209,6 +219,7 @@ def _selectPathAndTime(request, pictureType):
                 'startTime': selectedStartTime,
                 'endTime': selectedEndTime,
                 'pictureType': pictureType,
+                'errorMessage': errorMessage,
             }
         )
 
@@ -217,6 +228,9 @@ def _selectTag(request, pictureType):
     bigTags = _filterBigTags(request)
     selectedBigTag = request.session.get('bigTag', '')
     selectedSmallTag = request.session.get('smallTag', '')
+
+    if not bigTags:
+        return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
 
     if request.method == 'POST':
         bigTag = request.POST.get('bigTag')
@@ -248,9 +262,13 @@ def _displayPic(request, displayType, pictureType):
     smallTag = request.session.get('smallTag', '')
     districts = District.objects.filter(county__name=countyName) if countyName else []
 
-    # paths = Path.objects.all() # Replace with actual logic to fetch paths if needed
     relationship, articulationPoint, communities = _drawPic(
-        countyName, districtName, smallTag, startTime, endTime, store
+        countyName,
+        smallTag,
+        startTime,
+        endTime,
+        store,
+        districtName,
     )
     stores = _filterStores(districtName)
     if request.method == 'POST':
@@ -273,16 +291,13 @@ def _displayPic(request, displayType, pictureType):
             request, 'Display.html', {
                 'startTime': startTime,
                 'endTime': endTime,
-                'counties': counties,
                 'districts': districts,
-                'selectedCounty': countyId,
-                'selectedDistrict': districtId,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
                 'stores': stores,
-                'picture_regular': relationship,
-                'picture_articulation': articulationPoint,
-                'picture_community': communities,
+                'relationship': relationship,
+                'articulationPoint': articulationPoint,
+                'communities': communities,
             }
         )
     else:
@@ -290,11 +305,9 @@ def _displayPic(request, displayType, pictureType):
             request, 'ProductInPath.html', {
                 'startTime': startTime,
                 'endTime': endTime,
-                'counties': counties,
                 'districts': districts,
                 'stores': stores,
-                'selectedCounty': countyId,
-                'selectedDistrict': districtId,
+                'selectedCounty': countyName,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'picture': graphHtml,
             }
@@ -324,6 +337,7 @@ def drawBuyWith(request):
     step = request.GET.get('step', 'select_area')
     pictureType = BUY_WITH
     if step == 'select_area':
+        request.session.clear()
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':

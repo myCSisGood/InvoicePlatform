@@ -33,15 +33,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
             <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
                 <div class="flex justify-center mt-4 flex-grow overflow-auto">
-                    <div id="picture1">
-                        {{ picture_regular|safe }}
-                    </div>
-                    <div id="picture2" class="hidden">
-                        {{ picture_articulation|safe }}
-                    </div>
-                    <div id="picture3" class="hidden">
-                        {{ picture_community|safe }}
-                    </div>
+                    <iframe id="picture"></iframe>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
                     <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
@@ -70,7 +62,7 @@
                     <div>
                         <label for="district" class="block text-lg font-medium text-gray-700">地區</label>
                         <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">請選擇地區</option>
+                            <option value="">請選擇行政區</option>
                             {% for district in districts %}
                                 <option value="{{ district.id }}" {% if district.id == selectedDistrict %}selected{% endif %}>{{ district.name }}</option>
                             {% endfor %}
@@ -153,23 +145,6 @@
                 })],
             });
 
-            $('#county').change(function() {
-                var countyId = $(this).val();
-                $.ajax({
-                    url: "{% url 'main:getDistrict' %}",
-                    data: {
-                        'countyId': countyId
-                    },
-                    success: function(data) {
-                        var districtSelect = $('#district');
-                        districtSelect.empty();
-                        districtSelect.append('<option value="">請選擇行政區</option>');
-                        $.each(data.districts, function(index, value) {
-                            districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                    },
-                });
-            });
 
             $('#infoButton').click(function() {
                 var displayType = "{{ displayType }}";
@@ -180,33 +155,4 @@
                     },
                     success: function(data) {
                         $('#infoContent').html(data.content);
-                        $('#infoModal').removeClass('hidden');
-                    }
-                });
-            });
-
-            $('#closeModal').click(function() {
-                $('#infoModal').addClass('hidden');
-            });
-
-            $('#showRegular').click(function() {
-                $('#picture1').show();
-                $('#picture2').hide();
-                $('#picture3').hide();
-            });
-
-            $('#showArticulation').click(function() {
-                $('#picture1').hide();
-                $('#picture2').show();
-                $('#picture3').hide();
-            });
-
-            $('#showCommunity').click(function() {
-                $('#picture1').hide();
-                $('#picture2').hide();
-                $('#picture3').show();
-            });
-        });
-    </script>
-</body>
-{% endblock %}
+                        $('#infoModal').removeCla

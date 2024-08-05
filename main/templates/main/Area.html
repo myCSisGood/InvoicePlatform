@@ -6,13 +6,13 @@
         <div class="bg-white p-5 rounded shadow">
             <h2 class="text-2xl font-semibold mb-4">選擇地區</h2>
             {% if pictureType == 1 %}
-            <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area">
+            <form id="areaForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area">
             {% elif pictureType == 2 %}
-            <form method="POST" action="{% url 'main:drawPath' %}?step=select_area">
+            <form id="areaForm" method="POST" action="{% url 'main:drawPath' %}?step=select_area">
             {% elif pictureType == 3 %}
-            <form method="POST" action="{% url 'main:drawRFM' %}?step=select_area">
+            <form id="areaForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_area">
             {% elif pictureType == 4 %}
-            <form method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_area">
+            <form id="areaForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_area">
             {% endif %}
                 {% csrf_token %}
                 <div class="mb-4">
@@ -24,52 +24,40 @@
                         {% endfor %}
                     </select>
                 </div>
-                {% comment %}
-                <div class="mb-4">
-                    <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
-                    <select id="district" name="district" style="max-height: 150px; overflow-y: auto;" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">請選擇行政區</option>
-                    </select>
-                </div>
-                {% endcomment %}
+                <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">請選擇縣/市</div>
                 <div class="flex justify-between">
                     <button type="button" onclick="location.href='{% url 'main:getMainpage' %}'" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
                         <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back to Home
                     </button>
-                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
+                    <button type="submit" id="nextButton" class="px-2 py-1 bg-blue-500 text-white rounded flex items-center text-sm" disabled>
                         <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
                     </button>
                 </div>
-                
-                
-                
             </form>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {% comment %}
     <script>
         $(document).ready(function() {
             $('#county').change(function() {
-                var countyId = $(this).val();
-                $.ajax({
-                    url: "{% url 'main:getDistrict' %}",
-                    data: {
-                        'countyId': countyId
-                    },
-                    success: function(data) {
-                        var districtSelect = $('#district');
-                        districtSelect.empty();
-                        districtSelect.append('<option value="">請選擇行政區</option>');
-                        $.each(data.districts, function(index, value) {
-                            districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                    },
-                });
+                var county = $(this).val();
+                if (county === "") {
+                    $('#nextButton').prop('disabled', true).addClass('bg-blue-200').removeClass('bg-blue-500');
+                    $('#errorMessage').show();
+                } else {
+                    $('#nextButton').prop('disabled', false).addClass('bg-blue-500').removeClass('bg-blue-200');
+                    $('#errorMessage').hide();
+                }
             });
         });
     </script>
-    {% endcomment %}
 </body>
+<style>
+    #nextButton:disabled {
+        background-color: #bfdbfe; /* Lighter blue color */
+        cursor: not-allowed;
+    }
+</style>
+
 {% endblock %}
