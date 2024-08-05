@@ -2,7 +2,6 @@
 
 {% block main %}
 <body class="bg-gray-50 h-screen">
-
     <div class="container mx-auto py-4 h-full flex flex-col">
         <div class="flex items-center mb-4">
             <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
@@ -34,10 +33,18 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
             <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
                 <div class="flex justify-center mt-4 flex-grow overflow-auto">
-                    {{picture|safe}}
+                    <div id="picture1">
+                        {{ picture_regular|safe }}
+                    </div>
+                    <div id="picture2" class="hidden">
+                        {{ picture_articulation|safe }}
+                    </div>
+                    <div id="picture3" class="hidden">
+                        {{ picture_community|safe }}
+                    </div>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <a href="{% url 'main:displayOvertime'}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
+                    <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
                         Overtime
                     </a>
                     <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
@@ -55,7 +62,7 @@
                         <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="" selected></option>
                             {% for store in stores %}
-                            <option value="{{ store }}" >{{ store }}</option>
+                            <option value="{{ store }}">{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -81,7 +88,7 @@
                     </div>
 
                     <div class="flex justify-between">
-                        <a href="{% url 'main:drawBuyWith' %}?select_area"  class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
+                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
                             Draw Another Picture
                         </a>
                         <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
@@ -89,55 +96,32 @@
                         </button>
                     </div>
                 </form>
-                {% comment %}
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4 text-right">
-                    {% csrf_token %}
-                {% endcomment %}
-                
-                    <div>
-                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
-                        <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">Deeper Insight</option>
-                            {% for option in options %}
-                                <option value="{{ option.id }}">{{ option.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <a href="{% url 'main:getDeeperInsight' %}" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
-                        Go
-                    </a>
-                    
-                {% comment %}
-                </form>
-                {% endcomment %}
+
+                <div>
+                    <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
+                    <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Deeper Insight</option>
+                        {% for option in options %}
+                            <option value="{{ option.id }}">{{ option.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <a href="{% url 'main:getDeeperInsight' %}" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                    Go
+                </a>
             </div>
         </div>
 
         <div class="flex justify-between mt-4">
-            {% if displayType == "Regular" %}
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Community" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Show with Community
-                </a>
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Articulation Points" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Articulation Points
-                </a>
-                
-            {% elif displayType == "Articulation Points" %}
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Regular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Show with Regular
-                </a>
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Comunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Comunity
-                </a>
-            {% else %}
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Articulation Points" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Show with Articulation Points
-                </a>
-                <a href="{% url 'main:drawBuyWith' %}?step=display_picture&displayType=Regular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                    <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Show with Regular
-                </a>
-
-            {% endif %}
+            <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Regular
+            </button>
+            <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Articulation Points
+            </button>
+            <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Community
+            </button>
         </div>
     </div>
 
@@ -203,6 +187,24 @@
 
             $('#closeModal').click(function() {
                 $('#infoModal').addClass('hidden');
+            });
+
+            $('#showRegular').click(function() {
+                $('#picture1').show();
+                $('#picture2').hide();
+                $('#picture3').hide();
+            });
+
+            $('#showArticulation').click(function() {
+                $('#picture1').hide();
+                $('#picture2').show();
+                $('#picture3').hide();
+            });
+
+            $('#showCommunity').click(function() {
+                $('#picture1').hide();
+                $('#picture2').hide();
+                $('#picture3').show();
             });
         });
     </script>

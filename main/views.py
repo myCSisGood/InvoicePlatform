@@ -4,12 +4,12 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from .forms import UploadFileForm
 from .models import UploadedFile
-from .bert.test import BertModel
+from .Bert.test import BertModel
 from .models import County, District, ItemBigTag, ItemSmallTag
 from django.http import JsonResponse
 import io
 import pandas as pd
-from .graph.networks import ProductNetwork
+from .Graph.networks import ProductNetwork
 import networks
 import psycopg2
 from django.db import connection
@@ -58,47 +58,40 @@ def getMainpage(request):
 
 
 def getSmallTags(request):
-    bigId = request.GET.get('bigId')
-    smallTags = ItemSmallTag.objects.filter(bigTag_id=bigId)
+    bigtag = request.GET.get('bigtag')
+    smallTags = ItemSmallTag.objects.filter(bigTag__name=bigtag)
     smallTagList = list(smallTags.values('id', 'name'))
     return JsonResponse({'smallTags': smallTagList})
 
 
     ###directly select smallTag and Product?
 def getProducts(request):
-    smallId = request.GET.get('smallId')
-    smallTagName = ItemSmallTag.objects.get(id=smallId).name
+    smallTag = request.GET.get('smallTag')
     with connection.cursor() as cursor:
-        cursor.execute("SELECT DISTINCT item_name FROM test WHERE item_tag = %s", [smallTagName])
+        cursor.execute("SELECT DISTINCT item_name FROM test WHERE item_tag = %s", [smallTag])
         rows = cursor.fetchall()
-    product = [row[0] for row in rows]
-    return JsonResponse({'products': product})
+    products = [row[0] for row in rows]
+    for p in products:
+        print(p)
+    return JsonResponse({'products': products})
 
 
+###行政區太多會往上跑的問題待修正###
 def getDistrict(request):
     countyId = request.GET.get('countyId')
     districts = District.objects.filter(county_id=countyId)
     districtList = list(districts.values('id', 'name'))
     return JsonResponse({'districts': districtList})
-    ###行政區太多會往上跑的問題待修正
 
 
 def _selectArea(request, pictureType):
     counties = County.objects.all()
     selectedCounty = request.session.get('selectedCounty', '')
-    selectedDistrict = request.session.get('selectedDistrict', '')
+    # selectedDistrict = request.session.get('selectedDistrict', '')
 
     if request.method == 'POST':
-        countyId = request.POST.get('county')
-        districtId = request.POST.get('district')
-        # request.session['selectedCounty'] = countyId
-        # request.session['selectedDistrict'] = districtId
-        districtName = District.objects.get(id=districtId).name
-        countyName = County.objects.get(id=countyId).name
-        request.session['countyName'] = countyName
-        request.session['districtName'] = districtName
-        request.session['selectedCounty'] = countyId
-        request.session['selectedDistrict'] = districtId
+        county = request.POST.get('county')
+        request.session['selectedCounty'] = county
         if pictureType == BUY_WITH:
             return redirect('/draw_buy_with/?step=select_path_time')
         elif pictureType == PRODUCT_IN_PATH:
@@ -109,35 +102,86 @@ def _selectArea(request, pictureType):
             return redirect('/rfm_with_product/?step=select_path_time')
 
     return render(
-        request, 'Area.html', {
+        request,
+        'Area.html',
+        {
             'counties': counties,
             'selectedCounty': selectedCounty,
-            'selectedDistrict': selectedDistrict,
+            # 'selectedDistrict': selectedDistrict,
             'pictureType': pictureType
         }
     )
 
 
-#after choosing the district narrow down the stores
-def _filterStores(districtName):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT DISTINCT store_brand_name FROM test WHERE city_area = %s", [districtName])
-        rows = cursor.fetchall()
-
+###這邊會改成有分類的前幾+交易量前幾###
+def _filterStores(countyName, districtName=None):
+    print(countyName)
+    if districtName:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT DISTINCT store_brand_name FROM test WHERE county = %s AND city_area = %s",
+                [countyName, districtName]
+            )
+            rows = cursor.fetchall()
+    else:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT store_brand_name FROM test WHERE county = %s", [countyName])
+            rows = cursor.fetchall()
     storeBrands = [row[0] for row in rows]
+
     return storeBrands
 
 
-def _selectPathAndTime(request, pictureType):
-
+def _filterBigTags(request):
+    countyName = request.session.get('selectedCounty', '')
     districtName = request.session.get('districtName', '')
-    stores = _filterStores(districtName)
+    selectedStartTime = request.session.get('startTime', '')
+    selectedEndTime = request.session.get('endTime', '')
+    selectedStore = request.session.get('store', '')
+    print(districtName)
+    query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
+    params = [countyName]
+
+    if districtName:
+        query += " AND city_area = %s"
+        params.append(districtName)
+
+    if selectedStartTime:
+        query += " AND datetime >= %s"
+        params.append(selectedStartTime)
+
+    if selectedEndTime:
+        query += " AND datetime <= %s"
+        params.append(selectedEndTime)
+
+    if selectedStore:
+        query += " AND store_brand_name = %s"
+        params.append(selectedStore)
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+
+    smallTags = [row[0] for row in rows]
+    bigTags = set()
+    ###暫時反向尋找，之後建立大標籤之欄位###
+    for tag in smallTags:
+        smallTag = ItemSmallTag.objects.get(name=tag)
+        bigTags.add(smallTag.bigTag.name)
+
+    bigTags = list(bigTags)
+    return bigTags
+
+
+def _selectPathAndTime(request, pictureType):
+    countyName = request.session.get('selectedCounty', '')
+    districtName = request.session.get('districtName', '')
+    stores = _filterStores(countyName)
 
     # stores = Store.objects.all()
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    # selected_store_id = request.session.get('storeId', '')
-
+    selectedStore = request.session.get('store', '')
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
@@ -173,17 +217,15 @@ def _selectPathAndTime(request, pictureType):
 
 
 def _selectTag(request, pictureType):
-    bigTags = ItemBigTag.objects.all()
-    selectedBigTag = request.session.get('bigTagId', '')
-    selectedSmallTag = request.session.get('smallTagId', '')
+    bigTags = _filterBigTags(request)
+    selectedBigTag = request.session.get('bigTag', '')
+    selectedSmallTag = request.session.get('smallTag', '')
 
     if request.method == 'POST':
-        bigTagId = request.POST.get('bigTag')
-        smallTagId = request.POST.get('smallTag')
-        bigTagName = ItemBigTag.objects.get(id=bigTagId).name
-        smallTagName = ItemSmallTag.objects.get(id=smallTagId).name
-        request.session['bigTagName'] = bigTagName
-        request.session['smallTagName'] = smallTagName
+        bigTag = request.POST.get('bigTag')
+        smallTag = request.POST.get('smallTag')
+        request.session['bigTag'] = bigTag
+        request.session['smallTag'] = smallTag
         if pictureType == BUY_WITH:
             return redirect('/draw_buy_with/?step=display_picture')
         elif pictureType == PRODUCT_IN_PATH:
@@ -203,17 +245,16 @@ def _selectTag(request, pictureType):
 def _displayPic(request, displayType, pictureType):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
-    countyId = request.session.get('selectedCounty', '')
-    districtId = request.session.get('selectedDistrict', '')
-    countyName = request.session.get('countyName', '')
-    districtName = request.session.get('districtName', '')
+    countyName = request.session.get('selectedCounty', '')
+    districtName = request.session.get('selectedDistrict', '')
     store = request.session.get('store', '')
-    smallTagName = request.session.get('smallTagName', '')
-    counties = County.objects.all()
-    districts = District.objects.filter(county_id=countyId) if countyId else []
+    smallTag = request.session.get('smallTag', '')
+    districts = District.objects.filter(county__name=countyName) if countyName else []
 
     # paths = Path.objects.all() # Replace with actual logic to fetch paths if needed
-    graphHtml = _drawPic(countyName, districtName, smallTagName, startTime, endTime, store)
+    relationship, articulationPoint, communities = _drawPic(
+        countyName, districtName, smallTag, startTime, endTime, store
+    )
     stores = _filterStores(districtName)
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
@@ -242,7 +283,9 @@ def _displayPic(request, displayType, pictureType):
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
                 'stores': stores,
-                'picture': graphHtml,
+                'picture_regular': relationship,
+                'picture_articulation': articulationPoint,
+                'picture_community': communities,
             }
         )
     else:
@@ -261,20 +304,22 @@ def _displayPic(request, displayType, pictureType):
         )
 
 
-def _drawPic(countyName, districtName, item_tag, startTime, endTime, store):
-    conn = psycopg2.connect(database="mydatabase", user="postgres", password="0000", host="127.0.0.1", port="5432")
-    cur = conn.cursor()
-    network = ProductNetwork(cur)
+def _drawPic(countyName, smallTag, startTime, endTime, store=None, districtName=None):
+
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
     network.query(
         county=countyName,
         city_area=districtName,
-        item_tag=item_tag,
-        datatime_lower_bound=startTime,
-        datatime_upper_bound=endTime,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
         store_brand_name=store
     )
-    result = network.execute()
-    return result
+    network.execute_query()
+    network.analysis(limits=100)
+    network.create_network()
+    relationship, articulationPoint, communities = network.vis_all_graph()
+    return relationship, articulationPoint, communities
 
 
 def drawBuyWith(request):
