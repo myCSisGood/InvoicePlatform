@@ -31,7 +31,7 @@
                     <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="" disabled selected>請選擇通路</option>
                         {% for store in stores %}
-                        <option value="{{ store }}" {% if store == storeName %}selected{% endif %}>{{ store }}</option>
+                        <option value="{{ store }}">{{ store }}</option>
                         {% endfor %}
                     </select>
                 </div>

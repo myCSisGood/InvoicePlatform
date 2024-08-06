@@ -72,15 +72,13 @@ def getProducts(request):
         cursor.execute("SELECT DISTINCT item_name FROM test WHERE item_tag = %s", [smallTag])
         rows = cursor.fetchall()
     products = [row[0] for row in rows]
-    for p in products:
-        print(p)
     return JsonResponse({'products': products})
 
 
 ###行政區太多會往上跑的問題待修正###
 def getDistrict(request):
-    countyId = request.GET.get('countyId')
-    districts = District.objects.filter(county_id=countyId)
+    county = request.GET.get('county')
+    districts = District.objects.filter(county__name=county)
     districtList = list(districts.values('id', 'name'))
     return JsonResponse({'districts': districtList})
 
@@ -133,13 +131,20 @@ def _filterStores(countyName, districtName=None):
     return storeBrands
 
 
+def _filterDistrict(countyName):
+    if countyName:
+        districtList = District.objects.filter(county__name=countyName).values_list('name', flat=True)
+        return list(districtList)
+    return []
+
+
 def _filterBigTags(request):
     countyName = request.session.get('selectedCounty', '')
     districtName = request.session.get('districtName', '')
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
     selectedStore = request.session.get('store', '')
-    print(districtName)
+
     query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
     params = [countyName]
 
@@ -179,7 +184,7 @@ def _selectPathAndTime(request, pictureType):
     selectedEndTime = request.session.get('endTime', '')
     storeName = request.session.get('store', '')
     errorMessage = request.GET.get('error_message', '')
-    print(errorMessage)
+
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
@@ -228,27 +233,37 @@ def _selectTag(request, pictureType):
     bigTags = _filterBigTags(request)
     selectedBigTag = request.session.get('bigTag', '')
     selectedSmallTag = request.session.get('smallTag', '')
-
+    selectedProduct = request.session.get('product', '')
     if not bigTags:
         return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
 
     if request.method == 'POST':
         bigTag = request.POST.get('bigTag')
         smallTag = request.POST.get('smallTag')
+        product = request.POST.get('product')
         request.session['bigTag'] = bigTag
         request.session['smallTag'] = smallTag
+        request.session['product'] = product
+        if not smallTag:
+            errorMessage = '請選擇子分類'
+            return redirect(f'/draw_buy_with/?step=select_tag&error_message={errorMessage}')
+
         if pictureType == BUY_WITH:
             return redirect('/draw_buy_with/?step=display_picture')
         elif pictureType == PRODUCT_IN_PATH:
             return redirect('/draw_product_in_path/?step=display_picture')
         elif pictureType == RFM_WITH_PRODUCT:
             return redirect('/rfm_with_product/?step=display_picture')
+
+    errorMessage = request.GET.get('errorMessage', '')
     return render(
         request, 'Tag.html', {
             'bigTags': bigTags,
-            'bigTagId': selectedBigTag,
-            'smallTagId': selectedSmallTag,
-            'pictureType': BUY_WITH
+            'bigTag': selectedBigTag,
+            'smallTag': selectedSmallTag,
+            'product': selectedProduct,
+            'pictureType': BUY_WITH,
+            'errorMessage': errorMessage
         }
     )
 
@@ -257,32 +272,36 @@ def _displayPic(request, displayType, pictureType):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
     countyName = request.session.get('selectedCounty', '')
-    districtName = request.session.get('selectedDistrict', '')
+
+    districtName = request.session.get('selectedDistrict', '') # narrow down 才有
     store = request.session.get('store', '')
     smallTag = request.session.get('smallTag', '')
-    districts = District.objects.filter(county__name=countyName) if countyName else []
+    product = request.session.get('product', '')
+
+    districtList = _filterDistrict(countyName)
 
     relationship, articulationPoint, communities = _drawPic(
         countyName,
         smallTag,
         startTime,
         endTime,
+        product,
         store,
-        districtName,
+        districtName, #narrow down
     )
     stores = _filterStores(districtName)
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
-        districtId = request.POST.get('district')
+        # districtId = request.POST.get('district')
         store = request.POST.get('store')
 
-        districtName = District.objects.get(id=districtId).name
+        # districtName = District.objects.get(id=districtId).name
 
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
-        request.session['selectedDistrict'] = districtId
-        request.session['districtName'] = districtName
+        # request.session['selectedDistrict'] = districtId
+        # request.session['districtName'] = districtName
         request.session['store'] = store
         # request.session['selectedPath'] = pathId
 
@@ -291,7 +310,7 @@ def _displayPic(request, displayType, pictureType):
             request, 'Display.html', {
                 'startTime': startTime,
                 'endTime': endTime,
-                'districts': districts,
+                'districtList': districtList,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
                 'stores': stores,
@@ -305,7 +324,7 @@ def _displayPic(request, displayType, pictureType):
             request, 'ProductInPath.html', {
                 'startTime': startTime,
                 'endTime': endTime,
-                'districts': districts,
+                'districtList': districtList,
                 'stores': stores,
                 'selectedCounty': countyName,
                 'selectedPath': request.session.get('selectedPath', ''),
@@ -314,7 +333,7 @@ def _displayPic(request, displayType, pictureType):
         )
 
 
-def _drawPic(countyName, smallTag, startTime, endTime, store=None, districtName=None):
+def _drawPic(countyName, smallTag, startTime, endTime, product, store, districtName):
 
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
     network.query(
@@ -323,7 +342,8 @@ def _drawPic(countyName, smallTag, startTime, endTime, store=None, districtName=
         item_tag=smallTag,
         datetime_lower_bound=startTime,
         datetime_upper_bound=endTime,
-        store_brand_name=store
+        store_brand_name=store,
+        item_name=product
     )
     network.execute_query()
     network.analysis(limits=100)

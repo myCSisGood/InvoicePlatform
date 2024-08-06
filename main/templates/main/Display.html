@@ -32,8 +32,8 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
             <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
-                <div class="flex justify-center mt-4 flex-grow overflow-auto">
-                    <iframe id="picture"></iframe>
+                <div class="flex justify-center mt-2 mb-2 flex-grow overflow-auto">
+                    <iframe id="picture" class="w-full h-full border-none"></iframe>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
                     <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
@@ -49,22 +49,22 @@
                 <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
                     {% csrf_token %}
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
+
+                    <div>
+                        <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
+                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">請選擇行政區</option>
+                            {% for district in districtList %}
+                                <option value="{{ district }}">{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div>
                         <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
                         <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="" selected></option>
                             {% for store in stores %}
                             <option value="{{ store }}">{{ store }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="district" class="block text-lg font-medium text-gray-700">地區</label>
-                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">請選擇行政區</option>
-                            {% for district in districts %}
-                                <option value="{{ district.id }}" {% if district.id == selectedDistrict %}selected{% endif %}>{{ district.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -155,4 +155,40 @@
                     },
                     success: function(data) {
                         $('#infoContent').html(data.content);
-                        $('#infoModal').removeCla
+                        $('#infoModal').removeClass('hidden');
+                    }
+                });
+            });
+
+            $('#closeModal').click(function() {
+                $('#infoModal').addClass('hidden');
+            });
+
+            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
+            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
+            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
+
+            updateIframeContent(relationship);
+            
+            $('#showRegular').click(function() {
+                updateIframeContent(relationship);
+            });
+
+            $('#showArticulation').click(function() {
+                updateIframeContent(articulation);
+            });
+
+            $('#showCommunity').click(function() {
+                updateIframeContent(communities);
+            });
+
+            function updateIframeContent(content) {
+                const frame = document.getElementById('picture');
+                frame.contentDocument.open();
+                frame.contentDocument.write(content);
+                frame.contentDocument.close();
+            }
+        });
+    </script>
+</body>
+{% endblock %}
