@@ -1,0 +1,209 @@
+{% extends "Mainpage.html" %}
+
+{% block main %}
+<body class="bg-gray-50 h-screen">
+    <div class="container mx-auto py-4 h-full flex flex-col">
+        <div class="flex items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
+            <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
+                <ion-icon name="help-circle-outline" size="medium"></ion-icon>
+            </button>
+        </div>
+
+        <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                    <div class="absolute top-0 right-0 pt-4 pr-4">
+                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <span class="sr-only">Close</span>
+                            <ion-icon name="close-outline" size="medium"></ion-icon>
+                        </button>
+                    </div>
+                    <div id="infoContent" class="mt-3 text-center sm:mt-5">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
+            <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
+                <div class="flex justify-center mt-2 mb-2 flex-grow overflow-auto">
+                    <iframe id="picture" class="w-full h-full border-none"></iframe>
+                </div>
+                <div class="absolute bottom-4 right-4 flex space-x-2">
+                    <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
+                        Overtime
+                    </a>
+                    <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
+                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-4 h-full overflow-auto">
+                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+                    {% csrf_token %}
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
+
+                    <div>
+                        <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
+                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">請選擇行政區</option>
+                            {% for district in districtList %}
+                                <option value="{{ district }}">{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
+                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="" selected></option>
+                            {% for store in stores %}
+                            <option value="{{ store }}">{{ store }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="path" class="block text-lg font-medium text-gray-700">客群</label>
+                        <select id="segment" name="segment" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="Champions">Champions</option>
+                            <option value="Loyal Accounts">Loyal Accounts</option>
+                            <option value="Low Spenders">Low Spenders</option>
+                            <option value="Potential Loyalist">Potential Loyalist</option>
+                            <option value="Promising">Promising</option>
+                            <option value="New Active Accounts">New Active Accounts</option>
+                            <option value="Need Attention">Need Attention</option>
+                            <option value="About to Sleep">About to Sleep</option>
+                            <option value="At Risk">At Risk</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
+                            Draw Another Picture
+                        </a>
+                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+
+                <div>
+                    <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
+                    <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Deeper Insight</option>
+                        {% for option in options %}
+                            <option value="{{ option.id }}">{{ option.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <a href="{% url 'main:getDeeperInsight' %}" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                    Go
+                </a>
+            </div>
+        </div>
+
+        <div class="flex justify-between mt-4">
+            <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Regular
+            </button>
+            <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Articulation Points
+            </button>
+            <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+                Show with Community
+            </button>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            flatpickr("#startTime", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                })],
+            });
+
+            flatpickr("#endTime", {
+                locale: "zh_tw",
+                plugins: [new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                })],
+            });
+
+
+            $('#infoButton').click(function() {
+                var displayType = "{{ displayType }}";
+                $.ajax({
+                    url: "{% url 'main:showInfo' %}",
+                    data: {
+                        'displayType': displayType
+                    },
+                    success: function(data) {
+                        $('#infoContent').html(data.content);
+                        $('#infoModal').removeClass('hidden');
+                    }
+                });
+            });
+
+            $('#closeModal').click(function() {
+                $('#infoModal').addClass('hidden');
+            });
+
+            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
+            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
+            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
+
+            updateIframeContent(relationship);
+            
+            $('#showRegular').click(function() {
+                updateIframeContent(relationship);
+            });
+
+            $('#showArticulation').click(function() {
+                updateIframeContent(articulation);
+            });
+
+            $('#showCommunity').click(function() {
+                updateIframeContent(communities);
+            });
+
+            function updateIframeContent(content) {
+                const frame = document.getElementById('picture');
+                frame.contentDocument.open();
+                frame.contentDocument.write(content);
+                frame.contentDocument.close();
+            }
+        });
+    </script>
+</body>
+{% endblock %}

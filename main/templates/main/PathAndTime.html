@@ -30,9 +30,15 @@
                     <input type="text" id="pathFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋通路...">
                     <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="" disabled selected>請選擇通路</option>
-                        {% for store in stores %}
-                        <option value="{{ store }}">{{ store }}</option>
-                        {% endfor %}
+                        <option value="超市、便利商店">超市、便利商店</option>
+                        <option value="購物中心">購物中心</option>
+                        <option value="餐廳">餐廳</option>
+                        <option value="大眾運輸">大眾運輸</option>
+                        <option value="線上商店">線上商店</option>
+                        <option value="通訊">通訊</option>
+                        <option value="家居用品">家居用品</option>
+                        <option value="美妝保養">美妝保養</option>
+                        <option value="其他">其他</option>
                     </select>
                 </div>
                 {% if errorMessage %}

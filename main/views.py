@@ -14,6 +14,7 @@ from .Graph.networks import ProductNetwork
 import networks
 import psycopg2
 from django.db import connection
+from main import PathList
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -143,7 +144,8 @@ def _filterBigTags(request):
     districtName = request.session.get('districtName', '')
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    selectedStore = request.session.get('store', '')
+    # selectedStore = request.session.get('store', '')
+    storeTypeList = request.session.get('storeTypeList', '')
 
     query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
     params = [countyName]
@@ -160,9 +162,10 @@ def _filterBigTags(request):
         query += " AND datetime < (%s::date + interval '1 month')"
         params.append(f"{selectedEndTime}-01")
 
-    if selectedStore:
-        query += " AND store_brand_name = %s"
-        params.append(selectedStore)
+    if storeTypeList:
+        # 使用 IN 语句匹配列表中的任意值
+        query += " AND store_brand_name IN %s"
+        params.append(tuple(storeTypeList))
 
     with connection.cursor() as cursor:
         cursor.execute(query, params)
@@ -178,20 +181,23 @@ def _filterBigTags(request):
 def _selectPathAndTime(request, pictureType):
     countyName = request.session.get('selectedCounty', '')
     districtName = request.session.get('districtName', '')
-    stores = _filterStores(countyName)
+    # stores = _filterStores(countyName)
 
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    storeName = request.session.get('store', '')
+    storeType = request.session.get('storeType', '')
+    storeTypeList = request.session.get('storeTypeList', '')
     errorMessage = request.GET.get('error_message', '')
 
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
-        storeName = request.POST.get('store')
+        storeType = request.POST.get('store')
+        storeTypeList = PathList.getStoreList(storeType)
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
-        request.session['store'] = storeName
+        request.session['storeType'] = storeType
+        request.session['storeTypeList'] = storeTypeList
 
         startDate = parse_date(startTime)
         endDate = parse_date(endTime)
@@ -210,8 +216,10 @@ def _selectPathAndTime(request, pictureType):
 
     if pictureType == PRODUCT_IN_PATH:
         return render(
-            request, 'Time.html', {
-                'stores': stores,
+            request,
+            'Time.html',
+            {
+                # 'stores': stores,
                 'startTime': selectedStartTime,
                 'endTime': selectedEndTime,
                 'errorMessage': errorMessage,
@@ -219,8 +227,10 @@ def _selectPathAndTime(request, pictureType):
         )
     else:
         return render(
-            request, 'PathAndTime.html', {
-                'stores': stores,
+            request,
+            'PathAndTime.html',
+            {
+                # 'stores': stores,
                 'startTime': selectedStartTime,
                 'endTime': selectedEndTime,
                 'pictureType': pictureType,
@@ -230,12 +240,10 @@ def _selectPathAndTime(request, pictureType):
 
 
 def _selectTag(request, pictureType):
-    bigTags = _filterBigTags(request)
+
     selectedBigTag = request.session.get('bigTag', '')
     selectedSmallTag = request.session.get('smallTag', '')
     selectedProduct = request.session.get('product', '')
-    if not bigTags:
-        return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
 
     if request.method == 'POST':
         bigTag = request.POST.get('bigTag')
@@ -255,6 +263,9 @@ def _selectTag(request, pictureType):
         elif pictureType == RFM_WITH_PRODUCT:
             return redirect('/rfm_with_product/?step=display_picture')
 
+    bigTags = _filterBigTags(request)
+    if not bigTags:
+        return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
     errorMessage = request.GET.get('errorMessage', '')
     return render(
         request, 'Tag.html', {
@@ -262,7 +273,7 @@ def _selectTag(request, pictureType):
             'bigTag': selectedBigTag,
             'smallTag': selectedSmallTag,
             'product': selectedProduct,
-            'pictureType': BUY_WITH,
+            'pictureType': pictureType,
             'errorMessage': errorMessage
         }
     )
@@ -272,13 +283,37 @@ def _displayPic(request, displayType, pictureType):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
     countyName = request.session.get('selectedCounty', '')
+    if pictureType in (RFM_WITH_PRODUCT, RFM):
+        segment = request.session.get('segment', 'Potential Loyalist')
+    else:
+        segment = request.session.get('segment', '')
 
-    districtName = request.session.get('selectedDistrict', '') # narrow down 才有
-    store = request.session.get('store', '')
+    district = request.session.get('selectedDistrict', '') # narrow down 才有
+    storeType = request.session.get('storeType', '')
+    storeTypeList = request.session.get('storeTypeList', '')
     smallTag = request.session.get('smallTag', '')
     product = request.session.get('product', '')
 
     districtList = _filterDistrict(countyName)
+    storesToQuery = storeTypeList
+    # stores = _filterStores(districtName)
+    if request.method == 'POST':
+        startTime = request.POST.get('start_time')
+        endTime = request.POST.get('end_time')
+        district = request.POST.get('district')
+        store = request.POST.get('store')
+        segment = request.POST.get('segment')
+        if store:
+            storesToQuery = store
+        # districtName = District.objects.get(id=districtId).name
+
+        request.session['startTime'] = startTime
+        request.session['endTime'] = endTime
+        request.session['selectedDistrict'] = district
+        # request.session['districtName'] = districtName
+        request.session['store'] = store
+        request.session['segment'] = segment
+        # request.session['selectedPath'] = pathId
 
     relationship, articulationPoint, communities = _drawPic(
         countyName,
@@ -286,24 +321,10 @@ def _displayPic(request, displayType, pictureType):
         startTime,
         endTime,
         product,
-        store,
-        districtName, #narrow down
+        storesToQuery,
+        district, #narrow down
+        segment,
     )
-    stores = _filterStores(districtName)
-    if request.method == 'POST':
-        startTime = request.POST.get('start_time')
-        endTime = request.POST.get('end_time')
-        # districtId = request.POST.get('district')
-        store = request.POST.get('store')
-
-        # districtName = District.objects.get(id=districtId).name
-
-        request.session['startTime'] = startTime
-        request.session['endTime'] = endTime
-        # request.session['selectedDistrict'] = districtId
-        # request.session['districtName'] = districtName
-        request.session['store'] = store
-        # request.session['selectedPath'] = pathId
 
     if pictureType == BUY_WITH:
         return render(
@@ -313,19 +334,34 @@ def _displayPic(request, displayType, pictureType):
                 'districtList': districtList,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
-                'stores': stores,
+                'stores': storeTypeList,
                 'relationship': relationship,
                 'articulationPoint': articulationPoint,
                 'communities': communities,
             }
         )
+    elif pictureType in (RFM, RFM_WITH_PRODUCT):
+        return render(
+            request, 'DisplayRFM.html', {
+                'startTime': startTime,
+                'endTime': endTime,
+                'districtList': districtList,
+                'selectedPath': request.session.get('selectedPath', ''),
+                'displayType': displayType,
+                'stores': storeTypeList,
+                'relationship': relationship,
+                'articulationPoint': articulationPoint,
+                'communities': communities,
+            }
+        )
+
     else:
         return render(
             request, 'ProductInPath.html', {
                 'startTime': startTime,
                 'endTime': endTime,
                 'districtList': districtList,
-                'stores': stores,
+                'stores': storeTypeList,
                 'selectedCounty': countyName,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'picture': graphHtml,
@@ -333,8 +369,17 @@ def _displayPic(request, displayType, pictureType):
         )
 
 
-def _drawPic(countyName, smallTag, startTime, endTime, product, store, districtName):
-
+def _drawPic(
+    countyName,
+    smallTag,
+    startTime=None,
+    endTime=None,
+    product=None,
+    storeTypeList=None,
+    districtName=None,
+    segment=None
+):
+    # api storelist 要改成能接一個list
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
     network.query(
         county=countyName,
@@ -342,11 +387,12 @@ def _drawPic(countyName, smallTag, startTime, endTime, product, store, districtN
         item_tag=smallTag,
         datetime_lower_bound=startTime,
         datetime_upper_bound=endTime,
-        store_brand_name=store,
-        item_name=product
+        store_brand_name=storeTypeList,
+        item_name=product,
+        segment=segment,
     )
-    network.execute_query()
-    network.analysis(limits=100)
+    # network.execute_query()
+    # network.analysis(limits=100)
     network.create_network()
     relationship, articulationPoint, communities = network.vis_all_graph()
     return relationship, articulationPoint, communities
@@ -453,21 +499,26 @@ def getDeeperInsight(request):
 def drawRFM(request):
     step = request.GET.get('step', 'select_area')
     pictureType = RFM
+
+    displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
+        request.session.clear()
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
         return _selectPathAndTime(request, pictureType)
 
     elif step == 'display_picture':
-        return _displayRFM(request)
+        return _displayPic(request, displayType, pictureType)
 
-    return redirect('/rfm/?step=select_area')
+    return redirect('/draw_buy_with/?step=select_area')
 
 
 def drawRFMwithProduct(request):
     step = request.GET.get('step', 'select_area')
     pictureType = RFM_WITH_PRODUCT
+
+    displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
         return _selectArea(request, pictureType)
 
@@ -478,7 +529,7 @@ def drawRFMwithProduct(request):
         return _selectTag(request, pictureType)
 
     elif step == 'display_picture':
-        return _displayRFM(request)
+        return _displayPic(request, displayType, pictureType)
 
     return redirect('/rfm_with_product/?step=select_area')
 
