@@ -89,18 +89,21 @@
                     </div>
                 </form>
 
-                <div>
-                    <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
-                    <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">Deeper Insight</option>
-                        {% for option in options %}
-                            <option value="{{ option.id }}">{{ option.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <a href="{% url 'main:getDeeperInsight' %}" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
-                    Go
-                </a>
+                <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
+                    <div>
+                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
+                        <select id="newOption" name="option" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Deeper Insight</option>
+                            {% for option in options %}
+                                <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                        Go
+                    </button>
+                </form>
+                
             </div>
         </div>
 

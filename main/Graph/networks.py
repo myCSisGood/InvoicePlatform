@@ -408,6 +408,7 @@ class ProductNetwork:
         pass
 
     def get_item_name(self, item_tag):
+        # {self.temp_condition}
         self.cur.execute(
             f"""
                         SELECT 
@@ -418,7 +419,7 @@ class ProductNetwork:
                             test
                         WHERE 
                             item_tag = '{item_tag}'
-                            {self.temp_condition}
+                            
                             
                         GROUP BY 
                             item_name
