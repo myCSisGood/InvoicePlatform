@@ -2,134 +2,121 @@
 
 {% block main %}
 <body class="bg-gray-50 h-screen">
-
-    <div class="container mx-auto py-4 h-full flex flex-col">
-        <div class="flex items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800 mr-2">Path Ranking</h2>
-
-        </div>
-
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
-            <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
-                <div class="flex justify-center mt-4 flex-grow overflow-auto">
-                    {{picture|safe}}
-                </div>
-                <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
-                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex flex-col space-y-4 h-full overflow-auto">
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
-                    {% csrf_token %}
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
-
-                    <div>
-                        <label for="district" class="block text-lg font-medium text-gray-700">地區</label>
-                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">請選擇地區</option>
-                            {% for district in districts %}
-                                <option value="{{ district.id }}" {% if district.id == selectedDistrict %}selected{% endif %}>{{ district.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
-                    
-                    <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
-
-                    <div class="flex justify-between">
-                        <a href="{% url 'main:drawPath' %}?select_area"  class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
-                            Draw Another Picture
-                        </a>
-                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
-                            Submit
-                        </button>
-                    </div>
-                </form>
-                {% comment %}
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4 text-right">
-                    {% csrf_token %}
-                {% endcomment %}
-                
-                    <div>
-                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose One Path to Draw Buy With Picture</label>
-                        <select id="newOption" name="newOption" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">Path</option>
-                            {% for option in options %}
-                                <option value="{{ option.id }}">{{ option.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <a href="{% url 'main:drawBuyWith' %}?step=display_picture" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
-                        Go
-                    </a>
-                    
-                {% comment %}
-                </form>
-                {% endcomment %}
-            </div>
-        </div>
-
+    <div class="container mx-auto py-6">
         
+        {% comment %}
+        <div class="mb-4">
+            <label for="county" class="block text-sm font-medium text-gray-600">選擇縣市</label>
+            <select id="county" name="county" class="mt-1 block w-full py-1 px-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none focus:ring-blue-400 focus:border-blue-400 sm:text-sm">
+                <option value="">請選擇縣市</option>
+                <option value="Taipei">台北市</option>
+                <option value="New Taipei">新北市</option>
+                <option value="Taoyuan">桃園市</option>
+                <option value="Taichung">台中市</option>
+                <option value="Tainan">台南市</option>
+                <option value="Kaohsiung">高雄市</option>
+            </select>
+        </div>
+        {% endcomment %}
+       
+        <div class="bg-white p-4 rounded shadow mb-4">
+            {{ title }}
+            <canvas id="barChart" class="w-full h-48"></canvas>
+        </div>
+
+       
+        <div class="text-right">
+            <button id="viewTableButton" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+                see all
+            </button>
+        </div>
+        
+        {% if data %}
+        <!-- Data Table -->
+        <div id="dataTable" class="mt-4 bg-white p-4 rounded shadow hidden">
+            <h5 class="text-sm font-medium text-gray-700 mb-3">完整資料表</h5>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-300 text-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-2 py-1 border-b text-left">Store Name</th>
+                            <th class="px-2 py-1 border-b text-left">Total Quantity</th>
+                            <th class="px-2 py-1 border-b text-left">Total Profit</th>
+                            <th class="px-2 py-1 border-b text-left">Profit Per Unit</th>
+                            <th class="px-2 py-1 border-b text-left">Number of Sales Records</th>
+                            <th class="px-2 py-1 border-b text-left">Profit Per Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for store_name, total_quantity, total_profit, profit_per_unit, number_of_salesrecord, profit_per_sales in data %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-2 py-1 border-b">{{ store_name }}</td>
+                            <td class="px-2 py-1 border-b">{{ total_quantity }}</td>
+                            <td class="px-2 py-1 border-b">{{ total_profit }}</td>
+                            <td class="px-2 py-1 border-b">{{ profit_per_unit|floatformat:2 }}</td>
+                            <td class="px-2 py-1 border-b">{{ number_of_salesrecord }}</td>
+                            <td class="px-2 py-1 border-b">{{ profit_per_sales|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <p class="mt-4 text-center text-gray-500 text-sm">No Data Available</p>
+        {% endif %}
     </div>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            flatpickr("#startTime", {
-                locale: "zh_tw",
-                plugins: [new monthSelectPlugin({
-                    shorthand: true,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y",
-                })],
-            });
+        const labels = {{ top_10_stores|safe }};
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Total Quantity',
+                data: {{ top_10_quantities|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+            }]
+        };
 
-            flatpickr("#endTime", {
-                locale: "zh_tw",
-                plugins: [new monthSelectPlugin({
-                    shorthand: true,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y",
-                })],
-            });
-
-            $('#county').change(function() {
-                var countyId = $(this).val();
-                $.ajax({
-                    url: "{% url 'main:getDistrict' %}",
-                    data: {
-                        'countyId': countyId
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.3)'
+                        }
                     },
-                    success: function(data) {
-                        var districtSelect = $('#district');
-                        districtSelect.empty();
-                        districtSelect.append('<option value="">請選擇行政區</option>');
-                        $.each(data.districts, function(index, value) {
-                            districtSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                    },
-                });
-            });
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                }
+            }
+        };
 
-          
+        
+        const barChart = new Chart(
+            document.getElementById('barChart'),
+            config
+        );
+
+        document.getElementById('viewTableButton').addEventListener('click', function() {
+            const dataTable = document.getElementById('dataTable');
+            dataTable.classList.toggle('hidden');
         });
     </script>
 </body>

@@ -94,7 +94,7 @@ class ProductNetwork:
             database="InvoicePlatform",
             user="postgres",
             password="0000",
-            host="::1",
+            host="localhost",
             port="5432",
         )
         self.cur = self.conn.cursor()
@@ -437,7 +437,7 @@ class ProductNetwork:
             f"""
                         SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS, (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count, SUM(amount)/COUNT(item_name) AS profit_per_sales
                         FROM test
-                        WHERE 1=1 {self.temp_condition} AND item_tag = '{item_tag}'
+                        WHERE 1=1 AND item_tag = '{item_tag}' AND store_brand_name IS NOT NULL
                         GROUP BY store_brand_name
                         ORDER BY SUM(amount) DESC
                          """
@@ -461,7 +461,7 @@ class ProductNetwork:
             f"""
                         SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS, (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count, SUM(amount)/COUNT(item_name) AS profit_per_sales
                         FROM test
-                        WHERE 1=1 {self.temp_condition} AND item_name = '{item_name}'
+                        WHERE 1=1 AND item_tag = '{item_name}' AND store_brand_name IS NOT NULL
                         GROUP BY store_brand_name
                         ORDER BY SUM(amount) DESC
                          """

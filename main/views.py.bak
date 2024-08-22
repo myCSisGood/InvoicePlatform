@@ -241,7 +241,7 @@ def _selectPathAndTime(request, pictureType):
 
 
 def _selectTag(request, pictureType):
-    bigTags = _filterBigTags(request)
+
     selectedBigTag = request.session.get('bigTag', '')
     selectedSmallTag = request.session.get('smallTag', '')
     selectedProduct = request.session.get('product', '')
@@ -280,8 +280,7 @@ def _selectTag(request, pictureType):
     )
 
 
-def _displayPic(request, pictureType, displayType=None):
-    print(request)
+def _displayPic(request, displayType, pictureType):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
     countyName = request.session.get('selectedCounty', '')
@@ -308,6 +307,7 @@ def _displayPic(request, pictureType, displayType=None):
         if store:
             storesToQuery = store
         # districtName = District.objects.get(id=districtId).name
+
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
         request.session['selectedDistrict'] = district
@@ -315,18 +315,19 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['store'] = store
         request.session['segment'] = segment
         # request.session['selectedPath'] = pathId
+
+    relationship, articulationPoint, communities = _drawPic(
+        countyName,
+        smallTag,
+        startTime,
+        endTime,
+        product,
+        storesToQuery,
+        district, #narrow down
+        segment,
+    )
+
     if pictureType == BUY_WITH:
-        relationship, articulationPoint, communities = _drawPic(
-            countyName,
-            smallTag,
-            pictureType,
-            startTime,
-            endTime,
-            product,
-            storesToQuery,
-            district, #narrow down
-            segment,
-        )
         return render(
             request, 'Display.html', {
                 'startTime': startTime,
@@ -355,44 +356,16 @@ def _displayPic(request, pictureType, displayType=None):
             }
         )
 
-    elif pictureType == PRODUCT_IN_PATH:
-        df = _drawPic(
-            countyName,
-            smallTag,
-            pictureType,
-            startTime=None,
-            endTime=None,
-            product=None,
-            storeTypeList=None,
-            districtName=None,
-            segment=None,
-        )
-        from decimal import Decimal
-        dfDict = {
-            key: [float(value) if isinstance(value, Decimal) else value for value in values]
-            for key, values in df.to_dict(orient='list').items()
-        }
-        topList = list(zip(dfDict['STORE_NAME'], dfDict['TOTAL_QUANTITY']))
-
-        sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
-
-        topStores = [store for store, _ in sortedList[:10]]
-        topQuantities = [quantity for _, quantity in sortedList[:10]]
-        data = list(
-            zip(
-                dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
-                dfDict.get('PROFIT_PER_UNIT', []), dfDict.get('NUMBER_OF_SALESRECORD', []),
-                dfDict.get('PROFIT_PER_SALES', [])
-            )
-        )
-        title = product if product else smallTag
+    else:
         return render(
             request, 'ProductInPath.html', {
-                'df': dfDict,
-                'title': title,
-                'top_10_stores': topStores,
-                'top_10_quantities': topQuantities,
-                'data': data,
+                'startTime': startTime,
+                'endTime': endTime,
+                'districtList': districtList,
+                'stores': storeTypeList,
+                'selectedCounty': countyName,
+                'selectedPath': request.session.get('selectedPath', ''),
+                'picture': graphHtml,
             }
         )
 
@@ -400,7 +373,6 @@ def _displayPic(request, pictureType, displayType=None):
 def _drawPic(
     countyName,
     smallTag,
-    pictureType,
     startTime=None,
     endTime=None,
     product=None,
@@ -409,30 +381,22 @@ def _drawPic(
     segment=None
 ):
     # api storelist 要改成能接一個list
-    if pictureType == PRODUCT_IN_PATH:
-        network = ProductNetwork(username='admin', network_name='通路')
-        if product:
-            df = network.get_channel_with_item_name(product)
-        else:
-            df = network.get_channel_with_item_tag(smallTag)
-        return df
-    else:
-        network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-        network.query(
-            county=countyName,
-            city_area=districtName,
-            item_tag=smallTag,
-            datetime_lower_bound=startTime,
-            datetime_upper_bound=endTime,
-            store_brand_name=storeTypeList,
-            item_name=product,
-            segment=segment,
-        )
-        # network.execute_query()
-        # network.analysis(limits=100)
-        network.create_network()
-        relationship, articulationPoint, communities = network.vis_all_graph()
-        return relationship, articulationPoint, communities
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    network.query(
+        county=countyName,
+        city_area=districtName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        item_name=product,
+        segment=segment,
+    )
+    # network.execute_query()
+    # network.analysis(limits=100)
+    network.create_network()
+    relationship, articulationPoint, communities = network.vis_all_graph()
+    return relationship, articulationPoint, communities
 
 
 def drawBuyWith(request):
@@ -450,7 +414,7 @@ def drawBuyWith(request):
         return _selectTag(request, pictureType)
 
     elif step == 'display_picture':
-        return _displayPic(request, pictureType, displayType)
+        return _displayPic(request, displayType, pictureType)
 
     return redirect('/draw_buy_with/?step=select_area')
 
@@ -471,32 +435,39 @@ def showInfo(request):
 
 ##防呆
 ##資料篩選
+
+
 def drawPath(request):
+    displayType = request.GET.get('displayType', 'Regular')
     step = request.GET.get('step', 'select_area')
     pictureType = PRODUCT_IN_PATH
     if step == 'select_area':
-        request.session.clear()
-        response = _selectArea(request, pictureType)
+        return _selectArea(request, pictureType)
 
     elif step == 'select_time':
-        response = _selectPathAndTime(request, pictureType)
+        selectedStartTime = request.session.get('startTime', '')
+        selectedEndTime = request.session.get('endTime', '')
+
+        if request.method == 'POST':
+            startTime = request.POST.get('start_time')
+            endTime = request.POST.get('end_time')
+            request.session['startTime'] = startTime
+            request.session['endTime'] = endTime
+
+            return redirect('/draw_product_in_path/?step=select_tag')
+
+        return render(request, 'Time.html', {
+            'startTime': selectedStartTime,
+            'endTime': selectedEndTime,
+        })
 
     elif step == 'select_tag':
-        response = _selectTag(request, pictureType)
+        return _selectTag(request, pictureType)
 
     elif step == 'display_picture':
-        response = _displayPic(request, pictureType)
+        return _displayPic(request, displayType, pictureType)
 
-    else:
-        # If the step is not recognized, handle it by redirecting to a safe default
-        response = redirect('/draw_product_in_path/?step=select_area')
-
-    # Log or print the type of response for debugging purposes
-    if response is None:
-        print(f"drawPath returned None for step: {step}")
-        return HttpResponse("An error occurred: No valid response was generated.", status=500)
-
-    return response
+    return redirect('/draw_product_in_path/?step=select_area')
 
 
 def analyze(request):
@@ -539,7 +510,7 @@ def drawRFM(request):
         return _selectPathAndTime(request, pictureType)
 
     elif step == 'display_picture':
-        return _displayPic(request, pictureType, displayType)
+        return _displayPic(request, displayType, pictureType)
 
     return redirect('/draw_buy_with/?step=select_area')
 
@@ -559,7 +530,7 @@ def drawRFMwithProduct(request):
         return _selectTag(request, pictureType)
 
     elif step == 'display_picture':
-        return _displayPic(request, pictureType, displayType)
+        return _displayPic(request, displayType, pictureType)
 
     return redirect('/rfm_with_product/?step=select_area')
 
