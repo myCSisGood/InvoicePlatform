@@ -78,6 +78,21 @@
                         <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
                         <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
+                    <div>
+                        <label for="path" class="block text-lg font-medium text-gray-700">客群</label>
+                        <select id="segment" name="segment" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="Champions">Champions</option>
+                            <option value="Loyal Accounts">Loyal Accounts</option>
+                            <option value="Low Spenders">Low Spenders</option>
+                            <option value="Potential Loyalist">Potential Loyalist</option>
+                            <option value="Promising">Promising</option>
+                            <option value="New Active Accounts">New Active Accounts</option>
+                            <option value="Need Attention">Need Attention</option>
+                            <option value="About to Sleep">About to Sleep</option>
+                            <option value="At Risk">At Risk</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                    </div>
 
                     <div class="flex justify-between">
                         <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">

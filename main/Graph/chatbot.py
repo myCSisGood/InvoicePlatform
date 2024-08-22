@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from pyvis.network import Network
-from langchain_community.chat_models import ChatOpenAI
+import os
+from langchain.chat_models import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.schema import (HumanMessage)
-import os
 
 
 class Chatbot:

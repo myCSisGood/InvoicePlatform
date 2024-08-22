@@ -76,7 +76,7 @@ DATABASES = {
         'NAME': 'InvoicePlatform',
         'USER': 'postgres',
         'PASSWORD': '0000',
-        'HOST': 'localhost',
+        'HOST': '::1',
         'PORT': '5432',
     }
 }

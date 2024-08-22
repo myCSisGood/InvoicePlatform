@@ -6,11 +6,11 @@
         <div class="bg-white p-5 rounded shadow">
             <h2 class="text-2xl font-semibold mb-4">請選擇分類和產品</h2>
             {% if pictureType == 1 %}
-            <form method="POST" action="{% url 'main:drawBuyWith' %}?step=select_tag">
+            <form id="tagForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_tag">
             {% elif pictureType == 2 %}
-            <form method="POST" action="{% url 'main:drawPath' %}?step=select_tag">
+            <form id="tagForm" method="POST" action="{% url 'main:drawPath' %}?step=select_tag">
             {% elif pictureType == 4 %}
-            <form method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_tag">
+            <form id="tagForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_tag">
             {% endif %}
                 {% csrf_token %}
                 <div class="mb-4">
@@ -19,7 +19,7 @@
                     <select id="bigTag" name="bigTag" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="">請選擇分類</option>
                         {% for tag in bigTags %}
-                            <option value="{{tag}}" >{{ tag }}</option>
+                            <option value="{{ tag }}">{{ tag }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -37,6 +37,11 @@
                         <option value="">請選擇產品</option>
                     </select>
                 </div>
+                {% if errorMessage %}
+                <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
+                {% else %}
+                <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">請選擇子分類</div>
+                {% endif %}
                 <div class="flex justify-between">
                     <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
                         <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
@@ -81,7 +86,7 @@
                     success: function(data) {
                         var smallTagSelect = $('#smallTag');
                         smallTagSelect.empty();
-                        smallTagSelect.append('<option value="">請選擇項目</option>');
+                        smallTagSelect.append('<option value="">請選擇子分類</option>');
                         $.each(data.smallTags, function(index, value) {
                             smallTagSelect.append('<option value="' + value.name + '">' + value.name + '</option>');
                         });
@@ -102,6 +107,7 @@
                         $.each(data.products, function(index, value) {
                             productSelect.append('<option value="' + value + '">' + value + '</option>');
                         });
+                        productSelect.val('{{ itemName }}'); 
                     }
                 });
             });
@@ -114,6 +120,16 @@
             if (selectedSmallTag) {
                 $('#smallTag').val(selectedSmallTag).change();
             }
+
+            $('#tagForm').submit(function(event) {
+                var smallTag = $('#smallTag').val();
+                if (!smallTag) {
+                    $('#errorMessage').text('請選擇子分類').show();
+                    event.preventDefault();
+                } else {
+                    $('#errorMessage').hide();
+                }
+            });
         });
     </script>
 </body>
