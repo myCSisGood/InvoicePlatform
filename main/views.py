@@ -160,22 +160,38 @@ def _selectArea(request, pictureType):
 #     return storeBrands
 
 
-def _filterDistrictsStore(countyName, storeList):
+def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStoreCount=10):
     county = COUNTRY_DICT[countyName]
-    # Generate the correct number of placeholders for PostgreSQL
     stores = tuple(storeList)
+
+    # Base SQL query with necessary joins
     query = f"""
-        SELECT DISTINCT store_brand_name
+        SELECT store_brand_name, COUNT(*) as store_count
         FROM {county}
         WHERE store_brand_name IN {stores}
+        AND a_item_tag = %s
     """
+
+    # If a product is provided, add a condition to filter by product
+    if product:
+        query += " AND product = %s"
+
+    query += """
+        GROUP BY store_brand_name
+        HAVING COUNT(*) > %s
+    """
+
+    # Prepare parameters for query execution
+    params = [itemTag]
+    if product:
+        params.append(product)
+    params.append(minStoreCount)
+
     with connection.cursor() as cursor:
-        cursor.execute(
-            query,
-        )
+        cursor.execute(query, params) # Pass the parameters dynamically
         result = cursor.fetchall()
 
-    existingStores = [row[0] for row in result]
+    existingStores = [row[0] for row in result] # Get store_brand_name from result
 
     return existingStores
 
@@ -390,12 +406,15 @@ def _displayPic(request, pictureType, displayType=None):
     storeTypeList = request.session.get('storeTypeList', '')
     smallTag = request.session.get('smallTag', '')
     product = request.session.get('product', '')
+    limit = request.session.get('limit', '')
 
     districtList = _filterDistrict(countyName)
     storesToQuery = storeTypeList
     # stores = _filterStores(districtName)
     if storeTypeList:
-        storeCanBeChoose = _filterDistrictsStore(countyName=countyName, storeList=storeTypeList)
+        storeCanBeChoose = _filterDistrictsStore(
+            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=product
+        )
     else:
         storeCanBeChoose = None
     if request.method == 'POST':
@@ -404,6 +423,7 @@ def _displayPic(request, pictureType, displayType=None):
         district = request.POST.get('district')
         storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')
+        limit = request.POST.get('limit')
         # districtName = District.objects.get(id=districtId).name
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
@@ -411,6 +431,7 @@ def _displayPic(request, pictureType, displayType=None):
         # request.session['districtName'] = districtName
         request.session['store'] = storesToQuery
         request.session['segment'] = segment
+        request.session['limit'] = limit
         # request.session['selectedPath'] = pathId
 
     relationship, articulationPoint, communities = _drawPic(
@@ -423,6 +444,7 @@ def _displayPic(request, pictureType, displayType=None):
         storesToQuery,
         district, #narrow down
         segment,
+        limit
     )
     if pictureType == BUY_WITH:
         network = ProductNetwork(username='admin', network_name='啤酒網路圖')
@@ -478,9 +500,9 @@ def _drawPic(
     product=None,
     storeTypeList=None,
     districtName=None,
-    segment=None
+    segment=None,
+    limit=None
 ):
-    # api storelist 要改成能接一個list
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
         if product:
@@ -489,6 +511,9 @@ def _drawPic(
             df = network.get_channel_with_item_tag(smallTag)
         return df
     else:
+        if not limit:
+            #limit default value
+            limit = 100
         network = ProductNetwork(username='admin', network_name='啤酒網路圖')
         df = network.query(
             county=countyName,
@@ -499,6 +524,7 @@ def _drawPic(
             store_brand_name=storeTypeList,
             item_name=product,
             segment=segment,
+            limit=limit
         )
         # network.execute_query()
         # network.analysis(limits=100)

@@ -113,7 +113,7 @@ class ProductNetwork:
         county=None,
         city_area=None,
         segment=None,
-        limit=500
+        limit=100
     ):
         condition = ""
         tag = ""
@@ -483,7 +483,7 @@ class ProductNetwork:
 
 ##-------------layer2 --------------------------
 
-    def l2_query(self, item_name, limit=200):
+    def l2_query(self, item_name, limit=100):
         self.cur.execute(
             f"""
                         WITH INV_NUMBERS AS (
