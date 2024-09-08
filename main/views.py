@@ -98,9 +98,18 @@ def getSmallTags(request):
 def getProducts(request):
     smallTag = request.GET.get('smallTag')
     with connection.cursor() as cursor:
-        cursor.execute("SELECT DISTINCT item_name FROM test WHERE item_tag = %s", [smallTag])
+        cursor.execute(
+            """
+            SELECT item_name, COUNT(*) 
+            FROM test 
+            WHERE item_tag = %s 
+            GROUP BY item_name
+        """, [smallTag]
+        )
         rows = cursor.fetchall()
-    products = [row[0] for row in rows]
+
+    # 將產品名稱和對應的資料數量一起返回
+    products = [{'name': row[0], 'count': row[1]} for row in rows]
     return JsonResponse({'products': products})
 
 
@@ -174,7 +183,10 @@ def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStore
 
     # If a product is provided, add a condition to filter by product
     if product:
-        query += " AND product = %s"
+        if isinstance(product, list):
+            query += f" AND a_item_name IN {tuple(product)}"
+        else:
+            query += f" AND  a_item_name = {product}"
 
     query += """
         GROUP BY store_brand_name
@@ -183,8 +195,6 @@ def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStore
 
     # Prepare parameters for query execution
     params = [itemTag]
-    if product:
-        params.append(product)
     params.append(minStoreCount)
 
     with connection.cursor() as cursor:
@@ -312,10 +322,14 @@ def _selectTag(request, pictureType):
     if request.method == 'POST':
         bigTag = request.POST.get('bigTag')
         smallTag = request.POST.get('smallTag')
-        product = request.POST.get('product')
+        selectedProducts = request.POST.get('selectedProducts')
+        if selectedProducts:
+            # 將逗號分隔的產品列表轉為 Python 列表
+            productList = selectedProducts.split(',')
+        # product = request.POST.get('product')
         request.session['bigTag'] = bigTag
         request.session['smallTag'] = smallTag
-        request.session['product'] = product
+        request.session['productList'] = productList
         if not smallTag:
             errorMessage = '請選擇子分類'
             return redirect(f'/draw_buy_with/?step=select_tag&error_message={errorMessage}')
@@ -405,7 +419,7 @@ def _displayPic(request, pictureType, displayType=None):
     storeType = request.session.get('storeType', '')
     storeTypeList = request.session.get('storeTypeList', '')
     smallTag = request.session.get('smallTag', '')
-    product = request.session.get('product', '')
+    productList = request.session.get('productList', '')
     limit = request.session.get('limit', '')
 
     districtList = _filterDistrict(countyName)
@@ -413,7 +427,7 @@ def _displayPic(request, pictureType, displayType=None):
     # stores = _filterStores(districtName)
     if storeTypeList:
         storeCanBeChoose = _filterDistrictsStore(
-            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=product
+            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
         )
     else:
         storeCanBeChoose = None
@@ -434,31 +448,19 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['limit'] = limit
         # request.session['selectedPath'] = pathId
 
-    relationship, articulationPoint, communities = _drawPic(
+    relationship, articulationPoint, communities, df = _drawPic(
         countyName,
         smallTag,
         pictureType,
         startTime,
         endTime,
-        product,
+        productList,
         storesToQuery,
         district, #narrow down
         segment,
         limit
     )
     if pictureType == BUY_WITH:
-        network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-        df = network.query(
-            county=countyName,
-            # city_area=districtName,
-            item_tag=smallTag,
-            datetime_lower_bound=startTime,
-            datetime_upper_bound=endTime,
-            store_brand_name=storeCanBeChoose,
-            item_name=product,
-            segment=segment,
-        )
-
         options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
 
         return render(
@@ -497,7 +499,7 @@ def _drawPic(
     pictureType,
     startTime=None,
     endTime=None,
-    product=None,
+    productList=None,
     storeTypeList=None,
     districtName=None,
     segment=None,
@@ -505,8 +507,8 @@ def _drawPic(
 ):
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
-        if product:
-            df = network.get_channel_with_item_name(product)
+        if productList:
+            df = network.get_channel_with_item_name(productList)
         else:
             df = network.get_channel_with_item_tag(smallTag)
         return df
@@ -522,7 +524,7 @@ def _drawPic(
             datetime_lower_bound=startTime,
             datetime_upper_bound=endTime,
             store_brand_name=storeTypeList,
-            item_name=product,
+            item_name=productList,
             segment=segment,
             limit=limit
         )
@@ -530,7 +532,7 @@ def _drawPic(
         # network.analysis(limits=100)
         network.create_network()
         relationship, articulationPoint, communities = network.vis_all_graph()
-        return relationship, articulationPoint, communities
+        return relationship, articulationPoint, communities, df
 
 
 def drawBuyWith(request):
