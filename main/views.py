@@ -17,6 +17,8 @@ import networks
 import psycopg2
 from django.db import connection
 from main import PathList
+from django.http import JsonResponse
+from decimal import Decimal
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -332,24 +334,24 @@ def _displayPathPic(request):
     district = request.session.get('selectedDistrict', '') # narrow down 才有
     smallTag = request.session.get('smallTag', '')
     product = request.session.get('product', '')
-    df = _drawPic(
-        countyName,
-        smallTag,
-        PRODUCT_IN_PATH,
-        startTime,
-        endTime,
-    )
+    orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
+    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime)
+
+    # Sort the dataframe based on the selected option
+    df = df.sort_values(by=orderBy, ascending=False)
+
     from decimal import Decimal
     dfDict = {
         key: [float(value) if isinstance(value, Decimal) else value for value in values]
         for key, values in df.to_dict(orient='list').items()
     }
-    topList = list(zip(dfDict['STORE_NAME'], dfDict['TOTAL_QUANTITY']))
-
+    # Prepare the data for top 10 stores
+    topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
     sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
 
     topStores = [store for store, _ in sortedList[:10]]
-    topQuantities = [quantity for _, quantity in sortedList[:10]]
+    topValues = [value for _, value in sortedList[:10]]
+
     data = list(
         zip(
             dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
@@ -357,13 +359,18 @@ def _displayPathPic(request):
             dfDict.get('PROFIT_PER_SALES', [])
         )
     )
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
+
     title = product if product else smallTag
+
     return render(
         request, 'ProductInPath.html', {
             'df': dfDict,
             'title': title,
             'top_10_stores': topStores,
-            'top_10_quantities': topQuantities,
+            'top_10_quantities': topValues,
             'data': data,
         }
     )
