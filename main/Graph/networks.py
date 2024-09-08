@@ -463,12 +463,14 @@ class ProductNetwork:
     def get_channel_with_item_name(self, item_name):
         self.cur.execute(
             f"""
-                        SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS, (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count, SUM(amount)/COUNT(item_name) AS profit_per_sales
-                        FROM test
-                        WHERE 1=1 AND item_tag = '{item_name}' AND store_brand_name IS NOT NULL
-                        GROUP BY store_brand_name
-                        ORDER BY SUM(amount) DESC
-                         """
+            SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS, 
+                (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count, 
+                SUM(amount)/COUNT(item_name) AS profit_per_sales
+            FROM test
+            WHERE item_name IN {tuple(item_name)} AND store_brand_name IS NOT NULL
+            GROUP BY store_brand_name
+            ORDER BY SUM(amount) DESC
+            """
         )
         df = pd.DataFrame(self.cur.fetchall())
         print(df)

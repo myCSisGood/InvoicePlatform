@@ -145,9 +145,9 @@
                 });
             });
 
-            // 表單提交時檢查總數是否大於等於 100
+            // 表單提交時檢查條件
             $('#tagForm').submit(function(event) {
-                if (totalProductCount < 100) {
+                if (selectedProducts.length > 0 && totalProductCount < 100) {
                     event.preventDefault(); // 阻止表單提交
                     $('#errorMessage').text('總資料數量必須大於或等於 100 才能提交').show(); // 顯示錯誤訊息
                 } else {

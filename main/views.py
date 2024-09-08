@@ -326,10 +326,11 @@ def _selectTag(request, pictureType):
         if selectedProducts:
             # 將逗號分隔的產品列表轉為 Python 列表
             productList = selectedProducts.split(',')
+            request.session['productList'] = productList
         # product = request.POST.get('product')
         request.session['bigTag'] = bigTag
         request.session['smallTag'] = smallTag
-        request.session['productList'] = productList
+
         if not smallTag:
             errorMessage = '請選擇子分類'
             return redirect(f'/draw_buy_with/?step=select_tag&error_message={errorMessage}')
@@ -363,9 +364,10 @@ def _displayPathPic(request):
     countyName = request.session.get('selectedCounty', '')
     district = request.session.get('selectedDistrict', '') # narrow down 才有
     smallTag = request.session.get('smallTag', '')
-    product = request.session.get('product', '')
+    productList = request.session.get('productList', '')
+    # product = request.session.get('product', '')
     orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
-    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime)
+    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime, productList=productList)
 
     # Sort the dataframe based on the selected option
     df = df.sort_values(by=orderBy, ascending=False)
@@ -393,7 +395,7 @@ def _displayPathPic(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
 
-    title = product if product else smallTag
+    title = productList if productList else smallTag
 
     return render(
         request, 'ProductInPath.html', {
@@ -508,6 +510,7 @@ def _drawPic(
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
         if productList:
+
             df = network.get_channel_with_item_name(productList)
         else:
             df = network.get_channel_with_item_tag(smallTag)
