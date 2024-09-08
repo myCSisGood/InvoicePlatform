@@ -197,7 +197,6 @@ class ProductNetwork:
 
         #print(len(self.cur.fetchall()))
         df = pd.DataFrame(self.cur.fetchall())
-        print(df)
 
         if df.shape[0] == 0:
             print("The result of this query contains no data")
