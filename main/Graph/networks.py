@@ -122,7 +122,11 @@ class ProductNetwork:
         if datetime_upper_bound:
             condition += f"AND datetime <= '{datetime_upper_bound}'"
         if item_name:
-            condition += f"AND item_name = '{item_name}'"
+
+            if isinstance(item_name, list):
+                condition += f" AND item_name IN {tuple(item_name)}"
+            else:
+                condition += f"AND item_name = '{item_name}'"
         if unit_price_lower_bound:
             condition += f"AND unit_price >= '{unit_price_lower_bound}'"
         if unit_price_upper_bound:
