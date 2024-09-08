@@ -676,3 +676,35 @@ def _displayRFM(request):
     }
 
     return render(request, 'RFM.html', context)
+
+
+def displayBuyWithInPath(request):
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+    countyName = request.session.get('selectedCounty', '')
+    #district = request.session.get('selectedDistrict', '') # narrow down 才有
+    smallTag = request.session.get('smallTag', '')
+    productList = request.session.get('productList', '')
+    store = request.GET.get('store')
+
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    df = network.query(
+        county=countyName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=store,
+        item_name=productList,
+        limit=100
+    )
+    # network.execute_query()
+    # network.analysis(limits=100)
+    network.create_network()
+    relationship, articulationPoint, communities = network.vis_all_graph()
+    return render(
+        request, 'BuyWithInPath.html', {
+            'relationship': relationship,
+            'articulationPoint': articulationPoint,
+            'communities': communities,
+        }
+    )
