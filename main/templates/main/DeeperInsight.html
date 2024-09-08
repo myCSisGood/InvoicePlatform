@@ -16,16 +16,16 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PRODUCT</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COUNTS</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PERCENTAGE</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL QUANTITY</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TOTAL PROFIT</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for row in table %}
+                    {% for row in table.itertuples %}  <!-- Iterate over each row of the DataFrame -->
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ row.product }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.counts }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.percentage }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ row.ITEM_NAME }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.TOTAL_QUANTITY }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.TOTAL_PROFIT }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -12,15 +12,42 @@ from django.http import JsonResponse
 import io
 import pandas as pd
 from .Graph.networks import ProductNetwork
+from .Graph.chatbot import Chatbot
 import networks
 import psycopg2
 from django.db import connection
 from main import PathList
+from django.http import JsonResponse
+from decimal import Decimal
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
 RFM = 3
 RFM_WITH_PRODUCT = 4
+COUNTRY_DICT = {
+    "南投縣": "Nantou",
+    "嘉義市": "ChiaYiCity",
+    "新北市": "NewTaipei",
+    "新竹市": "HsinChuCity",
+    "新竹縣": "HsinChuCounty",
+    "桃園市": "TaoYuan",
+    "澎湖縣": "PengHo",
+    "臺中市": "Taichung",
+    "臺北市": "Taipei",
+    "臺南市": "Tainan",
+    "臺東縣": "Taitung",
+    "花蓮縣": "HuaLien",
+    "苗栗縣": "MiaoLi",
+    "金門縣": "KingMen",
+    "雲林縣": "YuinLin",
+    "高雄市": "KaoHsung",
+    "嘉義縣": "ChiaYiCounty",
+    "基隆市": "KeeLung",
+    "宜蘭縣": "YiLan",
+    "屏東縣": "PingTung",
+    "彰化縣": "ChungHua",
+    "nan": "nan",
+}
 
 
 def uploadFile(request):
@@ -116,21 +143,57 @@ def _selectArea(request, pictureType):
 
 
 ###這邊會改成有分類的前幾+交易量前幾###
-def _filterStores(countyName, districtName=None):
-    if districtName:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT DISTINCT store_brand_name FROM test WHERE county = %s AND city_area = %s",
-                [countyName, districtName]
-            )
-            rows = cursor.fetchall()
-    else:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT store_brand_name FROM test WHERE county = %s", [countyName])
-            rows = cursor.fetchall()
-    storeBrands = [row[0] for row in rows]
+# def _filterStores(countyName, districtName=None):
+#     if districtName:
+#         with connection.cursor() as cursor:
+#             cursor.execute(
+#                 "SELECT DISTINCT store_brand_name FROM test WHERE county = %s AND city_area = %s",
+#                 [countyName, districtName]
+#             )
+#             rows = cursor.fetchall()
+#     else:
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT DISTINCT store_brand_name FROM test WHERE county = %s", [countyName])
+#             rows = cursor.fetchall()
+#     storeBrands = [row[0] for row in rows]
 
-    return storeBrands
+#     return storeBrands
+
+
+def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStoreCount=10):
+    county = COUNTRY_DICT[countyName]
+    stores = tuple(storeList)
+
+    # Base SQL query with necessary joins
+    query = f"""
+        SELECT store_brand_name, COUNT(*) as store_count
+        FROM {county}
+        WHERE store_brand_name IN {stores}
+        AND a_item_tag = %s
+    """
+
+    # If a product is provided, add a condition to filter by product
+    if product:
+        query += " AND product = %s"
+
+    query += """
+        GROUP BY store_brand_name
+        HAVING COUNT(*) > %s
+    """
+
+    # Prepare parameters for query execution
+    params = [itemTag]
+    if product:
+        params.append(product)
+    params.append(minStoreCount)
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params) # Pass the parameters dynamically
+        result = cursor.fetchall()
+
+    existingStores = [row[0] for row in result] # Get store_brand_name from result
+
+    return existingStores
 
 
 def _filterDistrict(countyName):
@@ -280,8 +343,56 @@ def _selectTag(request, pictureType):
     )
 
 
+def _displayPathPic(request):
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+    countyName = request.session.get('selectedCounty', '')
+    district = request.session.get('selectedDistrict', '') # narrow down 才有
+    smallTag = request.session.get('smallTag', '')
+    product = request.session.get('product', '')
+    orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
+    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime)
+
+    # Sort the dataframe based on the selected option
+    df = df.sort_values(by=orderBy, ascending=False)
+
+    from decimal import Decimal
+    dfDict = {
+        key: [float(value) if isinstance(value, Decimal) else value for value in values]
+        for key, values in df.to_dict(orient='list').items()
+    }
+    # Prepare the data for top 10 stores
+    topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
+    sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
+
+    topStores = [store for store, _ in sortedList[:10]]
+    topValues = [value for _, value in sortedList[:10]]
+
+    data = list(
+        zip(
+            dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
+            dfDict.get('PROFIT_PER_UNIT', []), dfDict.get('NUMBER_OF_SALESRECORD', []),
+            dfDict.get('PROFIT_PER_SALES', [])
+        )
+    )
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
+
+    title = product if product else smallTag
+
+    return render(
+        request, 'ProductInPath.html', {
+            'df': dfDict,
+            'title': title,
+            'top_10_stores': topStores,
+            'top_10_quantities': topValues,
+            'data': data,
+        }
+    )
+
+
 def _displayPic(request, pictureType, displayType=None):
-    print(request)
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
     countyName = request.session.get('selectedCounty', '')
@@ -295,38 +406,61 @@ def _displayPic(request, pictureType, displayType=None):
     storeTypeList = request.session.get('storeTypeList', '')
     smallTag = request.session.get('smallTag', '')
     product = request.session.get('product', '')
+    limit = request.session.get('limit', '')
 
     districtList = _filterDistrict(countyName)
     storesToQuery = storeTypeList
     # stores = _filterStores(districtName)
+    if storeTypeList:
+        storeCanBeChoose = _filterDistrictsStore(
+            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=product
+        )
+    else:
+        storeCanBeChoose = None
     if request.method == 'POST':
         startTime = request.POST.get('start_time')
         endTime = request.POST.get('end_time')
         district = request.POST.get('district')
-        store = request.POST.get('store')
+        storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')
-        if store:
-            storesToQuery = store
+        limit = request.POST.get('limit')
         # districtName = District.objects.get(id=districtId).name
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
         request.session['selectedDistrict'] = district
         # request.session['districtName'] = districtName
-        request.session['store'] = store
+        request.session['store'] = storesToQuery
         request.session['segment'] = segment
+        request.session['limit'] = limit
         # request.session['selectedPath'] = pathId
+
+    relationship, articulationPoint, communities = _drawPic(
+        countyName,
+        smallTag,
+        pictureType,
+        startTime,
+        endTime,
+        product,
+        storesToQuery,
+        district, #narrow down
+        segment,
+        limit
+    )
     if pictureType == BUY_WITH:
-        relationship, articulationPoint, communities = _drawPic(
-            countyName,
-            smallTag,
-            pictureType,
-            startTime,
-            endTime,
-            product,
-            storesToQuery,
-            district, #narrow down
-            segment,
+        network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+        df = network.query(
+            county=countyName,
+            # city_area=districtName,
+            item_tag=smallTag,
+            datetime_lower_bound=startTime,
+            datetime_upper_bound=endTime,
+            store_brand_name=storeCanBeChoose,
+            item_name=product,
+            segment=segment,
         )
+
+        options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+
         return render(
             request, 'Display.html', {
                 'startTime': startTime,
@@ -334,10 +468,11 @@ def _displayPic(request, pictureType, displayType=None):
                 'districtList': districtList,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
-                'stores': storeTypeList,
+                'stores': storeCanBeChoose,
                 'relationship': relationship,
                 'articulationPoint': articulationPoint,
                 'communities': communities,
+                'options': options,
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
@@ -348,51 +483,10 @@ def _displayPic(request, pictureType, displayType=None):
                 'districtList': districtList,
                 'selectedPath': request.session.get('selectedPath', ''),
                 'displayType': displayType,
-                'stores': storeTypeList,
+                'stores': storeCanBeChoose,
                 'relationship': relationship,
                 'articulationPoint': articulationPoint,
                 'communities': communities,
-            }
-        )
-
-    elif pictureType == PRODUCT_IN_PATH:
-        df = _drawPic(
-            countyName,
-            smallTag,
-            pictureType,
-            startTime=None,
-            endTime=None,
-            product=None,
-            storeTypeList=None,
-            districtName=None,
-            segment=None,
-        )
-        from decimal import Decimal
-        dfDict = {
-            key: [float(value) if isinstance(value, Decimal) else value for value in values]
-            for key, values in df.to_dict(orient='list').items()
-        }
-        topList = list(zip(dfDict['STORE_NAME'], dfDict['TOTAL_QUANTITY']))
-
-        sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
-
-        topStores = [store for store, _ in sortedList[:10]]
-        topQuantities = [quantity for _, quantity in sortedList[:10]]
-        data = list(
-            zip(
-                dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
-                dfDict.get('PROFIT_PER_UNIT', []), dfDict.get('NUMBER_OF_SALESRECORD', []),
-                dfDict.get('PROFIT_PER_SALES', [])
-            )
-        )
-        title = product if product else smallTag
-        return render(
-            request, 'ProductInPath.html', {
-                'df': dfDict,
-                'title': title,
-                'top_10_stores': topStores,
-                'top_10_quantities': topQuantities,
-                'data': data,
             }
         )
 
@@ -406,9 +500,9 @@ def _drawPic(
     product=None,
     storeTypeList=None,
     districtName=None,
-    segment=None
+    segment=None,
+    limit=None
 ):
-    # api storelist 要改成能接一個list
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
         if product:
@@ -417,8 +511,11 @@ def _drawPic(
             df = network.get_channel_with_item_tag(smallTag)
         return df
     else:
+        if not limit:
+            #limit default value
+            limit = 100
         network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-        network.query(
+        df = network.query(
             county=countyName,
             city_area=districtName,
             item_tag=smallTag,
@@ -427,6 +524,7 @@ def _drawPic(
             store_brand_name=storeTypeList,
             item_name=product,
             segment=segment,
+            limit=limit
         )
         # network.execute_query()
         # network.analysis(limits=100)
@@ -485,7 +583,7 @@ def drawPath(request):
         response = _selectTag(request, pictureType)
 
     elif step == 'display_picture':
-        response = _displayPic(request, pictureType)
+        response = _displayPathPic(request)
 
     else:
         # If the step is not recognized, handle it by redirecting to a safe default
@@ -508,20 +606,12 @@ def displayOvertime(request):
 
 
 def getDeeperInsight(request):
-    table = [
-        {
-            'product': '*麒麟*一番搾500cc罐',
-            'counts': 76,
-            'percentage': '1.890077'
-        },
-        {
-            'product': '(A)*台灣啤酒500cc玻璃瓶',
-            'counts': 65,
-            'percentage': '1.616513'
-        },
-        # getData()
-    ]
-
+    option = request.GET.get('option')
+    print(option)
+    if not option:
+        return redirect('main:some_fallback_url')
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    table = network.get_item_name(option)
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)
 

@@ -113,7 +113,7 @@ class ProductNetwork:
         county=None,
         city_area=None,
         segment=None,
-        limit=500
+        limit=100
     ):
         condition = ""
         tag = ""
@@ -193,7 +193,6 @@ class ProductNetwork:
 
         #print(len(self.cur.fetchall()))
         df = pd.DataFrame(self.cur.fetchall())
-        print(df)
 
         if df.shape[0] == 0:
             print("The result of this query contains no data")
@@ -408,6 +407,7 @@ class ProductNetwork:
         pass
 
     def get_item_name(self, item_tag):
+        # {self.temp_condition}
         self.cur.execute(
             f"""
                         SELECT 
@@ -418,7 +418,7 @@ class ProductNetwork:
                             test
                         WHERE 
                             item_tag = '{item_tag}'
-                            {self.temp_condition}
+                            
                             
                         GROUP BY 
                             item_name
@@ -483,7 +483,7 @@ class ProductNetwork:
 
 ##-------------layer2 --------------------------
 
-    def l2_query(self, item_name, limit=200):
+    def l2_query(self, item_name, limit=100):
         self.cur.execute(
             f"""
                         WITH INV_NUMBERS AS (
