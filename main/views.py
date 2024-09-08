@@ -448,7 +448,7 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['limit'] = limit
         # request.session['selectedPath'] = pathId
 
-    relationship, articulationPoint, communities = _drawPic(
+    relationship, articulationPoint, communities, df = _drawPic(
         countyName,
         smallTag,
         pictureType,
@@ -461,18 +461,6 @@ def _displayPic(request, pictureType, displayType=None):
         limit
     )
     if pictureType == BUY_WITH:
-        network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-        df = network.query(
-            county=countyName,
-            # city_area=districtName,
-            item_tag=smallTag,
-            datetime_lower_bound=startTime,
-            datetime_upper_bound=endTime,
-            store_brand_name=storeCanBeChoose,
-            item_name=productList,
-            segment=segment,
-        )
-
         options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
 
         return render(
@@ -544,7 +532,7 @@ def _drawPic(
         # network.analysis(limits=100)
         network.create_network()
         relationship, articulationPoint, communities = network.vis_all_graph()
-        return relationship, articulationPoint, communities
+        return relationship, articulationPoint, communities, df
 
 
 def drawBuyWith(request):
