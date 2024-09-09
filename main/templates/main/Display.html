@@ -36,6 +36,13 @@
                     <iframe id="picture" class="w-full h-full border-none"></iframe>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
+                    <form method="POST" action="{% url 'main:analyze' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="nodes" value="{{ nodes|escapejs }}">
+                        <input type="hidden" name="edges" value="{{ edges|escapejs }}">
+                        <button type="submit"class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">Analyze</button>
+                    </form>
+                    
                     <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
                         Overtime
                     </a>
@@ -194,6 +201,28 @@
                 frame.contentDocument.write(content);
                 frame.contentDocument.close();
             }
+            $('#analyzeButton').click(function() {
+                var nodes = '{{ nodes|escapejs }}';  // Get the nodes passed in the template
+                var edges = '{{ edges|escapejs }}';  // Get the edges passed in the template
+
+                // Send nodes and edges data to the analyze URL via POST request
+                $.ajax({
+                    url: "{% url 'main:analyze' %}",
+                    method: 'POST',
+                    data: {
+                        nodes: nodes,
+                        edges: edges,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    success: function(response) {
+                        // Redirect or show analysis result
+                        window.location.href = "{% url 'main:analyze' %}";
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error occurred during analysis:', error);
+                    }
+                });
+            });
         });
     </script>
 </body>

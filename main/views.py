@@ -377,7 +377,7 @@ def _displayPathPic(request):
         key: [float(value) if isinstance(value, Decimal) else value for value in values]
         for key, values in df.to_dict(orient='list').items()
     }
-    # Prepare the data for top 10 stores
+
     topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
     sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
 
@@ -462,6 +462,19 @@ def _displayPic(request, pictureType, displayType=None):
         segment,
         limit
     )
+    nodes, edges = _getNodeAndEdge(
+        countyName,
+        smallTag,
+        startTime,
+        endTime,
+        productList,
+        storesToQuery,
+        district, #narrow down
+        segment,
+        limit
+    )
+    print('11111111111111')
+    print(edges)
     if pictureType == BUY_WITH:
         options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
 
@@ -477,6 +490,8 @@ def _displayPic(request, pictureType, displayType=None):
                 'articulationPoint': articulationPoint,
                 'communities': communities,
                 'options': options,
+                'nodes': nodes,
+                'edges': edges,
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
@@ -536,6 +551,42 @@ def _drawPic(
         network.create_network()
         relationship, articulationPoint, communities = network.vis_all_graph()
         return relationship, articulationPoint, communities, df
+
+
+def _getNodeAndEdge(
+    countyName,
+    smallTag,
+    startTime=None,
+    endTime=None,
+    productList=None,
+    storeTypeList=None,
+    districtName=None,
+    segment=None,
+    limit=None
+):
+
+    if not limit:
+        #limit default value
+        limit = 100
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    df = network.query(
+        county=countyName,
+        city_area=districtName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        item_name=productList,
+        segment=segment,
+        limit=limit
+    )
+    # network.execute_query()
+    # network.analysis(limits=100)
+    network.create_network()
+    network.vis_all_graph()
+    nodes = network.get_nodes()
+    edges = network.get_edges()
+    return nodes, edges
 
 
 def drawBuyWith(request):
@@ -603,7 +654,21 @@ def drawPath(request):
 
 
 def analyze(request):
-    return render(request, 'Analysis.html')
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes', '')
+        edges = request.POST.get('edges', '')
+
+        if not nodes or not edges:
+            return render(request, 'Analysis.html', {'error': 'Nodes or edges data is missing'})
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+        result = chatbot.generate_category_analysis(nodes, edges)
+
+        return render(request, 'Analysis.html', {'analysis_result': result})
+
+    return render(request, 'Analysis.html', {'error': 'Invalid request method'})
 
 
 def displayOvertime(request):
@@ -612,10 +677,25 @@ def displayOvertime(request):
 
 def getDeeperInsight(request):
     option = request.GET.get('option')
-    print(option)
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+    countyName = request.session.get('selectedCounty', '')
+    storeTypeList = request.session.get('storeTypeList', '')
+    district = request.session.get('selectedDistrict', '')
+    limit = request.session.get('limit', '100')
+
     if not option:
-        return redirect('main:some_fallback_url')
+        return redirect('/draw_buy_with/?step=display_picture')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    table = network.get_item_name(
+        item_tag=option,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        county=countyName,
+        city_area=district,
+        limit=limit
+    )
     table = network.get_item_name(option)
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)
