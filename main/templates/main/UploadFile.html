@@ -1,16 +1,18 @@
 {% extends "Mainpage.html" %}
 {% block main %}
-<div class="flex w-full h-screen items-center justify-center bg-grey-lighter">
-    <label class="w-70 flex flex-col items-center px-16 py-24 bg-white text-blue rounded-lg shadow-lg tracking-wide uppercase border border-blue cursor-pointer hover:bg-blue">
-        <svg class="w-20 h-20 hover:text-white" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+<div class="flex justify-center mt-0 ">
+    <label class="w-80 flex flex-col items-center px-8 py-16 bg-gradient-to-b from-gray-100 to-gray-200 text-gray-700 text-center shadow-lg rounded-lg tracking-wide uppercase border cursor-pointer hover:bg-gray-400" style="aspect-ratio: 3 / 4; width: 80vw; max-width: 450px;">
+        <!-- 放大 Logo -->
+        <svg class="w-40 h-40 text-gray-500 mb-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
             <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
         </svg>
-        <form method="post" action="{% url 'main:uploadFile' %}" enctype="multipart/form-data">
+        <form method="post" action="{% url 'main:uploadFile' %}" enctype="multipart/form-data" class="w-full">
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="text-red-500">{{ form.non_field_errors }}</div>
             {% endif %}
-            <span class="mt-2 text-base leading-normal" id="fileName">Select a file</span>
+            <!-- 放大字體 -->
+            <span class="mt-4 text-3xl font-bold text-gray-800" id="fileName">Select a File</span>
             <span>
                 <input type='file' accept=".csv,.xlsx,.xls" class="hidden" name="{{ form.file.name }}" id="csvFile" onchange="updateFileName(this)"/>
             </span>
@@ -18,7 +20,7 @@
                 <div class="text-red-500">{{ form.file.errors }}</div>
             {% endif %}
             <span class="block items-center">
-                <button type="submit" id="uploadButton" class="opacity-0 pointer-events-none mt-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">
+                <button type="submit" id="uploadButton" class="opacity-0 pointer-events-none mt-6 px-12 py-4 bg-purple-500 text-white text-xl font-semibold rounded-lg hover:bg-gray-600">
                     Upload
                 </button>
             </span>
@@ -34,3 +36,4 @@ function updateFileName(input) {
 }
 </script>
 {% endblock main %}
+

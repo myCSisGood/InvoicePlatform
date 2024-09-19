@@ -1,25 +1,45 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
-    <style>
-      #sidebar {
-        margin-top: 56px; 
-      }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Platform</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+  {% load static %}
+  <style>
+    /* 針對主頁的設計 */
+    .mainpage-body {
+      font-family: 'Montserrat', sans-serif;
+      background-image: url('{% static "images/pink_background.png" %}');
+      background-size: cover;
+      background-position: center top 1px;
+      background-repeat: no-repeat;
+      padding-top: 3.5rem;
+    }
+
+    .mainpage-body #sidebar {
+      width: 320px;
+    }
+
+    .mainpage-body .sidebar-item:hover,
+    .mainpage-body .sidebar-item.active {
+      background-color: #4C51BF;
+    }
+
+    .mainpage-body .header-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
-  
-  <nav class="p-3 bg-white shadow fixed top-0 left-0 w-full z-20">
-    <div class="flex justify-between items-center w-full">
-      <span class="text-xl font-[Poppins] cursor-pointer">Invoice Platform</span>
+<body class="bg-gray-50 mainpage-body">
+
+  <nav class="p-3 bg-purple-600 shadow fixed top-0 left-0 w-full z-20">
+    <div class="flex justify-between items-center w-full text-white">
+      <span class="header-title cursor-pointer">Invoice Platform</span>
       <span class="text-2xl cursor-pointer mx-2 block">
         <ion-icon name="menu" onclick="toggleSidebar()"></ion-icon>
       </span>
@@ -29,65 +49,64 @@
   <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-10" onclick="closeSidebar()"></div>
 
   <div class="flex">
-    <div id="sidebar" class="w-64 h-screen bg-gray-800 text-white fixed top-0 left-0 transition-transform transform -translate-x-full z-20">
+    <div id="sidebar" class="w-80 h-screen bg-purple-700 text-white fixed top-0 left-0 transition-transform duration-300 transform -translate-x-full z-20 md:w-64">
       <ul class="py-4">
-        <li class="px-6 py-2">
-          <a href="{% url 'main:getMainpage' %}" class="flex items-center space-x-4 hover:bg-gray-700">
+        <li class="px-6 py-2 sidebar-item">
+          <a href="{% url 'main:getMainpage' %}" class="flex items-center space-x-4">
             <ion-icon name="home-outline" class="text-2xl"></ion-icon>
             <span>Home</span>
           </a>
         </li>
-        <li class="relative px-6 py-2">
-          <button onclick="toggleDrawMenu()" class="w-full flex items-center space-x-4 hover:bg-gray-700">
+        <li class="relative px-6 py-2 sidebar-item">
+          <button onclick="toggleDrawMenu()" class="w-full flex items-center space-x-4">
             <ion-icon name="create-outline" class="text-2xl"></ion-icon>
             <span>Draw Network Picture</span>
           </button>
-          <ul id="drawMenu" class="hidden mt-1 bg-gray-700 text-white rounded shadow-lg">
-            <li class="px-4 py-2 hover:bg-gray-600">
+          <ul id="drawMenu" class="hidden mt-1 bg-indigo-600 text-white rounded shadow-lg">
+            <li class="px-4 py-2 hover:bg-indigo-500">
               <a href="{% url 'main:drawPath' %}">Draw Path Picture</a>
             </li>
-            <li class="px-4 py-2 hover:bg-gray-600">
+            <li class="px-4 py-2 hover:bg-indigo-500">
               <a href="{% url 'main:drawBuyWith' %}">Draw Buy With Picture</a>
             </li>
           </ul>
         </li>
-        <li class="px-6 py-2">
-          
-          <button onclick="toggleRFMMenu()" class="w-full flex items-center space-x-4 hover:bg-gray-700">
+        <li class="px-6 py-2 sidebar-item">
+          <button onclick="toggleRFMMenu()" class="w-full flex items-center space-x-4">
             <ion-icon name="analytics-outline" class="text-2xl"></ion-icon>
             <span>Analyzing Customer</span>
           </button>
-          <ul id="rfmMenu" class="hidden mt-1 bg-gray-700 text-white rounded shadow-lg">
-            <li class="px-4 py-2 hover:bg-gray-600">
+          <ul id="rfmMenu" class="hidden mt-1 bg-indigo-600 text-white rounded shadow-lg">
+            <li class="px-4 py-2 hover:bg-indigo-500">
               <a href="{% url 'main:drawRFM' %}">Without Specific Product</a>
             </li>
-            <li class="px-4 py-2 hover:bg-gray-600">
+            <li class="px-4 py-2 hover:bg-indigo-500">
               <a href="{% url 'main:drawRFMwithProduct' %}">With Specific Product</a>
             </li>
           </ul>
         </li>
-        <li class="px-6 py-2">
-          <a href="{% url 'main:uploadFile' %}" class="flex items-center space-x-4 hover:bg-gray-700">
+        <li class="px-6 py-2 sidebar-item">
+          <a href="{% url 'main:uploadFile' %}" class="flex items-center space-x-4">
             <ion-icon name="cloud-upload-outline" class="text-2xl"></ion-icon>
             <span>Upload Invoice</span>
           </a>
         </li>
-        <li class="px-6 py-2">
-          <a href="#" class="flex items-center space-x-4 hover:bg-gray-700">
+        <li class="px-6 py-2 sidebar-item">
+          <a href="#" class="flex items-center space-x-4">
             <ion-icon name="images-outline" class="text-2xl"></ion-icon>
             <span>Stored Picture</span>
           </a>
         </li>
       </ul>
       <div class="px-6 py-4 mb-0">
-        <a href="{% url 'users:logout' %}" class="flex items-center space-x-4 hover:bg-gray-700">
+        <a href="{% url 'users:logout' %}" class="flex items-center space-x-4 sidebar-item">
           <ion-icon name="log-out-outline" class="text-2xl"></ion-icon>
           <span>Log Out</span>
         </a>
       </div>
     </div>
 
-    <div class="flex-1 p-10 text-2xl font-bold mt-12">
+    <div class="flex-1 p-10 text-2xl font-bold mt-12 text-gray-800">
       {% block main %}
         這邊是Dashboard
       {% endblock %}
@@ -115,9 +134,10 @@
     }
 
     function toggleRFMMenu() {
-      const drawMenu = document.getElementById('rfmMenu');
-      drawMenu.classList.toggle('hidden');
+      const rfmMenu = document.getElementById('rfmMenu');
+      rfmMenu.classList.toggle('hidden');
     }
   </script>
 </body>
 </html>
+

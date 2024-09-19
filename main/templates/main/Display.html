@@ -1,26 +1,29 @@
 {% extends "Mainpage.html" %}
 
 {% block main %}
-<body class="bg-gray-50 h-screen">
-    <div class="container mx-auto py-4 h-full flex flex-col">
+<body class="bg-gray-100 h-screen flex flex-col">
+    <div class="container mx-auto py-6 flex-grow flex flex-col">
+
+        <!-- Header with Info Button -->
         <div class="flex items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
-            <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
-                <ion-icon name="help-circle-outline" size="medium"></ion-icon>
+            <h2 class="text-2xl font-bold text-gray-900 mr-2">Show with {{displayType}}</h2>
+            <button id="infoButton" class="ml-2 p-2 rounded-full text-purple-600 hover:text-purple-800 bg-white shadow-md hover:bg-gray-100 transition">
+                <ion-icon name="help-circle-outline" size="large"></ion-icon>
             </button>
         </div>
 
+        <!-- Info Modal -->
         <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    <div class="absolute inset-0 bg-gray-800 opacity-50"></div>
                 </div>
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="inline-block align-bottom bg-white rounded-lg px-6 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                     <div class="absolute top-0 right-0 pt-4 pr-4">
-                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                             <span class="sr-only">Close</span>
-                            <ion-icon name="close-outline" size="medium"></ion-icon>
+                            <ion-icon name="close-outline" size="large"></ion-icon>
                         </button>
                     </div>
                     <div id="infoContent" class="mt-3 text-center sm:mt-5">
@@ -30,39 +33,54 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
-            <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
-                <div class="flex justify-center mt-2 mb-2 flex-grow overflow-auto">
-                    <iframe id="picture" class="w-full h-full border-none"></iframe>
-                </div>
-                <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <form method="POST" action="{% url 'main:analyze' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="nodes" value="{{ nodes|escapejs }}">
-                        <input type="hidden" name="edges" value="{{ edges|escapejs }}">
-                        <button type="submit"class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">Analyze</button>
-                    </form>
-                    
-                    <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
-                        Overtime
-                    </a>
-                    <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
-                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-                    </button>
-                </div>
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden">
+            
+        <!-- Picture Section -->
+        <div class="lg:col-span-2 p-6 rounded-lg shadow-xl border border-gray-300 bg-white relative flex flex-col">
+            <div class="flex justify-center mt-4 mb-4 flex-grow overflow-auto">
+                <iframe id="picture" class="w-full h-128 border-none rounded-lg shadow-inner"></iframe>
             </div>
 
-            <div class="flex flex-col space-y-4 h-full overflow-auto">
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+            <!-- Overtime and Save Buttons (Top-Right) -->
+            <div class="absolute bottom-4 right-4 flex space-x-2">
+                <a href="{% url 'main:displayOvertime' %}" class="px-4 py-4 bg-gray-700 text-white rounded-lg hover:bg-gray-500 flex items-center text-base transition">
+                    Overtime
+                </a>
+                <button type="button" onclick="saveData()" class="px-4 py-4 bg-purple-700 text-white rounded-lg hover:bg-purple-500 flex items-center text-base transition">
+                    <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
+                </button>
+            </div>
+
+            <!-- Show Buttons (Bottom-Left, Vertical) -->
+            <div class="flex flex-col space-y-2 absolute bottom-12 left-6">
+                <button id="showRegular" class="px-6 py-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-base transition">
+                    Show with Regular
+                </button>
+                <button id="showArticulation" class="px-6 py-4 bg-green-500 text-white rounded-lg hover:bg-green-400 flex items-center text-base transition">
+                    Show with Articulation Points
+                </button>
+                <button id="showCommunity" class="px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-500 flex items-center text-base transition">
+                    Show with Community
+                </button>
+            </div>
+        </div>
+
+
+
+            <!-- Form and Insight Form Sections -->
+            <div class="flex flex-col space-y-6 h-full overflow-auto">
+                <!-- Main Form -->
+                <form method="POST" class="bg-white p-6 rounded-lg shadow-lg flex flex-col space-y-6">
                     {% csrf_token %}
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
-                    <div class="mt-4">
-                        <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300)</label>
-                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="輸入限制數字">
+                    <h3 class="text-2xl font-semibold text-gray-900 mb-4">Revise</h3>
+                    <div>
+                        <label for="limit" class="block text-lg font-medium text-gray-800">Limit (1-300)</label>
+                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg" placeholder="輸入限制數字">
                     </div>
                     <div>
-                        <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
-                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="district" class="block text-lg font-medium text-gray-800">行政區</label>
+                        <select id="district" name="district" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg">
                             <option value="">請選擇行政區</option>
                             {% for district in districtList %}
                                 <option value="{{ district }}">{{ district }}</option>
@@ -70,65 +88,52 @@
                         </select>
                     </div>
                     <div>
-                        <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
-                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="store" class="block text-lg font-medium text-gray-800">通路</label>
+                        <select id="store" name="store" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg">
                             <option value="" selected></option>
                             {% for store in stores %}
-                            <option value="{{ store }}">{{ store }}</option>
+                                <option value="{{ store }}">{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
                     <div>
-                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="startTime" class="block text-lg font-medium text-gray-800">開始時間</label>
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg">
                     </div>
-                    
                     <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="endTime" class="block text-lg font-medium text-gray-800">結束時間</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg">
                     </div>
-
                     <div class="flex justify-between">
-                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
+                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-base transition">
                             Draw Another Picture
                         </a>
-                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
+                        <button type="submit" class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 flex items-center text-base transition">
                             Submit
                         </button>
                     </div>
                 </form>
 
-                <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
+                <!-- Insight Form -->
+                <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="bg-white p-6 rounded-lg shadow-lg flex flex-col space-y-4">
                     <div>
-                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
-                        <select id="newOption" name="option" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="newOption" class="block text-xl font-medium text-gray-800">Choose one to see deeper</label>
+                        <select id="newOption" name="option" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 sm:text-lg">
                             <option value="">Deeper Insight</option>
                             {% for option in options %}
                                 <option value="{{ option }}">{{ option }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                    <button type="submit" class="px-3 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center text-base transition w-24 ml-auto">
                         Go
                     </button>
                 </form>
-                
             </div>
         </div>
 
-        <div class="flex justify-between mt-4">
-            <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                Show with Regular
-            </button>
-            <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                Show with Articulation Points
-            </button>
-            <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-                Show with Community
-            </button>
-        </div>
     </div>
+
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
@@ -201,28 +206,6 @@
                 frame.contentDocument.write(content);
                 frame.contentDocument.close();
             }
-            $('#analyzeButton').click(function() {
-                var nodes = '{{ nodes|escapejs }}';  // Get the nodes passed in the template
-                var edges = '{{ edges|escapejs }}';  // Get the edges passed in the template
-
-                // Send nodes and edges data to the analyze URL via POST request
-                $.ajax({
-                    url: "{% url 'main:analyze' %}",
-                    method: 'POST',
-                    data: {
-                        nodes: nodes,
-                        edges: edges,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'  // Include CSRF token
-                    },
-                    success: function(response) {
-                        // Redirect or show analysis result
-                        window.location.href = "{% url 'main:analyze' %}";
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error occurred during analysis:', error);
-                    }
-                });
-            });
         });
     </script>
 </body>

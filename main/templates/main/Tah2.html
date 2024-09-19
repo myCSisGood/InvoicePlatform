@@ -1,96 +1,103 @@
 {% extends "Mainpage.html" %}
 
 {% block main %}
-<body class="bg-gray-100">
-    <div class="container mx-auto mt-6">
-        <div class="bg-white p-5 rounded shadow">
-            <h2 class="text-2xl font-semibold mb-4">請選擇分類和產品</h2>
-            {% if pictureType == 1 %}
-            <form id="tagForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_tag">
-            {% elif pictureType == 2 %}
-            <form id="tagForm" method="POST" action="{% url 'main:drawPath' %}?step=select_tag">
-            {% elif pictureType == 4 %}
-            <form id="tagForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_tag">
-            {% endif %}
-                {% csrf_token %}
-                <div class="mb-4">
-                    <label for="bigTag" class="block text-lg font-medium text-gray-700">選擇分類</label>
-                    <input type="text" id="tagFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" placeholder="搜尋標籤...">
-                    <select id="bigTag" name="bigTag" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm">
-                        <option value="">請選擇分類</option>
-                        {% for tag in bigTags %}
-                            <option value="{{ tag }}">{{ tag }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="smallTag" class="block text-lg font-medium text-gray-700">選擇子分類</label>
-                    <input type="text" id="itemFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" placeholder="搜尋項目...">
-                    <select id="smallTag" name="smallTag" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm">
-                        <option value="">請先選擇分類</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="productFilter" class="block text-lg font-medium text-gray-700">搜尋產品</label>
-                    <input type="text" id="productFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" placeholder="搜尋產品...">
-                    
-                    <!-- 這個多選框將顯示篩選後的產品 -->
-                    <select id="productSelect" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" multiple>
-                    </select>
-                </div>
+  <div class="flex justify-center mt-0">
+    <!-- 調整卡片的 aspect-ratio 使其為 3:4 的比例 -->
+    <div class="bg-gradient-to-b from-gray-100 to-gray-200 p-8 rounded-lg shadow-lg relative flex flex-col items-center" style="aspect-ratio: 3 / 4; width: 80vw; max-width: 450px;">
+      <div class="flex flex-col items-center w-full">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">請選擇分類和產品</h2>
+        
+        {% if pictureType == 1 %}
+        <form id="tagForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_tag">
+        {% elif pictureType == 2 %}
+        <form id="tagForm" method="POST" action="{% url 'main:drawPath' %}?step=select_tag">
+        {% elif pictureType == 4 %}
+        <form id="tagForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_tag">
+        {% endif %}
+          {% csrf_token %}
+          
+          <!-- 調整選單的長度並置中顯示 -->
+          <div class="mb-6 w-full flex justify-center">
+            <label for="bigTag" class="block text-lg font-medium text-gray-700 mb-2 text-center">選擇分類</label>
+            <input type="text" id="tagFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" placeholder="搜尋標籤...">
+            <select id="bigTag" name="bigTag" class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg" style="min-width: 300px; max-width: 100%;">
+              <option value="">請選擇分類</option>
+              {% for tag in bigTags %}
+                <option value="{{ tag }}">{{ tag }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="mb-6 w-full flex justify-center">
+            <label for="smallTag" class="block text-lg font-medium text-gray-700 mb-2 text-center">選擇子分類</label>
+            <input type="text" id="itemFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm" placeholder="搜尋項目...">
+            <select id="smallTag" name="smallTag" class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg" style="min-width: 300px; max-width: 100%;">
+              <option value="">請先選擇分類</option>
+            </select>
+          </div>
 
-                <!-- 顯示已選擇的產品 -->
-                <div class="mb-4">
-                    <label class="block text-lg font-medium text-gray-700">已選擇的產品</label>
-                    <ul id="selectedProducts" class="list-disc pl-5"></ul>
-                </div>
+          <!-- 顯示已選擇的產品 -->
+          <div class="mb-6 w-full flex justify-center">
+            <label class="block text-lg font-medium text-gray-700 mb-2 text-center">已選擇的產品</label>
+            <ul id="selectedProducts" class="list-disc pl-5"></ul>
+          </div>
 
-                <div class="flex justify-between">
-                    <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
-                        <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
-                    </button>
-                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
-                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-                    </button>
-                </div>
-            </form>
-        </div>
+          <!-- 放置在卡片下方的按鈕容器 -->
+          <div class="absolute bottom-8 left-8 flex items-center space-x-4">
+            <button type="button" onclick="window.history.back()" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-600 text-base flex items-center">
+              <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>Back
+            </button>
+          </div>
+          <div class="absolute bottom-8 right-8 flex items-center">
+            <button type="submit" id="nextButton" class="px-6 py-3 bg-indigo-700 text-white rounded-lg flex items-center text-base disabled:bg-purple-300 disabled:cursor-not-allowed">
+                <ion-icon name="save-outline" class="mr-2"></ion-icon>Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // 假設你將整個產品列表從後端傳到前端
-            var products = {{ products|safe }};
-            var selectedProducts = [];
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      var products = {{ products|safe }};
+      var selectedProducts = [];
 
-            // 當用戶在產品搜尋框中輸入時，過濾並顯示符合條件的產品
-            $('#productFilter').on('input', function() {
-                var filterValue = $(this).val().toLowerCase();
-                var filteredProducts = products.filter(function(product) {
-                    return product.toLowerCase().indexOf(filterValue) > -1;
-                });
-
-                // 清空當前選項
-                $('#productSelect').empty();
-
-                // 添加篩選後的產品作為選項
-                filteredProducts.forEach(function(product) {
-                    $('#productSelect').append('<option value="' + product + '">' + product + '</option>');
-                });
-            });
-
-            // 當用戶選擇產品時，將其加入到已選產品列表中
-            $('#productSelect').on('change', function() {
-                var selected = $(this).val();  // 取得多選框中已選中的產品
-                selected.forEach(function(product) {
-                    if (!selectedProducts.includes(product)) {
-                        selectedProducts.push(product);
-                        $('#selectedProducts').append('<li>' + product + '</li>');
-                    }
-                });
-            });
+      $('#productFilter').on('input', function() {
+        var filterValue = $(this).val().toLowerCase();
+        var filteredProducts = products.filter(function(product) {
+          return product.toLowerCase().indexOf(filterValue) > -1;
         });
-    </script>
-</body>
+
+        $('#productSelect').empty();
+        filteredProducts.forEach(function(product) {
+          $('#productSelect').append('<option value="' + product + '">' + product + '</option>');
+        });
+      });
+
+      $('#productSelect').on('change', function() {
+        var selected = $(this).val();
+        selected.forEach(function(product) {
+          if (!selectedProducts.includes(product)) {
+            selectedProducts.push(product);
+            $('#selectedProducts').append('<li>' + product + '</li>');
+          }
+        });
+      });
+
+      // 確保按鈕的樣式在不同狀態下保持一致
+      $('#county').change(function() {
+        var county = $(this).val();
+        if (county === "") {
+          $('#nextButton').prop('disabled', true).addClass('bg-indigo-300').removeClass('bg-indigo-700');
+          $('#errorMessage').show();
+        } else {
+          $('#nextButton').prop('disabled', false).addClass('bg-indigo-700').removeClass('bg-indigo-300');
+          $('#errorMessage').hide();
+        }
+      });
+    });
+  </script>
 {% endblock %}
+

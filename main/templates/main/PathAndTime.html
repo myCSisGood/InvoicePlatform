@@ -2,72 +2,75 @@
 
 {% block main %}
 <body class="bg-gray-100">
-    <div class="container mx-auto mt-6">
-        <div class="bg-white p-5 rounded shadow border border-gray-300">
-            <h2 class="text-2xl font-semibold mb-4">請選擇時間和通路</h2>
-            {% if pictureType == 1 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
-            {% elif pictureType == 3 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
-            {% elif pictureType == 4 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
-            {% endif %}
-            
-                {% csrf_token %}
-                <div class="flex justify-between mb-4">
-                    <div class="w-1/2 pr-2">
-                        <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ startTime }}">
-                    </div>
-                    <div class="w-1/2 pl-2">
-                        <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ endTime }}">
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
-                    <input type="text" id="pathFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋通路...">
-                    <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" disabled selected>請選擇通路</option>
-                        <option value="超市、便利商店">超市、便利商店</option>
-                        <option value="購物中心">購物中心</option>
-                        <option value="餐廳">餐廳</option>
-                        <option value="大眾運輸">大眾運輸</option>
-                        <option value="線上商店">線上商店</option>
-                        <option value="通訊">通訊</option>
-                        <option value="家居用品">家居用品</option>
-                        <option value="美妝保養">美妝保養</option>
-                        <option value="其他">其他</option>
-                    </select>
-                </div>
-                {% if errorMessage %}
-                <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
-                {% else %}
-                <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">開始時間必須早於結束時間</div>
+    <div class="flex justify-center mt-0">
+        <div class="bg-gradient-to-b from-gray-100 to-gray-200 p-8 rounded-lg shadow-lg relative flex flex-col items-center" style="aspect-ratio: 3 / 4; width: 80vw; max-width: 450px;">
+            <div class="flex flex-col items-center w-full">
+                <h2 class="text-3xl font-bold mb-6 text-gray-800">請選擇時間和通路</h2>
+                {% if pictureType == 1 %}
+                <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
+                {% elif pictureType == 3 %}
+                <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
+                {% elif pictureType == 4 %}
+                <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
                 {% endif %}
-                <div class="flex justify-between">
-                    <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
-                        <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
-                    </button>
-                    <button type="submit" id="nextButton" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
-                        <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
-                    </button>
-                </div>
-            </form>
+                    {% csrf_token %}
+                    <div class="flex gap-4 mb-6 w-full">
+                        <div class="w-1/2">
+                            <label for="start_time" class="block text-lg font-medium text-gray-700 mb-2 text-center">開始時間</label>
+                            <input type="text" id="start_time" name="start_time" class="datetimepicker block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg" value="{{ startTime }}">
+                        </div>
+                        <div class="w-1/2">
+                            <label for="end_time" class="block text-lg font-medium text-gray-700 mb-2 text-center">結束時間</label>
+                            <input type="text" id="end_time" name="end_time" class="datetimepicker block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg" value="{{ endTime }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-6 w-full">
+                        <label for="store" class="block text-lg font-medium text-gray-700 mb-2 text-center">請選擇通路</label>
+                        <input type="text" id="pathFilter" class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg mb-2" placeholder="搜尋通路...">
+                        <select id="store" name="store" class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg">
+                            <option value="" disabled selected>請選擇通路</option>
+                            <option value="超市、便利商店">超市、便利商店</option>
+                            <option value="購物中心">購物中心</option>
+                            <option value="餐廳">餐廳</option>
+                            <option value="大眾運輸">大眾運輸</option>
+                            <option value="線上商店">線上商店</option>
+                            <option value="通訊">通訊</option>
+                            <option value="家居用品">家居用品</option>
+                            <option value="美妝保養">美妝保養</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    {% if errorMessage %}
+                    <div id="errorMessage" class="text-red-500 text-sm mb-4 text-center">{{ errorMessage }}</div>
+                    {% else %}
+                    <div id="errorMessage" class="text-red-500 text-sm mb-4 text-center" style="display: none;">開始時間必須早於結束時間</div>
+                    {% endif %}
+                    
+                    <div class="absolute bottom-8 left-8 flex items-center space-x-4">
+                        <button type="button" onclick="window.history.back()" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-600 text-base flex items-center">
+                            <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>Back
+                        </button>
+                    </div>
+                    <div class="absolute bottom-8 right-8 flex items-center">
+                        <button type="submit" id="nextButton" class="px-6 py-3 bg-indigo-700 text-white rounded-lg flex items-center text-base disabled:bg-purple-300 disabled:cursor-not-allowed">
+                            <ion-icon name="arrow-forward-outline" class="mr-2"></ion-icon>Next
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        $(document).ready(function() {
             var startPicker = flatpickr("#start_time", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
@@ -75,7 +78,7 @@
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
-                onValueUpdate: function(selectedDates, dateStr, instance) {
+                onValueUpdate: function(selectedDates, dateStr) {
                     endPicker.set('minDate', dateStr);
                 }
             });
@@ -87,7 +90,7 @@
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
-                onValueUpdate: function(selectedDates, dateStr, instance) {
+                onValueUpdate: function(selectedDates, dateStr) {
                     startPicker.set('maxDate', dateStr);
                 }
             });
@@ -113,3 +116,4 @@
     </script>
 </body>
 {% endblock %}
+

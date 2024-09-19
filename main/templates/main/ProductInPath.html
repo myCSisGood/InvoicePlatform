@@ -1,206 +1,215 @@
 {% extends "Mainpage.html" %}
 
 {% block main %}
-<body class="bg-gray-50 h-screen">
-    <div class="container mx-auto py-6">
-        <!-- Chart and Sorting Options -->
-        <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">
+  <div class="flex justify-center mt-0">
+    <!-- 調整卡片的大小 -->
+    <div class="bg-gradient-to-b from-gray-100 to-gray-200 p-8 rounded-lg shadow-lg relative flex flex-col items-center" style="width: 100%; max-width: 1000px;">
+      <div class="flex flex-col items-center w-full">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">{{ title }}</h2>
 
-                {% if title %}
-                    {% if title.0 %}
-                        {% for n in title %}
-                            {{ forloop.counter }}. {{ n }}
-                        {% endfor %}
-                    {% else %}
-                        {{ title }}
-                    {% endif %}
-                {% endif %}
+        <!-- Dropdown to Select Sort Order -->
+        <div class="mb-6 w-full flex flex-col items-center">
+          <label for="orderBy" class="block text-lg font-medium text-gray-700 mb-2 text-center">排序方式</label>
+          <select id="orderBy" name="orderBy" class="block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg" style="min-width: 300px; max-width: 100%;">
+            <option value="TOTAL_QUANTITY" {% if request.GET.order_by == 'TOTAL_QUANTITY' %} selected {% endif %}>Total Quantity</option>
+            <option value="TOTAL_PROFIT" {% if request.GET.order_by == 'TOTAL_PROFIT' %} selected {% endif %}>Total Profit</option>
+            <option value="PROFIT_PER_UNIT" {% if request.GET.order_by == 'PROFIT_PER_UNIT' %} selected {% endif %}>Profit Per Unit</option>
+            <option value="NUMBER_OF_SALESRECORD" {% if request.GET.order_by == 'NUMBER_OF_SALESRECORD' %} selected {% endif %}>Number of Sales Records</option>
+            <option value="PROFIT_PER_SALES" {% if request.GET.order_by == 'PROFIT_PER_SALES' %} selected {% endif %}>Profit Per Sales</option>
+          </select>
+        </div>
 
-            </h2>
-
-            <!-- Dropdown to Select Sort Order -->
-            <div class="mb-4">
-                <label for="orderBy" class="block text-sm font-medium text-gray-600">Sort by:</label>
-                <select id="orderBy" name="orderBy" class="mt-2 block w-full py-1.5 px-3 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="TOTAL_QUANTITY" {% if request.GET.order_by == 'TOTAL_QUANTITY' %} selected {% endif %}>Total Quantity</option>
-                    <option value="TOTAL_PROFIT" {% if request.GET.order_by == 'TOTAL_PROFIT' %} selected {% endif %}>Total Profit</option>
-                    <option value="PROFIT_PER_UNIT" {% if request.GET.order_by == 'PROFIT_PER_UNIT' %} selected {% endif %}>Profit Per Unit</option>
-                    <option value="NUMBER_OF_SALESRECORD" {% if request.GET.order_by == 'NUMBER_OF_SALESRECORD' %} selected {% endif %}>Number of Sales Records</option>
-                    <option value="PROFIT_PER_SALES" {% if request.GET.order_by == 'PROFIT_PER_SALES' %} selected {% endif %}>Profit Per Sales</option>
-                </select>
-            </div>
-
-            <!-- Chart Display -->
-            <canvas id="barChart" class="w-full h-52"></canvas>
+        <!-- Chart Display -->
+        <div class="relative mb-6 w-full">
+          <canvas id="barChart" class="w-full h-80"></canvas>
         </div>
 
         <!-- Button to Show/Hide Table -->
-        <div class="text-right mb-4">
-            <button id="viewTableButton" class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200 focus:outline-none">
-                View Full Data
-            </button>
+        <div class="text-right mb-6 w-full">
+          <button id="viewTableButton" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+            See All
+          </button>
         </div>
 
         <!-- Data Table -->
         {% if data %}
-        <div id="dataTable" class="mt-4 bg-white p-4 rounded-lg shadow hidden">
-            <h5 class="text-sm font-medium text-gray-700 mb-3">Full Data Table</h5>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white border border-gray-300 text-sm">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="px-3 py-2 border-b text-left">Store</th>
-                            <th class="px-3 py-2 border-b text-left">Quantity</th>
-                            <th class="px-3 py-2 border-b text-left">Profit</th>
-                            <th class="px-3 py-2 border-b text-left">Profit/Unit</th>
-                            <th class="px-3 py-2 border-b text-left">Sales Records</th>
-                            <th class="px-3 py-2 border-b text-left">Profit/Sales</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        {% for store_name, total_quantity, total_profit, profit_per_unit, number_of_salesrecord, profit_per_sales in data %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-2 border-b">{{ store_name }}</td>
-                            <td class="px-3 py-2 border-b">{{ total_quantity }}</td>
-                            <td class="px-3 py-2 border-b">{{ total_profit }}</td>
-                            <td class="px-3 py-2 border-b">{{ profit_per_unit|floatformat:2 }}</td>
-                            <td class="px-3 py-2 border-b">{{ number_of_salesrecord }}</td>
-                            <td class="px-3 py-2 border-b">{{ profit_per_sales|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div id="dataTable" class="mt-6 bg-white p-8 rounded-lg shadow-xl border border-gray-200 hidden w-full">
+          <h5 class="text-xl font-semibold text-gray-800 mb-4">完整資料表</h5>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-300 text-sm">
+              <thead class="bg-gray-200">
+                <tr>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Store Name</th>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Total Quantity</th>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Total Profit</th>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Profit Per Unit</th>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Number of Sales Records</th>
+                  <th class="px-6 py-3 border-b text-left text-gray-600">Profit Per Sales</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                {% for store_name, total_quantity, total_profit, profit_per_unit, number_of_salesrecord, profit_per_sales in data %}
+                <tr class="hover:bg-gray-100">
+                  <td class="px-6 py-3 border-b">{{ store_name }}</td>
+                  <td class="px-6 py-3 border-b">{{ total_quantity }}</td>
+                  <td class="px-6 py-3 border-b">{{ total_profit }}</td>
+                  <td class="px-6 py-3 border-b">{{ profit_per_unit|floatformat:2 }}</td>
+                  <td class="px-6 py-3 border-b">{{ number_of_salesrecord }}</td>
+                  <td class="px-6 py-3 border-b">{{ profit_per_sales|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
         {% else %}
-        <p class="mt-4 text-center text-gray-500 text-sm">No data available</p>
+        <p class="mt-6 text-center text-gray-500 text-sm">No Data Available</p>
         {% endif %}
+      </div>
     </div>
+  </div>
 
-    <!-- Chart.js Script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js Script -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Custom JavaScript for AJAX, Chart Updates, and Click Events -->
-    <script>
-        let barChart;
+  <!-- Custom JavaScript to Handle AJAX and Chart Update -->
+  <script>
+    let barChart;
 
-        // Function to update the URL query parameter without reloading the page
-        function updateUrlParam(param, value) {
-            const url = new URL(window.location.href);
-            url.searchParams.set(param, value);
-            history.replaceState(null, null, url);
-        }
+    // Function to update the URL query parameter without reloading the page
+    function updateUrlParam(param, value) {
+      const url = new URL(window.location.href);
+      url.searchParams.set(param, value);  // Set the new order_by parameter
+      history.replaceState(null, null, url);  // Update the URL in the browser without refreshing the page
+    }
 
-        // Initialize the chart with dynamic label and data
-        function initializeChart(labels, quantities, labelText) {
-            const ctx = document.getElementById('barChart').getContext('2d');
-            const data = {
-                labels: labels,
-                datasets: [{
-                    label: labelText,
-                    data: quantities,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                }]
-            };
-            const config = {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(200, 200, 200, 0.3)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                        }
-                    },
-                    onClick: function(event, elements) {
-                        if (elements.length > 0) {
-                            const index = elements[0].index;
-                            const storeName = labels[index];
-                            window.location.href = `/buy_with_in_path/?store=${encodeURIComponent(storeName)}`;
-                        }
-                    }
-                }
-            };
-
-            barChart = new Chart(ctx, config);
-        }
-
-        // Fetch new data and update the chart and table when the dropdown changes
-        document.getElementById('orderBy').addEventListener('change', function() {
-            const orderBy = this.value;
-
-            // Define the label text based on the selected orderBy value
-            let labelText;
-            switch (orderBy) {
-                case 'TOTAL_QUANTITY': labelText = 'Total Quantity'; break;
-                case 'TOTAL_PROFIT': labelText = 'Total Profit'; break;
-                case 'PROFIT_PER_UNIT': labelText = 'Profit Per Unit'; break;
-                case 'NUMBER_OF_SALESRECORD': labelText = 'Number of Sales Records'; break;
-                case 'PROFIT_PER_SALES': labelText = 'Profit Per Sales'; break;
-            }
-
-            // Update the URL to reflect the current selection
-            updateUrlParam('order_by', orderBy);
-
-            // Make AJAX request to get the updated data
-            fetch(`/draw_product_in_path/?step=display_picture&order_by=${orderBy}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Update the chart with the new data and label
-                barChart.data.labels = data.top_10_stores;
-                barChart.data.datasets[0].data = data.top_10_quantities;
-                barChart.data.datasets[0].label = labelText;
-                barChart.update();
-
-                // Update the table with the new data
-                const tbody = document.getElementById('dataTableBody');
-                tbody.innerHTML = '';
-                data.data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.classList.add('hover:bg-gray-50');
-                    row.forEach(value => {
-                        const td = document.createElement('td');
-                        td.classList.add('px-3', 'py-2', 'border-b');
-                        td.textContent = value;
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
-                });
-            })
-            .catch(error => console.error('Error fetching data:', error));
-        });
-
-        // Toggle table visibility
-        document.getElementById('viewTableButton').addEventListener('click', function() {
-            const dataTable = document.getElementById('dataTable');
-            dataTable.classList.toggle('hidden');
-        });
-
-        // Initialize chart with default data on page load
-        window.onload = function() {
-            const labels = {{ top_10_stores|safe }};
-            const quantities = {{ top_10_quantities|safe }};
-            const labelText = 'Total Quantity';
-            initializeChart(labels, quantities, labelText);
+    function initializeChart(labels, quantities) {
+        const ctx = document.getElementById('barChart').getContext('2d');
+        const data = {
+          labels: labels,
+          datasets: [{
+            label: 'Total Quantity',
+            data: quantities,
+            backgroundColor: [
+              'rgba(255, 99, 71, 1)',   // Tomato Red
+              'rgba(255, 165, 0, 1)',   // Orange
+              'rgba(255, 215, 0, 1)',   // Gold
+              'rgba(50, 205, 50, 1)',   // Lime Green
+              'rgba(30, 144, 255, 1)',  // Dodger Blue
+              'rgba(148, 0, 211, 1)',   // Dark Violet
+              'rgba(255, 20, 147, 1)',  // Deep Pink
+              'rgba(255, 99, 71, 1)',   // Tomato Red
+              'rgba(255, 165, 0, 1)',   // Orange
+              'rgba(255, 215, 0, 1)',   // Gold
+            ],
+            borderColor: [
+              'rgba(255, 99, 71, 1)',   // Tomato Red
+              'rgba(255, 165, 0, 1)',   // Orange
+              'rgba(255, 215, 0, 1)',   // Gold
+              'rgba(50, 205, 50, 1)',   // Lime Green
+              'rgba(30, 144, 255, 1)',  // Dodger Blue
+              'rgba(148, 0, 211, 1)',   // Dark Violet
+              'rgba(255, 20, 147, 1)',  // Deep Pink
+              'rgba(255, 99, 71, 1)',   // Tomato Red
+              'rgba(255, 165, 0, 1)',   // Orange
+              'rgba(255, 215, 0, 1)',   // Gold
+            ],
+            borderWidth: 1,
+          }]
         };
-    </script>
-</body>
+      
+        const config = {
+          type: 'bar',
+          data: data,
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(200, 200, 200, 0.3)'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false,
+              }
+            }
+          }
+        };
+      
+        barChart = new Chart(ctx, config);
+      }
+      
+
+    // Fetch new data and update the chart and table when the dropdown changes
+    document.getElementById('orderBy').addEventListener('change', function() {
+      const orderBy = this.value;
+
+      // Update the URL to reflect the current selection
+      updateUrlParam('order_by', orderBy);
+
+      // Make AJAX request to get the updated data
+      fetch(`/draw_product_in_path/?step=display_picture&order_by=${orderBy}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Error with AJAX request:', response.statusText);
+          return;
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received data:', data);  // Log the response data for debugging
+        
+        // Update the chart with the new data
+        barChart.data.labels = data.top_10_stores;
+        barChart.data.datasets[0].data = data.top_10_quantities;
+        barChart.update();
+
+        // Update the table with the new data
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';  // Clear the table
+
+        // Iterate through the data and add rows to the table
+        data.data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.classList.add('hover:bg-gray-100');
+
+          row.forEach(value => {
+            const td = document.createElement('td');
+            td.classList.add('px-6', 'py-3', 'border-b');
+            td.textContent = value;
+            tr.appendChild(td);
+          });
+
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(error => console.error('Error fetching data:', error));
+    });
+
+    // Toggle table visibility
+    document.getElementById('viewTableButton').addEventListener('click', function() {
+      const dataTable = document.getElementById('dataTable');
+      dataTable.classList.toggle('hidden');
+    });
+
+    // Initialize chart with default data on page load
+    window.onload = function() {
+      const labels = {{ top_10_stores|safe }};
+      const quantities = {{ top_10_quantities|safe }};
+      initializeChart(labels, quantities);
+    };
+  </script>
 {% endblock %}
+
