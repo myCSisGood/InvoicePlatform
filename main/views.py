@@ -17,7 +17,6 @@ import networks
 import psycopg2
 from django.db import connection
 from main import PathList
-from django.http import JsonResponse
 from decimal import Decimal
 
 BUY_WITH = 1
@@ -372,7 +371,6 @@ def _displayPathPic(request):
     # Sort the dataframe based on the selected option
     df = df.sort_values(by=orderBy, ascending=False)
 
-    from decimal import Decimal
     dfDict = {
         key: [float(value) if isinstance(value, Decimal) else value for value in values]
         for key, values in df.to_dict(orient='list').items()
@@ -401,6 +399,7 @@ def _displayPathPic(request):
         request, 'ProductInPath.html', {
             'df': dfDict,
             'title': title,
+            'titleList': productList,
             'top_10_stores': topStores,
             'top_10_quantities': topValues,
             'data': data,
@@ -473,11 +472,10 @@ def _displayPic(request, pictureType, displayType=None):
         segment,
         limit
     )
-    print('11111111111111')
-    print(edges)
+
     if pictureType == BUY_WITH:
         options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
-
+        print(countyName)
         return render(
             request, 'Display.html', {
                 'startTime': startTime,
@@ -492,6 +490,12 @@ def _displayPic(request, pictureType, displayType=None):
                 'options': options,
                 'nodes': nodes,
                 'edges': edges,
+                'countyName': countyName,
+                'smallTag': smallTag,
+                'productList': productList,
+                'limit': limit,
+                "districtName": district,
+                'path': storesToQuery
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
@@ -642,10 +646,8 @@ def drawPath(request):
         response = _displayPathPic(request)
 
     else:
-        # If the step is not recognized, handle it by redirecting to a safe default
         response = redirect('/draw_product_in_path/?step=select_area')
 
-    # Log or print the type of response for debugging purposes
     if response is None:
         print(f"drawPath returned None for step: {step}")
         return HttpResponse("An error occurred: No valid response was generated.", status=500)
