@@ -513,7 +513,7 @@ def _displayPic(request, pictureType, displayType=None):
                 'productList': productList,
                 'limit': limit,
                 "districtName": district,
-                'path': storesToQuery
+                'path': storesToQuery if len(storesToQuery) <= 1 else storeType,
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
@@ -677,18 +677,18 @@ def analyze(request):
     if request.method == 'POST':
         nodes = request.POST.get('nodes', '')
         edges = request.POST.get('edges', '')
-
+        # analysis = request.POST.get('analysis', '')
         if not nodes or not edges:
-            return render(request, 'Analysis.html', {'error': 'Nodes or edges data is missing'})
-        print('Nodes:', nodes)
-        print('Edges:', edges)
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        # print('Nodes:', nodes)
+        # print('Edges:', edges)
 
         chatbot = Chatbot()
         result = chatbot.generate_category_analysis(nodes, edges)
 
-        return render(request, 'Analysis.html', {'analysis_result': result})
-
-    return render(request, 'Analysis.html', {'error': 'Invalid request method'})
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 def displayOvertime(request):

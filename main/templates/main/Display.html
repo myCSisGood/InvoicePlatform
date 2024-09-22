@@ -2,187 +2,222 @@
 
 {% block main %}
 <body class="bg-gray-50 h-screen">
-    <div class="container mx-auto py-4 h-full flex flex-col">
+    <div class="container mx-auto py-4 h-full flex flex-col space-y-4">
 
-        <!-- <div class="flex items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
-            <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
-                <ion-icon name="help-circle-outline" size="medium"></ion-icon>
+        <!-- 頂部區域，顯示用戶選擇的信息 -->
+        <div class="flex items-center justify-between bg-white shadow-md p-4 rounded-lg">
+            <h2 class="text-xl font-semibold text-gray-800">{{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</h2>
+            <button id="infoButton" class="ml-2 p-2 rounded-full text-blue-500 hover:text-blue-700 bg-gray-100 hover:bg-gray-200 shadow transition duration-300">
+                <ion-icon name="help-circle-outline" size="large"></ion-icon>
             </button>
-        </div> -->
-        {{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}
-        <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
-            
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-                </div>
-                
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                    <div class="absolute top-0 right-0 pt-4 pr-4">
-                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <span class="sr-only">Close</span>
-                            <ion-icon name="close-outline" size="medium"></ion-icon>
-                        </button>
-                    </div>
-                    <div id="infoContent" class="mt-3 text-center sm:mt-5">
-                        Loading...
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
+        <!-- 分析圖片與控制區域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
             <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
-                <div class="flex justify-center mt-2 mb-2 flex-grow overflow-auto">
-                    <iframe id="picture" class="w-full h-full border-none"></iframe>
+                <div class="flex justify-center mb-4 flex-grow overflow-auto">
+                    <iframe id="picture" class="w-full h-full border-none rounded-md"></iframe>
                 </div>
-                <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <form method="POST" action="{% url 'main:analyze' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="nodes" value="{{ nodes|escapejs }}">
-                        <input type="hidden" name="edges" value="{{ edges|escapejs }}">
-                        <button type="submit"class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">Analyze</button>
-                    </form>
-    
-                    <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
+                <div class="absolute bottom-4 right-4 flex space-x-3">
+                    <!-- Analyze 按鈕 -->
+                    <button id="analyzeButton" class="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-600 transition duration-200">
+                        Analyze
+                    </button>
+
+                    <!-- Save 按鈕 -->
+                    <button type="button" onclick="saveData()" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
                 </div>
             </div>
 
-            <div class="flex flex-col space-y-4 h-full overflow-auto">
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+            <!-- 表單區域 -->
+            <div class="flex flex-col space-y-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                <form method="POST" class="flex flex-col space-y-4">
                     {% csrf_token %}
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
-                    <div class="mt-4">
+
+                    <!-- Limit 輸入框 -->
+                    <div>
                         <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300){% if limit %} ({{ limit }}){% endif %}</label>
-                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="輸入限制數字">
+                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="輸入限制數字">
                     </div>
+
+                    <!-- District 下拉選單 -->
                     <div>
                         <label for="district" class="block text-lg font-medium text-gray-700">{{ countyName }}行政區</label>
-                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="">請選擇行政區</option>
                             {% for district in districtList %}
                                 <option value="{{ district }}">{{ district }}</option>
                             {% endfor %}
                         </select>
                     </div>
+
+                    <!-- Path 下拉選單 -->
                     <div>
                         <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
-                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="" selected></option>
                             {% for store in stores %}
-                            <option value="{{ store }}">{{ store }}</option>
+                                <option value="{{ store }}">{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
+                    <!-- Start Time -->
                     <div>
                         <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間{% if startTime %} ({{ startTime }}){% endif %}</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
-                    
-                    <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
-                    <div class="flex justify-between">
-                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
-                            Draw Another Picture
-                        </a>
-                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
+                    <!-- End Time -->
+                    <div>
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <!-- Submit 按鈕 -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-3 py-1 bg-blue-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-600 transition duration-200">
                             Submit
                         </button>
                     </div>
                 </form>
-
-                <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
-                    <div>
-                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
-                        <select id="newOption" name="option" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">Deeper Insight</option>
-                            {% for option in options %}
-                                <option value="{{ option }}">{{ option }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
-                        Go
-                    </button>
-                </form>
-                
             </div>
         </div>
 
-        <div class="flex justify-between mt-4">
-            <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+        <!-- 按鈕區域 -->
+        <div class="flex justify-between mt-4 space-x-2">
+            <button id="showRegular" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Regular
             </button>
-            <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+            <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Articulation Points
             </button>
-            <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+            <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Community
             </button>
         </div>
+
+        <!-- 分析結果區域，放在按鈕下方 -->
+        <div id="analysisResult" class="hidden p-4 bg-blue-50 rounded-lg shadow-lg border border-blue-200 mt-4">
+            <h3 class="text-lg font-semibold text-blue-800">Analysis Result:</h3>
+            <p>Loading analysis...</p>
+        </div>
     </div>
 
+    <!-- Modal 彈窗 -->
+    <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <ion-icon name="close-outline" size="large"></ion-icon>
+                    </button>
+                </div>
+                <div id="infoContent" class="mt-3 text-center sm:mt-5">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日期選擇器和其他腳本 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            flatpickr("#startTime", {
-                locale: "zh_tw",
-                plugins: [new monthSelectPlugin({
-                    shorthand: true,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y",
-                })],
-            });
+        var analysisResult = ""; 
+        
+        $(document).ready(function() {
+            var nodes = "{{ nodes|escapejs }}";
+            var edges = "{{ edges|escapejs }}";
+            var analysisResult = ""; 
+            var analysisInProgress = true; 
 
-            flatpickr("#endTime", {
-                locale: "zh_tw",
-                plugins: [new monthSelectPlugin({
-                    shorthand: true,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y",
-                })],
-            });
+            // 轉換 Markdown 為 HTML
+            function convertMarkdownToHTML(markdownText) {
+                const htmlText = markdownText
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')   // 替換 ### 為 h3
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')    // 替換 ## 為 h2
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')     // 替換 # 為 h1
+                    .replace(/^\*\*(.*)\*\*/gim, '<strong>$1</strong>') // 粗體
+                    .replace(/\*(.*)\*/gim, '<em>$1</em>')     // 斜體
+                    .replace(/\n$/gim, '');                // 換行替換為 <br>
+                return htmlText.trim();
+            }
 
-
-            $('#infoButton').click(function() {
-                var displayType = "{{ displayType }}";
-                $.ajax({
-                    url: "{% url 'main:showInfo' %}",
-                    data: {
-                        'displayType': displayType
-                    },
-                    success: function(data) {
-                        $('#infoContent').html(data.content);
-                        $('#infoModal').removeClass('hidden');
+            // 頁面加載時發送分析請求
+            $.ajax({
+                url: "{% url 'main:analyze' %}",
+                method: "POST",
+                data: {
+                    'nodes': nodes,
+                    'edges': edges,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                beforeSend: function() {
+                    console.log('Analysis in progress...');
+                    analysisInProgress = true; // 標記分析進行中
+                },
+                success: function(response) {
+                    if (response.analysis) {
+                        analysisResult = response.analysis;
+                        console.log("Analysis completed:", analysisResult);
+                    } else {
+                        analysisResult = "No result available.";
                     }
-                });
+                    analysisInProgress = false; // 標記分析已完成
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error during analysis:', error);
+                    analysisResult = "Error during analysis.";
+                    analysisInProgress = false; // 標記分析已完成
+                }
             });
 
-            $('#closeModal').click(function() {
-                $('#infoModal').addClass('hidden');
+            // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
+            $('#analyzeButton').click(function() {
+                if (analysisInProgress) {
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
+                } else {
+                    if (analysisResult) {
+                        var formattedResult = convertMarkdownToHTML(analysisResult);
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html(formattedResult);
+                    } else {
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html("<p>No result available.</p>");
+                    }
+                }
             });
 
+            // 頁面加載時顯示初始圖像
             var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
             var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
             var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
 
+            function updateIframeContent(content) {
+                const frame = document.getElementById('picture');
+                frame.contentDocument.open();
+                frame.contentDocument.write(content);
+                frame.contentDocument.close();
+            }
+
+            // 頁面加載時顯示 "Regular" 圖像
             updateIframeContent(relationship);
-            
+
+            // 點擊按鈕切換不同的內容
             $('#showRegular').click(function() {
                 updateIframeContent(relationship);
             });
@@ -193,35 +228,6 @@
 
             $('#showCommunity').click(function() {
                 updateIframeContent(communities);
-            });
-
-            function updateIframeContent(content) {
-                const frame = document.getElementById('picture');
-                frame.contentDocument.open();
-                frame.contentDocument.write(content);
-                frame.contentDocument.close();
-            }
-            $('#analyzeButton').click(function() {
-                var nodes = '{{ nodes|escapejs }}';  // Get the nodes passed in the template
-                var edges = '{{ edges|escapejs }}';  // Get the edges passed in the template
-
-                // Send nodes and edges data to the analyze URL via POST request
-                $.ajax({
-                    url: "{% url 'main:analyze' %}",
-                    method: 'POST',
-                    data: {
-                        nodes: nodes,
-                        edges: edges,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'  // Include CSRF token
-                    },
-                    success: function(response) {
-                        // Redirect or show analysis result
-                        window.location.href = "{% url 'main:analyze' %}";
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error occurred during analysis:', error);
-                    }
-                });
             });
         });
     </script>
