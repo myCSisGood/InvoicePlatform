@@ -19,6 +19,7 @@ from django.db import connection
 from main import PathList
 from django.http import JsonResponse
 from decimal import Decimal
+import calendar
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -171,23 +172,28 @@ def _selectArea(request, pictureType):
 
 def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStoreCount=10):
     county = COUNTRY_DICT[countyName]
-    stores = tuple(storeList)
 
-    # Base SQL query with necessary joins
+    # Base SQL query initialization
     query = f"""
         SELECT store_brand_name, COUNT(*) as store_count
         FROM {county}
-        WHERE store_brand_name IN {stores}
-        AND a_item_tag = %s
     """
+
+    # Add condition for store list if provided
+    if storeList:
+        stores = tuple(storeList)
+        query += f" WHERE store_brand_name IN {stores} AND a_item_tag = %s"
+    else:
+        query += " WHERE a_item_tag = %s"
 
     # If a product is provided, add a condition to filter by product
     if product:
         if isinstance(product, list):
             query += f" AND a_item_name IN {tuple(product)}"
         else:
-            query += f" AND  a_item_name = {product}"
+            query += f" AND a_item_name = %s"
 
+    # Add GROUP BY and HAVING clauses
     query += """
         GROUP BY store_brand_name
         HAVING COUNT(*) > %s
@@ -195,13 +201,21 @@ def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStore
 
     # Prepare parameters for query execution
     params = [itemTag]
+
+    # If product is provided and it's not a list, add it to params
+    if product and not isinstance(product, list):
+        params.append(product)
+
+    # Add the minStoreCount at the end of params
     params.append(minStoreCount)
 
+    # Execute query
     with connection.cursor() as cursor:
         cursor.execute(query, params) # Pass the parameters dynamically
         result = cursor.fetchall()
 
-    existingStores = [row[0] for row in result] # Get store_brand_name from result
+    # Extract store_brand_name from the result
+    existingStores = [row[0] for row in result]
 
     return existingStores
 
@@ -218,35 +232,37 @@ def _filterBigTags(request):
     districtName = request.session.get('districtName', '')
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    # selectedStore = request.session.get('store', '')
     storeTypeList = request.session.get('storeTypeList', '')
+    county = COUNTRY_DICT[countyName]
+    query = f"SELECT DISTINCT a_item_tag FROM {county}"
+    params = []
 
-    query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
-    params = [countyName]
+    hasCondition = False # 标记是否已经添加了第一个条件
 
-    # if districtName:
-    #     query += " AND city_area = %s"
-    #     params.append(districtName)
-
+    # 动态构建查询条件
     if selectedStartTime:
-        query += " AND datetime >= %s::date"
-        params.append(f"{selectedStartTime}-01")
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" datetime >= '{selectedStartTime}-01'"
+        hasCondition = True # 第一个条件已添加
 
     if selectedEndTime:
-        query += " AND datetime < (%s::date + interval '1 month')"
-        params.append(f"{selectedEndTime}-01")
+        year, month = map(int, selectedEndTime.split('-'))
+        lastDay = calendar.monthrange(year, month)[1]
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" datetime <= '{selectedEndTime}-{lastDay}'"
+        hasCondition = True # 标记已添加条件
 
     if storeTypeList:
-        # 使用 IN 语句匹配列表中的任意值
-        query += " AND store_brand_name IN %s"
-        params.append(tuple(storeTypeList))
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" store_brand_name IN {tuple(storeTypeList)}"
+        hasCondition = True # 标记已添加条件
 
     with connection.cursor() as cursor:
         cursor.execute(query, params)
         rows = cursor.fetchall()
 
     smallTags = [row[0] for row in rows]
-    ###暫時反向尋找，之後建立大標籤之欄位###
+    # 暫時反向尋找，之後建立大標籤之欄位
     bigTags = ItemSmallTag.objects.filter(name__in=smallTags).values_list('bigTag__name', flat=True).distinct()
     bigTagsList = list(bigTags)
     return bigTagsList
@@ -432,10 +448,12 @@ def _displayPic(request, pictureType, displayType=None):
             countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
         )
     else:
-        storeCanBeChoose = None
+        storeCanBeChoose = _filterDistrictsStore(
+            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
+        )
     if request.method == 'POST':
-        startTime = request.POST.get('start_time')
-        endTime = request.POST.get('end_time')
+        startTime = request.POST.get('startTime')
+        endTime = request.POST.get('endTime')
         district = request.POST.get('district')
         storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')

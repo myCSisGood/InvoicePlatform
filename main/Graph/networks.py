@@ -6,6 +6,7 @@ from pyvis.network import Network
 import datetime
 import os
 import psycopg2
+import calendar
 
 
 class ProductNetwork:
@@ -118,10 +119,12 @@ class ProductNetwork:
         condition = ""
         tag = ""
         if datetime_lower_bound:
-            condition += f"AND datetime >= '{datetime_lower_bound}' "
+            condition += f"AND datetime >= '{datetime_lower_bound}-01' "
         if datetime_upper_bound:
-            condition += f"AND datetime <= '{datetime_upper_bound}'"
-        if item_name:
+            year, month = map(int, datetime_upper_bound.split('-'))
+            # Get the last day of the month
+            last_day = calendar.monthrange(year, month)[1]
+            condition += f"AND datetime <= '{datetime_upper_bound}-{last_day}'"
 
             if isinstance(item_name, list):
                 condition += f" AND item_name IN {tuple(item_name)}"
