@@ -17,7 +17,6 @@ import networks
 import psycopg2
 from django.db import connection
 from main import PathList
-from django.http import JsonResponse
 from decimal import Decimal
 import calendar
 
@@ -388,12 +387,11 @@ def _displayPathPic(request):
     # Sort the dataframe based on the selected option
     df = df.sort_values(by=orderBy, ascending=False)
 
-    from decimal import Decimal
     dfDict = {
         key: [float(value) if isinstance(value, Decimal) else value for value in values]
         for key, values in df.to_dict(orient='list').items()
     }
-    # Prepare the data for top 10 stores
+
     topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
     sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
 
@@ -417,6 +415,7 @@ def _displayPathPic(request):
         request, 'ProductInPath.html', {
             'df': dfDict,
             'title': title,
+            'titleList': productList,
             'top_10_stores': topStores,
             'top_10_quantities': topValues,
             'data': data,
@@ -480,9 +479,21 @@ def _displayPic(request, pictureType, displayType=None):
         segment,
         limit
     )
+    nodes, edges = _getNodeAndEdge(
+        countyName,
+        smallTag,
+        startTime,
+        endTime,
+        productList,
+        storesToQuery,
+        district, #narrow down
+        segment,
+        limit
+    )
+
     if pictureType == BUY_WITH:
         options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
-
+        print(countyName)
         return render(
             request, 'Display.html', {
                 'startTime': startTime,
@@ -495,6 +506,14 @@ def _displayPic(request, pictureType, displayType=None):
                 'articulationPoint': articulationPoint,
                 'communities': communities,
                 'options': options,
+                'nodes': nodes,
+                'edges': edges,
+                'countyName': countyName,
+                'smallTag': smallTag,
+                'productList': productList,
+                'limit': limit,
+                "districtName": district,
+                'path': storesToQuery
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
@@ -556,6 +575,42 @@ def _drawPic(
         return relationship, articulationPoint, communities, df
 
 
+def _getNodeAndEdge(
+    countyName,
+    smallTag,
+    startTime=None,
+    endTime=None,
+    productList=None,
+    storeTypeList=None,
+    districtName=None,
+    segment=None,
+    limit=None
+):
+
+    if not limit:
+        #limit default value
+        limit = 100
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    df = network.query(
+        county=countyName,
+        city_area=districtName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        item_name=productList,
+        segment=segment,
+        limit=limit
+    )
+    # network.execute_query()
+    # network.analysis(limits=100)
+    network.create_network()
+    network.vis_all_graph()
+    nodes = network.get_nodes()
+    edges = network.get_edges()
+    return nodes, edges
+
+
 def drawBuyWith(request):
     displayType = request.GET.get('displayType', 'Regular')
     step = request.GET.get('step', 'select_area')
@@ -609,10 +664,8 @@ def drawPath(request):
         response = _displayPathPic(request)
 
     else:
-        # If the step is not recognized, handle it by redirecting to a safe default
         response = redirect('/draw_product_in_path/?step=select_area')
 
-    # Log or print the type of response for debugging purposes
     if response is None:
         print(f"drawPath returned None for step: {step}")
         return HttpResponse("An error occurred: No valid response was generated.", status=500)
@@ -621,7 +674,21 @@ def drawPath(request):
 
 
 def analyze(request):
-    return render(request, 'Analysis.html')
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes', '')
+        edges = request.POST.get('edges', '')
+
+        if not nodes or not edges:
+            return render(request, 'Analysis.html', {'error': 'Nodes or edges data is missing'})
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+        result = chatbot.generate_category_analysis(nodes, edges)
+
+        return render(request, 'Analysis.html', {'analysis_result': result})
+
+    return render(request, 'Analysis.html', {'error': 'Invalid request method'})
 
 
 def displayOvertime(request):
@@ -630,10 +697,25 @@ def displayOvertime(request):
 
 def getDeeperInsight(request):
     option = request.GET.get('option')
-    print(option)
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+    countyName = request.session.get('selectedCounty', '')
+    storeTypeList = request.session.get('storeTypeList', '')
+    district = request.session.get('selectedDistrict', '')
+    limit = request.session.get('limit', '100')
+
     if not option:
-        return redirect('main:some_fallback_url')
+        return redirect('/draw_buy_with/?step=display_picture')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    table = network.get_item_name(
+        item_tag=option,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        county=countyName,
+        city_area=district,
+        limit=limit
+    )
     table = network.get_item_name(option)
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)

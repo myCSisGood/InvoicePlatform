@@ -34,8 +34,8 @@ class Chatbot:
         return answer
 
     def generate_category_analysis(self, node, edge):
-        node = node.to_string()
-        edge = edge.to_string()
+        # node = node.to_string()
+        # edge = edge.to_string()
         content = f"""你現在是一位專業的商業分析師，請提供一份超過3000字且完整且專業的產品銷售分析文字報告！！！。
                   以下將提供該graph的node(node_name, degree, color, group, is_articulation_point)和edge(from, to, counts)
                   Node為：{node}，Edge為：{edge}，

@@ -7,15 +7,13 @@
         <div class="bg-white p-4 rounded-lg shadow-md mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">
 
-                {% if title %}
-                    {% if title.0 %}
-                        {% for n in title %}
-                            {{ forloop.counter }}. {{ n }}
-                        {% endfor %}
-                    {% else %}
-                        {{ title }}
-                    {% endif %}
+                {% if titleList %}               
+                    {% for n in titleList %}{{ forloop.counter }}. {{ n }}<br>{% endfor %}
+                {% else %}
+                    {{ title }}
                 {% endif %}
+                
+
 
             </h2>
 

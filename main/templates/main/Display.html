@@ -3,18 +3,21 @@
 {% block main %}
 <body class="bg-gray-50 h-screen">
     <div class="container mx-auto py-4 h-full flex flex-col">
-        <div class="flex items-center mb-4">
+
+        <!-- <div class="flex items-center mb-4">
             <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
             <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
                 <ion-icon name="help-circle-outline" size="medium"></ion-icon>
             </button>
-        </div>
-
+        </div> -->
+        {{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}
         <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
+            
             <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <div class="fixed inset-0 transition-opacity" aria-hidden="true">
                     <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
+                
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                     <div class="absolute top-0 right-0 pt-4 pr-4">
@@ -36,9 +39,13 @@
                     <iframe id="picture" class="w-full h-full border-none"></iframe>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
-                        Overtime
-                    </a>
+                    <form method="POST" action="{% url 'main:analyze' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="nodes" value="{{ nodes|escapejs }}">
+                        <input type="hidden" name="edges" value="{{ edges|escapejs }}">
+                        <button type="submit"class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">Analyze</button>
+                    </form>
+    
                     <button type="button" onclick="saveData()" class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-sm">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
@@ -50,11 +57,11 @@
                     {% csrf_token %}
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
                     <div class="mt-4">
-                        <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300)</label>
+                        <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300){% if limit %} ({{ limit }}){% endif %}</label>
                         <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="輸入限制數字">
                     </div>
                     <div>
-                        <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
+                        <label for="district" class="block text-lg font-medium text-gray-700">{{ countyName }}行政區</label>
                         <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="">請選擇行政區</option>
                             {% for district in districtList %}
@@ -73,12 +80,12 @@
                     </div>
 
                     <div>
-                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
+                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間{% if startTime %} ({{ startTime }}){% endif %}</label>
                         <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     
                     <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
                         <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
 
@@ -194,6 +201,28 @@
                 frame.contentDocument.write(content);
                 frame.contentDocument.close();
             }
+            $('#analyzeButton').click(function() {
+                var nodes = '{{ nodes|escapejs }}';  // Get the nodes passed in the template
+                var edges = '{{ edges|escapejs }}';  // Get the edges passed in the template
+
+                // Send nodes and edges data to the analyze URL via POST request
+                $.ajax({
+                    url: "{% url 'main:analyze' %}",
+                    method: 'POST',
+                    data: {
+                        nodes: nodes,
+                        edges: edges,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'  // Include CSRF token
+                    },
+                    success: function(response) {
+                        // Redirect or show analysis result
+                        window.location.href = "{% url 'main:analyze' %}";
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error occurred during analysis:', error);
+                    }
+                });
+            });
         });
     </script>
 </body>

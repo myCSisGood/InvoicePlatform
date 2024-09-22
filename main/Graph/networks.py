@@ -413,30 +413,125 @@ class ProductNetwork:
     def show_heatmap(self):
         pass
 
-    def get_item_name(self, item_tag):
-        # {self.temp_condition}
-        self.cur.execute(
-            f"""
-                        SELECT 
-                            item_name, 
-                            SUM(quantity) as TOTAL_QUANTITY, 
-                            SUM(amount) as TOTAL_PROFIT
-                        FROM 
-                            test
-                        WHERE 
-                            item_tag = '{item_tag}'
-                            
-                            
-                        GROUP BY 
-                            item_name
-                        ORDER BY 
-                            SUM(amount) DESC
-                        """
-        )
+    # def get_item_name(
+    #     self,
+    #     item_tag,
+    #     datetime_lower_bound=None,
+    #     datetime_upper_bound=None,
+    #     store_brand_name=None,
+    #     county=None,
+    #     city_area=None,
+    #     limit=100
+    # ):
+    #     condition = ""
+    #     tag = ""
+    #     # {self.temp_condition}
+    #     if datetime_lower_bound:
+    #         condition += f"AND datetime >= '{datetime_lower_bound}' "
+    #     if datetime_upper_bound:
+    #         condition += f"AND datetime <= '{datetime_upper_bound}'"
 
-        df = pd.DataFrame(self.cur.fetchall())
-        print(df)
-        df = df.rename(columns={0: "ITEM_NAME", 1: "TOTAL_QUANTITY", 2: "TOTAL_PROFIT"})
+    #     if store_brand_name:
+    #         if isinstance(store_brand_name, list):
+    #             condition += f" AND store_brand_name IN {tuple(store_brand_name)}"
+    #         else:
+    #             condition += f" AND store_brand_name = '{store_brand_name}'"
+    #     if county:
+    #         condition += f"AND county = '{county}'"
+    #         self.county = county
+    #     if city_area:
+    #         condition += f"AND city_area = '{city_area}'"
+
+    #     self.temp_condition = condition
+    #     if item_tag:
+    #         # self.type = item_tag
+    #         self.temp_condition = condition
+    #         condition += f"AND item_tag = '{item_tag}' "
+    #     self.cur.execute(
+    #         f"""
+    #                     SELECT
+    #                         item_name,
+    #                         SUM(quantity) as TOTAL_QUANTITY,
+    #                         SUM(amount) as TOTAL_PROFIT
+    #                     FROM
+    #                         test
+    #                     WHERE
+    #                         {condition} AND
+    #                         item_tag = '{item_tag}'
+
+    #                     GROUP BY
+    #                         item_name
+    #                     ORDER BY
+    #                         SUM(amount) DESC
+    #                     """
+    #     )
+    def get_item_name(
+        self,
+        item_tag,
+        datetime_lower_bound=None,
+        datetime_upper_bound=None,
+        store_brand_name=None,
+        county=None,
+        city_area=None,
+        limit=100
+    ):
+        condition = ["1=1"]
+        params = []
+
+        if datetime_lower_bound:
+            condition.append(f"datetime >= %s")
+            params.append(datetime_lower_bound)
+        if datetime_upper_bound:
+            condition.append(f"datetime <= %s")
+            params.append(datetime_upper_bound)
+
+        if store_brand_name:
+            if isinstance(store_brand_name, list):
+                condition.append(f"store_brand_name IN %s")
+                params.append(tuple(store_brand_name))
+            else:
+                condition.append(f"store_brand_name = %s")
+                params.append(store_brand_name)
+
+        if county:
+            condition.append(f"county = %s")
+            params.append(county)
+        if city_area:
+            condition.append(f"city_area = %s")
+            params.append(city_area)
+
+        if item_tag:
+            condition.append(f"item_tag = %s")
+            params.append(item_tag)
+
+        query_condition = " AND ".join(condition)
+
+        query = f"""
+            SELECT 
+                item_name, 
+                SUM(quantity) as TOTAL_QUANTITY, 
+                SUM(amount) as TOTAL_PROFIT
+            FROM 
+                test
+            WHERE 
+                {query_condition}
+            GROUP BY 
+                item_name
+            ORDER BY 
+                SUM(amount) DESC
+            LIMIT %s;
+        """
+        params.append(limit)
+
+        self.cur.execute(query, params)
+
+        result = self.cur.fetchall()
+
+        df = pd.DataFrame(result)
+
+        if not df.empty:
+            df = df.rename(columns={0: "ITEM_NAME", 1: "TOTAL_QUANTITY", 2: "TOTAL_PROFIT"})
+
         return df
 
     def get_channel_with_item_tag(self, item_tag):
