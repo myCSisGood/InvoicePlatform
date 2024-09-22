@@ -513,7 +513,7 @@ def _displayPic(request, pictureType, displayType=None):
                 'productList': productList,
                 'limit': limit,
                 "districtName": district,
-                'path': storesToQuery if len(storesToQuery) <= 1 else storeType,
+                'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):

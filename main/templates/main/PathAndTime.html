@@ -75,6 +75,8 @@
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
+                minDate: "2020-01", // 設定最小日期
+                maxDate: "2021-12", // 設定最大日期
                 onValueUpdate: function(selectedDates, dateStr, instance) {
                     endPicker.set('minDate', dateStr);
                 }
@@ -87,6 +89,8 @@
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
+                minDate: "2020-01", // 設定最小日期
+                maxDate: "2021-12", // 設定最大日期
                 onValueUpdate: function(selectedDates, dateStr, instance) {
                     startPicker.set('maxDate', dateStr);
                 }

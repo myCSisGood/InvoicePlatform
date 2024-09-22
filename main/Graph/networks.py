@@ -125,7 +125,7 @@ class ProductNetwork:
             # Get the last day of the month
             last_day = calendar.monthrange(year, month)[1]
             condition += f"AND datetime <= '{datetime_upper_bound}-{last_day}'"
-
+        if item_name:
             if isinstance(item_name, list):
                 condition += f" AND item_name IN {tuple(item_name)}"
             else:

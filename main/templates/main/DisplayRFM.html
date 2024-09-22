@@ -145,23 +145,35 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            flatpickr("#startTime", {
+            var startPicker = flatpickr("#startTime", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
                     shorthand: true,
                     dateFormat: "Y-m",
                     altFormat: "F Y",
                 })],
+                minDate: "2020-01", // 設定最小日期
+                maxDate: "2021-12", // 設定最大日期
+                onValueUpdate: function(selectedDates, dateStr, instance) {
+                    endPicker.set('minDate', dateStr); // 更新結束時間的最小值
+                }
             });
-
-            flatpickr("#endTime", {
+        
+            var endPicker = flatpickr("#endTime", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
                     shorthand: true,
                     dateFormat: "Y-m",
                     altFormat: "F Y",
                 })],
+                minDate: "2020-01", // 設定最小日期
+                maxDate: "2021-12", // 設定最大日期
+                onValueUpdate: function(selectedDates, dateStr, instance) {
+                    startPicker.set('maxDate', dateStr); // 更新開始時間的最大值
+                }
             });
+        });
+        
 
 
             $('#infoButton').click(function() {
