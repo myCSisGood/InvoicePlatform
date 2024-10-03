@@ -21,6 +21,7 @@ import calendar
 from django.core.cache import cache
 from networkx.readwrite import json_graph
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -52,6 +53,7 @@ COUNTRY_DICT = {
 }
 
 
+@login_required
 def uploadFile(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -84,7 +86,7 @@ def uploadFile(request):
     return render(request, 'UploadFile.html', {'form': form})
 
 
-    ###行政區太多會往上跑的問題待修正
+@login_required
 def getMainpage(request):
     return render(request, 'Mainpage.html')
 
@@ -115,7 +117,6 @@ def getProducts(request):
     return JsonResponse({'products': products})
 
 
-###行政區太多會往上跑的問題待修正###
 def getDistrict(request):
     county = request.GET.get('county')
     districts = District.objects.filter(county__name=county)
@@ -699,7 +700,7 @@ def analyze(request):
     if request.method == 'POST':
         nodes = request.POST.get('nodes', '')
         edges = request.POST.get('edges', '')
-        # analysis = request.POST.get('analysis', '')
+        analysisType = request.POST.get('analysisType', '')
         if not nodes or not edges:
             return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
 
@@ -707,7 +708,14 @@ def analyze(request):
         # print('Edges:', edges)
 
         chatbot = Chatbot()
-        result = chatbot.generate_category_analysis(nodes, edges)
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis(nodes, edges)
+            result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result = chatbot.generate_articulation_analysis(nodes, edges)
+        else:
+            result = chatbot.generate_community_analysis(nodes, edges)
 
         return JsonResponse({'analysis': result})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
