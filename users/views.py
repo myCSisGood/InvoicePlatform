@@ -39,7 +39,7 @@ def logIn(request):
             user = auth.authenticate(request, username=username, password=password)
             if user:
                 auth.login(request, user)
-                return redirect('main:getMainPage')
+                return redirect('main:getMainpage')
             else:
                 messages.error(request, '帳號或密碼錯誤')
                 return render(request, 'login.html', {'form': form})

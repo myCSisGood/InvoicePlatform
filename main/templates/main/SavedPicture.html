@@ -1,0 +1,78 @@
+{% extends "Mainpage.html" %}
+{% block main %}
+    <script>
+        function limitCheckboxes() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            let checkedCount = 0;
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
+
+                    if (checkedCount >= 2) {
+                        checkboxes.forEach(c => {
+                            if (!c.checked) {
+                                c.disabled = true;
+                            }
+                        });
+                    } else {
+                        checkboxes.forEach(c => {
+                            c.disabled = false;
+                        });
+                    }
+                });
+            });
+        }
+
+        function validateForm(event) {
+            const selected = document.querySelectorAll('input[type="checkbox"]:checked');
+            if (selected.length !== 2) {
+                event.preventDefault();  // 阻止表單提交
+                alert("Please select exactly two pictures.");
+            }
+        }
+
+        window.onload = function() {
+            limitCheckboxes();
+            // 綁定表單提交事件
+            const form = document.querySelector('form');
+            form.addEventListener('submit', validateForm);
+        };
+    </script>
+
+<body class="bg-gray-100 p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Stored Pictures</h1>
+
+    <form method="post" action="{% url 'main:loadPicture' %}" class="bg-white p-8 shadow-md rounded-lg">
+        {% csrf_token %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 bg-gray-200 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Select</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Picture Name</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Created Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for picture in pictures %}
+                    <tr>
+                        <td class="py-2 px-4">
+                            <input type="checkbox" name="selectedPictures" value="{{ picture.id }}" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        </td>
+                        <td class="py-2 px-4 text-sm font-medium text-gray-900">{{ picture.name }}</td>
+                        <td class="py-2 px-4 text-sm text-gray-500">{{ picture.createdTime }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 text-center">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                Submit
+            </button>
+        </div>
+    </form>
+</body>
+{% endblock main %}

@@ -5,20 +5,22 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.dateparse import parse_date
 from .forms import UploadFileForm
 from django.http import HttpResponse
-from .models import UploadedFile
+from .models import UploadedFile, NetworkGraph
 from .Bert.test import BertModel
 from .models import County, District, ItemBigTag, ItemSmallTag
 from django.http import JsonResponse
 import io
 import pandas as pd
-from .Graph.networks import ProductNetwork
+from .Graph.networks import ProductNetwork, saveJson, compare_node
 from .Graph.chatbot import Chatbot
-import networks
 import psycopg2
 from django.db import connection
 from main import PathList
 from decimal import Decimal
 import calendar
+from django.core.cache import cache
+from networkx.readwrite import json_graph
+from datetime import datetime
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -382,7 +384,7 @@ def _displayPathPic(request):
     productList = request.session.get('productList', '')
     # product = request.session.get('product', '')
     orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
-    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime, productList=productList)
+    df = _drawPic(request, countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime, productList=productList)
 
     # Sort the dataframe based on the selected option
     df = df.sort_values(by=orderBy, ascending=False)
@@ -468,6 +470,7 @@ def _displayPic(request, pictureType, displayType=None):
         # request.session['selectedPath'] = pathId
 
     relationship, articulationPoint, communities, df = _drawPic(
+        request,
         countyName,
         smallTag,
         pictureType,
@@ -533,6 +536,7 @@ def _displayPic(request, pictureType, displayType=None):
 
 
 def _drawPic(
+    request,
     countyName,
     smallTag,
     pictureType,
@@ -547,7 +551,6 @@ def _drawPic(
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
         if productList:
-
             df = network.get_channel_with_item_name(productList)
         else:
             df = network.get_channel_with_item_tag(smallTag)
@@ -571,6 +574,13 @@ def _drawPic(
         # network.execute_query()
         # network.analysis(limits=100)
         network.create_network()
+        data = json_graph.node_link_data(network.g)
+        request.session['network'] = {
+            'username': network.username,
+            'networkName': network.network_name,
+            'data': data,
+            'relationshipDF': network.relationship_df.to_json(orient='split')
+        }
         relationship, articulationPoint, communities = network.vis_all_graph()
         return relationship, articulationPoint, communities, df
 
@@ -611,12 +621,24 @@ def _getNodeAndEdge(
     return nodes, edges
 
 
+def _clearSession(request):
+    userSessionKeys = ['_auth_user_id', '_auth_user_backend', '_auth_user_hash']
+
+    userSessionData = {key: request.session.get(key) for key in userSessionKeys}
+
+    request.session.clear()
+
+    for key, value in userSessionData.items():
+        if value:
+            request.session[key] = value
+
+
 def drawBuyWith(request):
     displayType = request.GET.get('displayType', 'Regular')
     step = request.GET.get('step', 'select_area')
     pictureType = BUY_WITH
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -651,7 +673,7 @@ def drawPath(request):
     step = request.GET.get('step', 'select_area')
     pictureType = PRODUCT_IN_PATH
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         response = _selectArea(request, pictureType)
 
     elif step == 'select_time':
@@ -727,7 +749,7 @@ def drawRFM(request):
 
     displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -808,3 +830,53 @@ def displayBuyWithInPath(request):
             'communities': communities,
         }
     )
+
+
+def saveData(request):
+    # network = cache.get('network')
+    network = request.session.get('network')
+    if network:
+        NetworkGraph.objects.create(
+            name=network['networkName'],
+            json=network['data'],
+            user=request.user,
+            csv=network['relationshipDF'],
+        )
+        # saveJson(
+        #     network['username'], network['networkName'], network['data'],
+        #     pd.DataFrame.from_dict(network['relationshipDF'])
+        # )
+        return HttpResponse("Data saved successfully!")
+    else:
+        return HttpResponse("Data saved error!")
+
+
+def getStoredPicture(request):
+    savedPictures = NetworkGraph.objects.filter(user=request.user)
+    return render(request, 'SavedPicture.html', {'pictures': savedPictures})
+
+
+def loadPicture(request):
+    if request.method == "POST":
+        selectedPictures = request.POST.getlist('selectedPictures')
+
+        if len(selectedPictures) == 2:
+            pictures = NetworkGraph.objects.filter(id__in=selectedPictures)
+            network1 = ProductNetwork(username='test', network_name=pictures[0].name)
+            network1.load(pictures[0].json, pictures[0].csv)
+            network2 = ProductNetwork(username='test', network_name=pictures[1].name)
+            network2.load(pictures[1].json, pictures[1].csv)
+            network1HTML, network2HTML = compare_node(network1, network2)
+            return render(
+                request, 'CompareGraph.html', {
+                    'network1HTML': network1HTML,
+                    'network2HTML': network2HTML,
+                    'network1': network1,
+                    'network2': network2
+                }
+            )
+
+        else:
+            return HttpResponse("Error: You must select exactly two pictures.")
+    else:
+        return HttpResponse("Invalid request method.")

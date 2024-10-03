@@ -1,0 +1,48 @@
+{% extends "Mainpage.html" %}
+
+{% block main %}
+<body class="bg-gray-50 min-h-screen w-full">
+    <div class="min-h-screen w-full grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 overflow-hidden">
+        <!-- 左邊區塊 -->
+        <div class="flex flex-col space-y-4">
+            <!-- 第一個訊息區域 -->
+            <div class="bg-white shadow-md p-4 rounded-lg flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    {{network1.network_name}} {{network1.createTime}} 
+                    {% comment %} {{ countyName }} {{ districtName }} {{ smallTag }} 
+                    {% if path %} in {{ path }}{% endif %} {% endcomment %}
+                </h2>
+                <button id="infoButton1" class="ml-2 p-2 rounded-full text-blue-500 hover:text-blue-700 bg-gray-100 hover:bg-gray-200 shadow transition duration-300">
+                    <ion-icon name="help-circle-outline" size="large"></ion-icon>
+                </button>
+            </div>
+
+            <!-- 第一個網路圖 -->
+            <div class="flex-grow p-4 rounded-lg shadow-lg border border-gray-200 bg-white max-h-full">
+                <iframe id="network1" class="w-full h-full border-none rounded-md" srcdoc="{{ network1HTML }}"></iframe>
+            </div>
+        </div>
+
+        <!-- 右邊區塊 -->
+        <div class="flex flex-col space-y-4">
+            <!-- 第二個訊息區域 -->
+            <div class="bg-white shadow-md p-4 rounded-lg flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    {{network2.network_name}}  {{network2.createTime}} 
+
+                    {% comment %} {{ countyName }} {{ districtName }} {{ smallTag }} 
+                    {% if path %} in {{ path }}{% endif %} {% endcomment %}
+                </h2>
+                <button id="infoButton2" class="ml-2 p-2 rounded-full text-blue-500 hover:text-blue-700 bg-gray-100 hover:bg-gray-200 shadow transition duration-300">
+                    <ion-icon name="help-circle-outline" size="large"></ion-icon>
+                </button>
+            </div>
+
+            <!-- 第二個網路圖 -->
+            <div class="flex-grow p-4 rounded-lg shadow-lg border border-gray-200 bg-white max-h-full">
+                <iframe id="network2" class="w-full h-full border-none rounded-md" srcdoc="{{ network2HTML }}"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

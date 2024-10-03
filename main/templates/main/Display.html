@@ -25,9 +25,10 @@
                     </button>
 
                     <!-- Save 按鈕 -->
-                    <button type="button" onclick="saveData()" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
+                    <a href="{% url 'main:saveData' %}" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-                    </button>
+                    </a>
+                    
                 </div>
             </div>
 

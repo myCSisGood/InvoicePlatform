@@ -7,6 +7,8 @@ import datetime
 import os
 import psycopg2
 import calendar
+import json
+from networkx.readwrite import json_graph
 
 
 class ProductNetwork:
@@ -47,19 +49,6 @@ class ProductNetwork:
         self.articulation_points = None
         self.relationship_df = None
         self.channel_df = None
-
-        self.layer2_g = None
-        self.layer2_graph = None
-        self.layer2_node_attributes = None
-        self.layer2_edge_attributes = None
-        self.layer2_relationship_df = None
-        self.layer2_communities = None
-
-        self.layer2_articulation_points = None
-        self.layer2_original_graph = None
-        self.layer2_articulation_graph = None
-        self.layer2_community_graph = None
-
         self.query_list = None
         self.condition = None
 
@@ -99,6 +88,7 @@ class ProductNetwork:
             port="5432",
         )
         self.cur = self.conn.cursor()
+        self.g = None
 
     def query(
         self,
@@ -219,6 +209,30 @@ class ProductNetwork:
         df.reset_index(drop=True)
         self.relationship_df = df
         return df
+
+    def save(self):
+        with open(f"./{self.username}/{self.network_name}/graph.json", "w") as f:
+            data = json_graph.node_link_data(self.g)
+            json.dump(data, f, indent=2)
+        self.relationship_df.to_csv(f'./{self.username}/{self.network_name}/relationships.csv')
+        print("save successfully")
+        return
+
+    # def load(self):
+    #     with open(f"./{self.username}/{self.network_name}/graph.json", "r") as f:
+    #         js_graph = json.load(f)
+    #         print(json_graph.node_link_graph(js_graph))
+    #         self.g = json_graph.node_link_graph(js_graph)
+    #         self.relationship_df = pd.read_csv(f'./{self.username}/{self.network_name}/relationships.csv')
+    #         #pd.read_json(stored_json)
+    #         print("load successfully")
+    #     return
+    def load(self, json, csv):
+        print(json_graph.node_link_graph(json))
+        self.g = json_graph.node_link_graph(json)
+        self.relationship_df = pd.read_json(csv, orient='split')
+        print("load successfully")
+        return
 
     # return
 
@@ -405,10 +419,10 @@ class ProductNetwork:
     def show_compare(self, type, common):
 
         compare_graph_name = f"{type}.html"
-        result = self.visualize_graph(self.g, type, common)
-        result.show(f"./{self.username}/{self.network_name}/{compare_graph_name}")
+        graph, graph_html = self.visualize_graph(self.g, type, common)
+        graph.show(f"./{self.username}/{self.network_name}/{compare_graph_name}")
         self.compare_graph = compare_graph_name
-        return self.compare_graph
+        return graph_html
 
     def show_heatmap(self):
         pass
@@ -465,6 +479,7 @@ class ProductNetwork:
     #                         SUM(amount) DESC
     #                     """
     #     )
+
     def get_item_name(
         self,
         item_tag,
@@ -585,267 +600,108 @@ class ProductNetwork:
         return df
 
 
-##-------------layer2 --------------------------
+def saveJson(username, network_name, data, relationship_df):
+    with open(f"./{username}/{network_name}/graph.json", "w") as f:
+        json.dump(data, f, indent=2)
+    relationship_df.to_csv(f'./{username}/{network_name}/relationships.csv')
+    print("save successfully")
+    return
 
-    def l2_query(self, item_name, limit=100):
-        self.cur.execute(
-            f"""
-                        WITH INV_NUMBERS AS (
-                            SELECT DISTINCT inv_num 
-                            FROM test 
-                            WHERE item_name = '{item_name}' 
-                            {self.condition}
-                        )
 
-                        SELECT 
-                            CASE 
-                                WHEN a_item_name = '{item_name}' THEN a_item_name
-                                ELSE a_item_tag
-                            END AS a_item,
-                            CASE
-                                WHEN b_item_name = '{item_name}' THEN b_item_name
-                                ELSE b_item_tag
-                            END AS b_item,
+def compare_node(g1, g2):
+    df1 = g1.relationship_df
+    df2 = g2.relationship_df
+    set_df1 = set()
+    set_df2 = set()
 
-                            COUNT(t.id) AS coun
-                        FROM 
-                            public.{self.country_dict[self.county]} t
-                        JOIN 
-                            INV_NUMBERS i ON t.inv_num = i.inv_num
-                        GROUP BY 
-                            t.a_item_tag, 
-                            t.b_item_tag,
-                            CASE 
-                                WHEN a_item_name = '{item_name}' THEN a_item_name
-                                ELSE a_item_tag
-                            END,
-                            CASE
-                                WHEN b_item_name = '{item_name}' THEN b_item_name
-                                ELSE b_item_tag
-                            END
-                        ORDER BY 
-                            coun DESC 
-                        LIMIT {limit};
-                         """
-        )
+    meta_df1 = dict()
+    meta_df2 = dict()
 
-        print(
-            f"""
-                        WITH INV_NUMBERS AS (
-                            SELECT DISTINCT inv_num 
-                            FROM test 
-                            WHERE item_name = '{item_name}' 
-                            {self.condition}
-                        )
+    for i in range(0, df1.shape[0]):
+        if df1['ELEMENT1'][i] in meta_df1:
+            meta_df1[df1['ELEMENT1'][i]] += df1['COUNTS'][i]
+        if df1['ELEMENT2'][i] in meta_df1:
+            meta_df1[df1['ELEMENT2'][i]] += df1['COUNTS'][i]
 
-                        SELECT 
-                        
-                           
-                            CASE 
-                                WHEN a_item_name = '{item_name}' THEN a_item_name
-                                ELSE a_item_tag
-                            END AS a_item,
-                            CASE
-                                WHEN b_item_name = '{item_name}' THEN b_item_name
-                                ELSE b_item_tag
-                            END AS b_item
+        if df1['ELEMENT1'][i] not in meta_df1:
+            meta_df1[df1['ELEMENT1'][i]] = df1['COUNTS'][i]
+        if df1['ELEMENT2'][i] not in meta_df1:
+            meta_df1[df1['ELEMENT2'][i]] = df1['COUNTS'][i]
 
-                            COUNT(t.id) AS coun
-                        FROM 
-                            public.{self.country_dict[self.county]} t
-                        JOIN 
-                            INV_NUMBERS i ON t.inv_num = i.inv_num
-                        GROUP BY 
-                            t.a_item_tag, 
-                            t.b_item_tag,
-                            CASE 
-                                WHEN a_item_name = '{item_name}' THEN a_item_name
-                                ELSE a_item_tag
-                            END,
-                            CASE
-                                WHEN b_item_name = '{item_name}' THEN b_item_name
-                                ELSE b_item_tag
-                            END
-                        ORDER BY 
-                            coun DESC 
-                        LIMIT {limit};"""
-        )
+    for i in range(0, df2.shape[0]):
+        if df2['ELEMENT1'][i] in meta_df2:
+            meta_df2[df2['ELEMENT1'][i]] += df2['COUNTS'][i]
+        if df2['ELEMENT2'][i] in meta_df2:
+            meta_df2[df2['ELEMENT2'][i]] += df2['COUNTS'][i]
 
-        df = pd.DataFrame(self.cur.fetchall())
-        print(df)
+        if df2['ELEMENT1'][i] not in meta_df2:
+            meta_df2[df2['ELEMENT1'][i]] = df2['COUNTS'][i]
+        if df2['ELEMENT2'][i] not in meta_df2:
+            meta_df2[df2['ELEMENT2'][i]] = df2['COUNTS'][i]
 
-        if df.shape[0] == 0:
-            print("The result of this query contains no data")
-            return None
+    for i in range(0, df1.shape[0]):
+        set_df1.add(df1['ELEMENT1'][i])
+        set_df1.add(df1['ELEMENT2'][i])
 
-        df = df.sort_values([2], ascending=False)
-        df[3] = df[2] / (df[2].sum()) * 100
-        df = df.rename(columns={0: "ELEMENT1", 1: "ELEMENT2", 2: "COUNTS", 3: "PERCENTAGE"})
-        df = df[:df.shape[0]].round({3: 2}).reset_index(drop=True)
-        print(df)
+    for i in range(0, df2.shape[0]):
+        set_df2.add(df2['ELEMENT1'][i])
+        set_df2.add(df2['ELEMENT2'][i])
+    intersection_df = set_df1 & set_df2
+    print(intersection_df)
 
-        if self.type == "Category":
-            df["item_tag"] = [self.type for i in range(0, df.shape[0])]
-        else:
-            df["item_tag"] = ["" for i in range(0, df.shape[0])]
+    node = []
+    counts = []
+    for key in meta_df1.keys():
+        print(key)
+        if key in intersection_df:
+            node.append(key)
+            counts.append(meta_df1[key])
 
-        df.reset_index(drop=True)
-        self.layer2_relationship_df = df
-        return df
+    d = pd.DataFrame([], columns=['NODE', 'COUNTS'])
+    d['NODE'] = node
+    d['COUNTS'] = counts
+    d = d.sort_values(by=['COUNTS'], ascending=False)
+    d.to_csv('./graph1_compare_node.csv')
 
-    def l2_vis_all_graph(self):
-        return [
-            self.l2_vis_original_graph(),
-            self.l2_vis_articulation_graph(),
-            self.l2_vis_community_graph(),
-        ]
+    node = []
+    counts = []
+    for key in meta_df2.keys():
+        if key in intersection_df:
+            node.append(key)
+            counts.append(meta_df2[key])
 
-    def l2_vis_original_graph(self):
-        original_graph_name = "l2_origin_case.html"
-        self.l2_visualize_graph(self.layer2_g,
-                                _type="original").show(f"./{self.username}/{self.network_name}/{original_graph_name}")
-        self.layer2_original_graph = original_graph_name
-        return self.layer2_original_graph
+    d = pd.DataFrame([], columns=['NODE', 'COUNTS'])
+    d['NODE'] = node
+    d['COUNTS'] = counts
+    d = d.sort_values(by=['COUNTS'], ascending=False)
+    d.to_csv('./graph2_compare_node.csv')
 
-    def l2_vis_articulation_graph(self):
-        articulation_graph_name = "l2_articulation_case.html"
-        self.l2_visualize_graph(self.layer2_g, _type="articulation"
-                               ).show(f"./{self.username}/{self.network_name}/{articulation_graph_name}")
-        self.layer2_articulation_graph = articulation_graph_name
-        return self.layer2_articulation_graph
+    node = []
+    counts = []
+    for key in meta_df1.keys():
+        if key not in intersection_df:
+            node.append(key)
+            counts.append(meta_df1[key])
 
-    def l2_vis_community_graph(self):
-        community_graph_name = "l2_community_case.html"
-        self.l2_visualize_graph(self.layer2_g, _type="community"
-                               ).show(f"./{self.username}/{self.network_name}/{community_graph_name}")
-        self.layer2_community_graph = community_graph_name
-        return self.layer2_community_graph
+    d = pd.DataFrame([], columns=['NODE', 'COUNTS'])
+    d['NODE'] = node
+    d['COUNTS'] = counts
+    d = d.sort_values(by=['COUNTS'], ascending=False)
+    d.to_csv('./not_graph1_compare_node.csv')
 
-    def l2_create_network(self):
-        links = self.layer2_relationship_df
-        g = nx.from_pandas_edgelist(links, "ELEMENT1", "ELEMENT2", edge_attr=True, create_using=nx.Graph())
+    node = []
+    counts = []
+    for key in meta_df2.keys():
+        if key not in intersection_df:
+            node.append(key)
+            counts.append(meta_df2[key])
 
-        # Add item_tag as node attribute
-        for node in g.nodes():
-            item_tags = links.loc[(links["ELEMENT1"] == node) | (links["ELEMENT2"] == node), "item_tag"]
-            if not item_tags.empty:
-                g.nodes[node]["item_tag"] = item_tags.iloc[0]
+    d = pd.DataFrame([], columns=['NODE', 'COUNTS'])
+    d['NODE'] = node
+    d['COUNTS'] = counts
+    d = d.sort_values(by=['COUNTS'], ascending=False)
+    d.to_csv('./not_graph2_compare_node.csv')
 
-        self.layer2_g = g
-        return g
-
-    def l2_visualize_graph(self, g, _type, _compare=None):
-        if g is None:
-            print("Empty graph, nothing to visualize.")
-            return None
-
-        graph = Network(notebook=True)
-        node_attributes = pd.DataFrame(g.degree, columns=["Node", "Degree"])
-
-        self.layer2_articulation_points = list(nx.articulation_points(g))
-        a_tf = []
-        for i in range(0, node_attributes.shape[0]):
-            if node_attributes["Node"][i] in self.layer2_articulation_points:
-                a_tf.append(True)
-
-            else:
-                a_tf.append(False)
-        node_attributes["is_articulation_point"] = a_tf
-
-        comm = nx.community.louvain_communities(g, seed=123)
-        self.layer2_communities = comm
-        community = {}
-        for i in range(0, len(comm)):
-            for item in comm[i]:
-                community[item] = i
-        color = [
-            "#FF0000",
-            "#00FFFF",
-            "#FFA500",
-            "#800080",
-            "#A52A2A",
-            "#FFFF00",
-            "#800000",
-            "#008000",
-            "#FF00FF",
-            "#808000",
-            "#FFC0CB",
-            "#7FFFD4",
-        ]
-        node_attributes["Group"] = [community[node_attributes["Node"][i]] for i in range(0, node_attributes.shape[0])]
-
-        # Get the item_tag from node attributes
-        item_tag = None
-
-        for node in g.nodes(data=True):
-            if "item_tag" in node[1]:
-                item_tag = node[1]["item_tag"]
-                break
-
-        node_attributes["Size"] = np.sqrt(node_attributes["Degree"]) * 5
-
-        if _type == "original" or _type == None:
-            node_attributes["Color"] = np.where(node_attributes["Node"] == item_tag, "orange", "orange")
-        else:
-            node_attributes["Color"] = np.where(node_attributes["Node"] == item_tag, "red", "orange")
-
-        if _type == "articulation":
-
-            for i in range(0, node_attributes.shape[0]):
-                if node_attributes["Node"][i] in self.layer2_articulation_points:
-                    node_attributes["Color"][i] = "green"
-
-                if node_attributes["Node"][i] == item_tag:
-                    node_attributes["Color"][i] = "red"
-
-        if _type == "community":
-            node_attributes["Color"] = [
-                color[community[node_attributes["Node"][i]]] for i in range(0, node_attributes.shape[0])
-            ]
-
-        if _type == "compare_node":
-            for i in range(0, node_attributes.shape[0]):
-                if node_attributes["Node"][i] in _compare:
-                    node_attributes['Color'][i] = "Red"
-                else:
-                    node_attributes['Color'][i] = "Orange"
-
-        node_attributes["Title"] = node_attributes.apply(lambda x: f"{x['Node']}\nDegree: {x['Degree']}", axis=1)
-
-        print(node_attributes)
-
-        for _, row in node_attributes.iterrows():
-            graph.add_node(row["Node"], size=row["Size"], color=row["Color"], title=row["Title"])
-
-        edge_attributes = pd.DataFrame(g.edges(data=True), columns=["Source", "Target", "COUNTS"])
-
-        color = []
-        if _type == "compare_edge":
-            for i in range(0, edge_attributes.shape[0]):
-                if (frozenset([edge_attributes['Source'][i], edge_attributes['Target'][i]]) in _compare):
-                    color.append('Red')
-                else:
-                    color.append('silver')
-            edge_attributes['Color'] = color
-        else:
-            color = ['silver' for x in range(0, edge_attributes.shape[0])]
-            edge_attributes['Color'] = color
-        print(color)
-
-        for _, row in edge_attributes.iterrows():
-            weight_title = f"Weight: {row['COUNTS']['COUNTS']}"
-
-            graph.add_edge(
-                row["Source"],
-                row["Target"],
-                #color="silver",
-                color=row['Color'],
-                title=weight_title,
-                width=(row["COUNTS"]["COUNTS"] / 300),
-            )
-
-        print(node_attributes)
-        print(edge_attributes)
-        self.layer2_node_attributes = node_attributes
-        self.layer2_edge_attributes = edge_attributes
-        return graph
+    g1_html = g1.show_compare(type='compare_node', common=intersection_df)
+    g2_html = g2.show_compare(type='compare_node', common=intersection_df)
+    return g1_html, g2_html
