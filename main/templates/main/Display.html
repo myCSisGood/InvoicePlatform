@@ -24,10 +24,9 @@
                         Analyze
                     </button>
 
-                    
-                    <a href="{% url 'main:saveData' %}" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
+                    <button id="saveDataBtn" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-                    </a>
+                    </button>
                     
                 </div>
             </div>
@@ -153,6 +152,28 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
     <script>
+        $(document).ready(function() {
+            $('#saveDataBtn').click(function(e) {
+                e.preventDefault(); // 防止預設的跳轉行為
+                $.ajax({
+                    url: "{% url 'main:saveData' %}",
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function(response) {
+                        // 成功時顯示成功訊息
+                        alert(response.message);
+                    },
+                    error: function(xhr) {
+                        // 錯誤時顯示錯誤訊息
+                        alert(xhr.responseJSON.message);
+                    }
+                });
+            });
+        });
+        
+
         var analysisResult = ""; 
         var analysisType = "regular"; 
         var analysisInProgress = true;

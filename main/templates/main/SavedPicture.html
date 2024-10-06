@@ -55,15 +55,25 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    {% for picture in pictures %}
-                    <tr>
-                        <td class="py-2 px-4">
-                            <input type="checkbox" name="selectedPictures" value="{{ picture.id }}" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        </td>
-                        <td class="py-2 px-4 text-sm font-medium text-gray-900">{{ picture.name }}</td>
-                        <td class="py-2 px-4 text-sm text-gray-500">{{ picture.createdTime }}</td>
-                    </tr>
-                    {% endfor %}
+                    {% if pictures %}
+                        {% for picture in pictures %}
+                        <tr>
+                            <td class="py-2 px-4">
+                                <input type="checkbox" name="selectedPictures" value="{{ picture.id }}" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                            </td>
+                            <td class="py-2 px-4 text-sm font-medium text-gray-900">{{ picture.name }}</td>
+                            <td class="py-2 px-4 text-sm text-gray-500">{{ picture.createdTime }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="py-6 px-4 text-center">
+                                <div class="text-gray-600 text-lg font-semibold">
+                                    {{ message }}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
