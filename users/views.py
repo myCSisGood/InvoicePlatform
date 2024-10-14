@@ -11,7 +11,7 @@ from .forms import LoginForm, PasswordForm, SignupForm
 
 
 def getHomePage(request):
-    return render(request, 'Home.html')
+    return redirect('users:signup')
 
 
 def signUp(request):

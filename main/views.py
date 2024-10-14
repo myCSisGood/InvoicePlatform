@@ -87,7 +87,7 @@ def uploadFile(request):
     return render(request, 'UploadFile.html', {'form': form})
 
 
-@login_required
+# @login_required
 def getMainpage(request):
     return render(request, 'Mainpage.html')
 

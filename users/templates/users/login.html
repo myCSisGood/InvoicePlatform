@@ -1,68 +1,46 @@
-
-{% extends "_base.html" %}
- 
+{% extends "Base.html" %}
+{% block title %}Log In Page {% endblock %}
 {% block content %}
-<body>
-    <body class="antialiased bg-gradient-to-br from-green-100 to-white">
-        <div class="container px-6 mx-auto">
-          <div
-            class="flex flex-col text-center md:text-left md:flex-row h-screen justify-evenly md:items-center"
-          >
-            <div class="flex flex-col w-full">
-              <div>
-                <svg
-                  class="w-20 h-20 mx-auto md:float-left fill-stroke text-gray-800"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  ></path>
-                </svg>
-              </div>
-              <h1 class="text-5xl text-gray-800 font-bold">Client Area</h1>
-              <p class="w-5/12 mx-auto md:mx-0 text-gray-500">
-                Control and monitorize your website data from dashboard.
-              </p>
-            </div>
+<div class="w-full md:w-1/2 py-16 px-12">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Invoice Platform</h1>
+    <p class="text-gray-500 mb-8">Analyze your invoices, generate insights, and empower your business with ease.</p>
+    
+ 
+      
+      <form method="post" action="{% url 'users:login' %}">
+        {% csrf_token %}
+        {% load widget_tweaks %}
 
-            <div class="w-full md:w-full lg:w-9/12 mx-auto md:mx-0">
-                <div class="mx-auto my-36 flex h-[300px] w-[350px] flex-col border-2 bg-white text-black shadow-xl">
-                    <div class="mx-8 mt-7 mb-1 flex flex-row justify-start space-x-2">
-                      <div class="h-7 w-3 bg-[#0DE6AC]"></div>
-                      <div class="w-3 text-center font-sans text-xl font-bold"><h1>Login</h1></div>
-                    </div>
-                    <form method="post" action="{% url 'users:login' %}">
-                        {% csrf_token %}
-                        {% load widget_tweaks %}
-                        <div class="flex flex-col items-center">
-                            {{ form.username|add_class:"my-2 w-72 border p-2" }}
-                            {{ form.password|add_class:"my-2 w-72 border p-2" }}
-                        </div>
-                        <div class="my-2 flex justify-center">
-                        <button class="w-72 border bg-[#0DE6AC] p-2 font-sans">Login</button>
-                        </div>
-                    </form>
-                    <div class="mx-7 my-3 flex justify-between text-sm font-semibold">
-                        <div class="text-red-500 flex-grow">
-                            {% for message in messages %}
-                                {{ message }}
-                            {% endfor %}
-                        </div>
-                        <h1><a class="underline underline-offset-2" href="{% url 'users:register' %}">Signup</a></h1>
-                    </div>
-                </div>
-            </div>
-          </div>
+       
+        <div class="mb-4">
+            {{ form.username|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400" }}
         </div>
-      </body>
-</body>
-{% endblock content %}
 
+       
+        <div class="mb-4">
+            {{ form.password|add_class:"w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400" }}
+        </div>
+        <div class="text-red-500 flex-grow">
+          {% for message in messages %}
+              {{ message }}
+          {% endfor %}
+        </div>
+        
+        <div>
+            <button class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">
+                Log In
+            </button>
+        </div>
+    </form>
 
+    
+    <div class="mt-4 text-center">
+        <p class="text-sm text-gray-600">Don't have an account? <a class="text-teal-500 hover:underline"  href="{% url 'users:signup' %}">SignUp</a></p>
+    </div>
+
+    
+    
+    
+</div>
+{% endblock %}
 
