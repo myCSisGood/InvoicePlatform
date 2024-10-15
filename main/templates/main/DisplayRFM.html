@@ -144,6 +144,148 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
     <script>
+        $(document).ready(function() {
+            $('#saveDataBtn').click(function(e) {
+                e.preventDefault(); // 防止預設的跳轉行為
+                $.ajax({
+                    url: "{% url 'main:saveData' %}",
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function(response) {
+                        // 成功時顯示成功訊息
+                        alert(response.message);
+                    },
+                    error: function(xhr) {
+                        // 錯誤時顯示錯誤訊息
+                        alert(xhr.responseJSON.message);
+                    }
+                });
+            });
+        });
+        
+
+        var analysisResult = ""; 
+        var analysisType = "regular"; 
+        var analysisInProgress = true;
+        $(document).ready(function() {
+            var nodes = "{{ nodes|escapejs }}";
+            var edges = "{{ edges|escapejs }}";
+            var analysisResult = ""; 
+            var analysisInProgress = true; 
+
+            function convertMarkdownToHTML(markdownText) {
+            const htmlText = markdownText
+                // 將標題轉換為不同級別的標題
+                .replace(/^##### (.*$)/gim, '<li class="list-disc list-inside">$1</li>')   // 轉換五級標題為無序列表
+                .replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold text-blue-800 mb-2">$1</h4>') // 四級標題，帶有底部空間
+                .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-blue-800 mb-3">$1</h3>')   // 三級標題，帶有更大的底部空間
+                .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，帶有更大的底部空間
+                .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-blue-900 mb-6">$1</h1>')     // 一級標題，帶有更多的空間
+                
+                // 粗體和斜體處理
+                .replace(/\*\*(.*)\*\*/gim, '<strong class="font-bold">$1</strong>') // 粗體字
+                .replace(/\*(.*)\*/gim, '<em class="italic">$1</em>')     // 斜體字
+                
+                // 列點和段落處理
+                .replace(/- (.*$)/gim, '<li class="list-disc list-inside">$1</li>')  // 無序列表項
+                .replace(/\n\n/gim, '<br><br>')  // 將雙換行轉換為段落間距
+                .replace(/\n/gim, '<br>');       // 單換行轉換為換行符
+            return `<div class="prose max-w-none">${htmlText.trim()}</div>`;
+        }
+
+
+
+            function analyze() {
+                $.ajax({
+                    url: "{% url 'main:analyze' %}",
+                    method: "POST",
+                    data: {
+                        'analysisType': analysisType, 
+                        'nodes': nodes,
+                        'edges': edges,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    beforeSend: function() {
+                        analysisInProgress = true;
+                        $('#analysisResult').html("<p>請點擊 Analyze ...</p>"); 
+                    },
+                    success: function(response) {
+                        if (response.analysis) {
+                            analysisResult = response.analysis;
+                            
+                            var formattedResult = convertMarkdownToHTML(analysisResult);
+                            $('#analysisResult').html(formattedResult);
+                            $('#analysisResult').removeClass('hidden'); 
+                        } else {
+                            $('#analysisResult').removeClass('hidden');
+                            $('#analysisResult').html("<p>No result available.</p>");
+                        }
+                        analysisInProgress = false; 
+                        
+                    },
+                    error: function(xhr, status, error) {
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html("<p>Error during analysis.</p>");
+                        analysisInProgress = false;
+                    }
+                });
+            }
+
+            analyze();
+            $('#showRegular').click(function() {
+                updateIframeContent(relationship);
+                analysisType = 'regular'; 
+                analyze(); 
+            });
+
+            $('#showArticulation').click(function() {
+                updateIframeContent(articulation);
+                analysisType = 'articulation'; 
+                analyze(); 
+            });
+
+            $('#showCommunity').click(function() {
+                updateIframeContent(communities);
+                analysisType = 'community'; 
+                analyze(); 
+            });
+            // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
+            $('#analyzeButton').click(function() {
+                if (analysisInProgress) {
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
+                } else {
+                    if (analysisResult) {
+                        var formattedResult = convertMarkdownToHTML(analysisResult);
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html(formattedResult);
+                    } else {
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html("<p>No result available.</p>");
+                    }
+                }
+            });
+
+            // 頁面加載時顯示初始圖像
+            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
+            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
+            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
+
+            function updateIframeContent(content) {
+                const frame = document.getElementById('picture');
+                frame.contentDocument.open();
+                frame.contentDocument.write(content);
+                frame.contentDocument.close();
+            }
+
+            // 頁面加載時顯示 "Regular" 圖像
+            updateIframeContent(relationship);
+
+            
+            
+        });
         document.addEventListener("DOMContentLoaded", function() {
             var startPicker = flatpickr("#startTime", {
                 locale: "zh_tw",
@@ -174,51 +316,6 @@
             });
         });
         
-
-
-            $('#infoButton').click(function() {
-                var displayType = "{{ displayType }}";
-                $.ajax({
-                    url: "{% url 'main:showInfo' %}",
-                    data: {
-                        'displayType': displayType
-                    },
-                    success: function(data) {
-                        $('#infoContent').html(data.content);
-                        $('#infoModal').removeClass('hidden');
-                    }
-                });
-            });
-
-            $('#closeModal').click(function() {
-                $('#infoModal').addClass('hidden');
-            });
-
-            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
-            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
-            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
-
-            updateIframeContent(relationship);
-            
-            $('#showRegular').click(function() {
-                updateIframeContent(relationship);
-            });
-
-            $('#showArticulation').click(function() {
-                updateIframeContent(articulation);
-            });
-
-            $('#showCommunity').click(function() {
-                updateIframeContent(communities);
-            });
-
-            function updateIframeContent(content) {
-                const frame = document.getElementById('picture');
-                frame.contentDocument.open();
-                frame.contentDocument.write(content);
-                frame.contentDocument.close();
-            }
-        });
     </script>
 </body>
 {% endblock %}
