@@ -536,6 +536,7 @@ def _displayPic(request, pictureType, displayType=None):
             }
         )
     elif pictureType in (RFM, RFM_WITH_PRODUCT):
+        options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
         return render(
             request, 'DisplayRFM.html', {
                 'startTime': startTime,
@@ -547,6 +548,7 @@ def _displayPic(request, pictureType, displayType=None):
                 'relationship': relationship,
                 'articulationPoint': articulationPoint,
                 'communities': communities,
+                'options': options,
             }
         )
 
