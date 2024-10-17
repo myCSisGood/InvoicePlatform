@@ -493,18 +493,17 @@ class ProductNetwork:
         city_area=None,
         limit=None
     ):
-       
+
         condition = ["1=1"]
         # params = []
 
         if datetime_lower_bound and datetime_lower_bound != 'None':
-            condition.append(f"AND datetime >= '{datetime_lower_bound}-01' ")
+            condition.append(f" datetime >= '{datetime_lower_bound}-01' ")
 
         if datetime_upper_bound and datetime_upper_bound != 'None':
             year, month = map(int, datetime_upper_bound.split('-'))
             last_day = calendar.monthrange(year, month)[1]
-            condition.append(f"AND datetime <= '{datetime_upper_bound}-{last_day}'")
-
+            condition.append(f" datetime <= '{datetime_upper_bound}-{last_day}'")
 
         if store_brand_name:
             if isinstance(store_brand_name, list):
