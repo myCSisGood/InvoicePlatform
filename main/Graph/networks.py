@@ -491,46 +491,40 @@ class ProductNetwork:
         store_brand_name=None,
         county=None,
         city_area=None,
-        limit=100
+        limit=None
     ):
+       
         condition = ["1=1"]
-        params = []
+        # params = []
 
-        # 日期下限
         if datetime_lower_bound and datetime_lower_bound != 'None':
-            condition.append("datetime >= %s")
-            params.append(f"{datetime_lower_bound}-01")
+            condition.append(f"AND datetime >= '{datetime_lower_bound}-01' ")
 
-        # 日期上限
         if datetime_upper_bound and datetime_upper_bound != 'None':
             year, month = map(int, datetime_upper_bound.split('-'))
             last_day = calendar.monthrange(year, month)[1]
-            condition.append("datetime <= %s")
-            params.append(f"{datetime_upper_bound}-{last_day}")
+            condition.append(f"AND datetime <= '{datetime_upper_bound}-{last_day}'")
 
-        # 店鋪品牌名稱
+
         if store_brand_name:
             if isinstance(store_brand_name, list):
-                condition.append("store_brand_name IN %s")
-                params.append(tuple(store_brand_name))
+                condition.append(f"store_brand_name IN {tuple(store_brand_name)}")
             else:
-                condition.append("store_brand_name = %s")
-                params.append(store_brand_name)
+                condition.append(f"store_brand_name = '{store_brand_name}'")
 
         # 縣市
         if county:
-            condition.append("county = %s")
-            params.append(county)
+            condition.append(f"county = '{county}'")
 
-        # 區域
         if city_area:
-            condition.append("city_area = %s")
-            params.append(city_area)
+            condition.append(f"city_area = '{city_area}'")
 
         # 商品標籤
         if item_tag:
-            condition.append("item_tag = %s")
-            params.append(item_tag)
+            condition.append(f"item_tag = '{item_tag}'")
+
+        if not limit:
+            limit = 100
 
         # 生成查詢條件
         query_condition = " AND ".join(condition)
@@ -549,12 +543,10 @@ class ProductNetwork:
                 item_name
             ORDER BY 
                 SUM(amount) DESC
-            LIMIT %s;
+            LIMIT {limit};
         """
-        params.append(limit)
-
-        # 執行查詢
-        self.cur.execute(query, tuple(params))
+        print(query)
+        self.cur.execute(query)
         result = self.cur.fetchall()
 
         # 轉換結果為 DataFrame

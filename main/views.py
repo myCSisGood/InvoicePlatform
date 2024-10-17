@@ -759,11 +759,12 @@ def getDeeperInsight(request):
     countyName = request.session.get('selectedCounty', '')
     storeTypeList = request.session.get('storeTypeList', '')
     district = request.session.get('selectedDistrict', '')
-    limit = request.session.get('limit', '100')
-
+    limit = request.session.get('limit', '')
+    print(type(limit))
     if not option:
         return redirect('/draw_buy_with/?step=display_picture')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+
     table = network.get_item_name(
         item_tag=option,
         datetime_lower_bound=startTime,
@@ -773,7 +774,7 @@ def getDeeperInsight(request):
         city_area=district,
         limit=limit
     )
-    table = network.get_item_name(option)
+
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)
 
