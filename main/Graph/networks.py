@@ -489,36 +489,37 @@ class ProductNetwork:
         store_brand_name=None,
         county=None,
         city_area=None,
-        limit=100
+        limit=None
     ):
+       
         condition = ["1=1"]
-        params = []
+        # params = []
 
-        if datetime_lower_bound:
-            condition.append(f"datetime >= %s")
-            params.append(datetime_lower_bound)
-        if datetime_upper_bound:
-            condition.append(f"datetime <= %s")
-            params.append(datetime_upper_bound)
+        if datetime_lower_bound and datetime_lower_bound != 'None':
+            condition.append(f"AND datetime >= '{datetime_lower_bound}-01' ")
+
+        if datetime_upper_bound and datetime_upper_bound != 'None':
+            year, month = map(int, datetime_upper_bound.split('-'))
+            last_day = calendar.monthrange(year, month)[1]
+            condition.append(f"AND datetime <= '{datetime_upper_bound}-{last_day}'")
 
         if store_brand_name:
             if isinstance(store_brand_name, list):
-                condition.append(f"store_brand_name IN %s")
-                params.append(tuple(store_brand_name))
+                condition.append(f"store_brand_name IN {tuple(store_brand_name)}")
             else:
-                condition.append(f"store_brand_name = %s")
-                params.append(store_brand_name)
+                condition.append(f"store_brand_name = '{store_brand_name}'")
 
         if county:
-            condition.append(f"county = %s")
-            params.append(county)
+            condition.append(f"county = '{county}'")
+
         if city_area:
-            condition.append(f"city_area = %s")
-            params.append(city_area)
+            condition.append(f"city_area = '{city_area}'")
 
         if item_tag:
-            condition.append(f"item_tag = %s")
-            params.append(item_tag)
+            condition.append(f"item_tag = '{item_tag}'")
+
+        if not limit:
+            limit = 100
 
         query_condition = " AND ".join(condition)
 
@@ -535,12 +536,10 @@ class ProductNetwork:
                 item_name
             ORDER BY 
                 SUM(amount) DESC
-            LIMIT %s;
+            LIMIT {limit};
         """
-        params.append(limit)
-
-        self.cur.execute(query, params)
-
+        print(query)
+        self.cur.execute(query)
         result = self.cur.fetchall()
 
         df = pd.DataFrame(result)
