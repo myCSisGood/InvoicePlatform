@@ -2,121 +2,246 @@
 
 {% block main %}
 <body class="bg-gray-50 h-screen">
-    <div class="container mx-auto py-4 h-full flex flex-col">
+    <div class="container mx-auto py-4 h-full flex flex-col space-y-4">
+
+<!--         
+        <div class="flex items-center justify-between bg-white shadow-md p-4 rounded-lg">
+            <h2 class="text-xl font-semibold text-gray-800">{{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</h2>
+            <button id="infoButton" class="ml-2 p-2 rounded-full text-blue-500 hover:text-blue-700 bg-gray-100 hover:bg-gray-200 shadow transition duration-300">
+                <ion-icon name="help-circle-outline" size="large"></ion-icon>
+            </button>
+        </div> -->
+
         
-        <div class="flex items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{ displayType }}</h2>
-            <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
-                <ion-icon name="help-circle-outline" size="medium"></ion-icon>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow">
+            <div class="lg:col-span-3 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative flex flex-col h-full">
+                <div class="flex-grow">
+                    <iframe id="picture" class="w-full h-full border-none rounded-md" style="min-height: 400px;"></iframe> <!-- 調整為 400px -->
+                </div>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button id="analyzeButton" class="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-600 transition duration-200">
+                        Analyze
+                    </button>
+                    <button id="saveDataBtn" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
+                        <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+        
+        <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
+            <div>
+                <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
+                <select id="newOption" name="option" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="">Deeper Insight</option>
+                    {% for option in options %}
+                        <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                Go
+            </button>
+        </form>
+        
+
+        
+
+        <div class="flex justify-between mt-4 space-x-2">
+            <button id="showRegular" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
+                Show with Regular
+            </button>
+            <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
+                Show with Articulation Points
+            </button>
+            <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
+                Show with Community
             </button>
         </div>
 
         
-        <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <div id="analysisResult" class="hidden p-4 bg-blue-50 rounded-lg shadow-lg border border-blue-200 mt-4">
+            <h3 class="text-lg font-semibold text-blue-800">Analysis Result:</h3>
+            <p>Loading analysis...</p>
+        </div>
+        
+    </div>
+
+    
+    <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <ion-icon name="close-outline" size="large"></ion-icon>
+                    </button>
                 </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                    <div class="absolute top-0 right-0 pt-4 pr-4">
-                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <span class="sr-only">Close</span>
-                            <ion-icon name="close-outline" size="medium"></ion-icon>
-                        </button>
-                    </div>
-                    <div id="infoContent" class="mt-3 text-center sm:mt-5">
-                        Loading...
-                    </div>
+                <div id="infoContent" class="mt-3 text-center sm:mt-5">
+                    Loading...
                 </div>
             </div>
         </div>
-<!-- Main Display (Left Content) -->
-<div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col" style="height: 70vh;"> <!-- Set height to 70vh -->
-    <div class="flex justify-center flex-grow overflow-auto">
-        <!-- Adjust the iframe height to fit the new section size -->
-        <iframe id="picture" class="w-full h-full border-none"></iframe> 
     </div>
 
-    <!-- <div class="absolute bottom-4 right-4 flex space-x-2">
-        <a href="{% url 'main:saveData' %}" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
-            <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
-        </a>
-    </div> -->
-</div>
-
-<!-- Action Buttons for Different Display Types -->
-<div class="flex justify-between mt-2"> <!-- Adjust margin-top slightly -->
-    <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-        Show with Regular
-    </button>
-    <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-        Show with Articulation Points
-    </button>
-    <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
-        Show with Community
-    </button>
-</div>
-
-
-
-    <!-- CSS for Date Picker -->
+    <!-- 日期選擇器和其他腳本 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
-    <!-- jQuery for AJAX Calls -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
-    <!-- JavaScript Logic -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Open modal with AJAX content
-            $('#infoButton').click(function() {
-                var displayType = "{{ displayType }}";
+        $(document).ready(function() {
+            $('#saveDataBtn').click(function(e) {
+                e.preventDefault(); // 防止預設的跳轉行為
                 $.ajax({
-                    url: "{% url 'main:showInfo' %}",
-                    data: { 'displayType': displayType },
-                    success: function(data) {
-                        $('#infoContent').html(data.content);
-                        $('#infoModal').removeClass('hidden');
+                    url: "{% url 'main:saveData' %}",
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function(response) {
+                        // 成功時顯示成功訊息
+                        alert(response.message);
+                    },
+                    error: function(xhr) {
+                        // 錯誤時顯示錯誤訊息
+                        alert(xhr.responseJSON.message);
                     }
                 });
             });
+        });
+        
 
-            // Close modal
-            $('#closeModal').click(function() {
-                $('#infoModal').addClass('hidden');
-            });
+        var analysisResult = ""; 
+        var analysisType = "regular"; 
+        var analysisInProgress = true;
+        $(document).ready(function() {
+            var nodes = "{{ nodes|escapejs }}";
+            var edges = "{{ edges|escapejs }}";
+            var analysisResult = ""; 
+            var analysisInProgress = true; 
 
-            // Variables for different content types
-            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
-            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
-            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
+            function convertMarkdownToHTML(markdownText) {
+            const htmlText = markdownText
+                // 將標題轉換為不同級別的標題
+                .replace(/^##### (.*$)/gim, '<li class="list-disc list-inside">$1</li>')   // 轉換五級標題為無序列表
+                .replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold text-blue-800 mb-2">$1</h4>') // 四級標題，帶有底部空間
+                .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-blue-800 mb-3">$1</h3>')   // 三級標題，帶有更大的底部空間
+                .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，帶有更大的底部空間
+                .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-blue-900 mb-6">$1</h1>')     // 一級標題，帶有更多的空間
+                
+                // 粗體和斜體處理
+                .replace(/\*\*(.*)\*\*/gim, '<strong class="font-bold">$1</strong>') // 粗體字
+                .replace(/\*(.*)\*/gim, '<em class="italic">$1</em>')     // 斜體字
+                
+                // 列點和段落處理
+                .replace(/- (.*$)/gim, '<li class="list-disc list-inside">$1</li>')  // 無序列表項
+                .replace(/\n\n/gim, '<br><br>')  // 將雙換行轉換為段落間距
+                .replace(/\n/gim, '<br>');       // 單換行轉換為換行符
+            return `<div class="prose max-w-none">${htmlText.trim()}</div>`;
+        }
 
-            // Initial content load in iframe
-            updateIframeContent(relationship);
 
-            
+
+            function analyze() {
+                $.ajax({
+                    url: "{% url 'main:analyze' %}",
+                    method: "POST",
+                    data: {
+                        'analysisType': analysisType, 
+                        'nodes': nodes,
+                        'edges': edges,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    beforeSend: function() {
+                        analysisInProgress = true;
+                        $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>"); 
+                    },
+                    success: function(response) {
+                        if (response.analysis) {
+                            analysisResult = response.analysis;
+                            
+                            var formattedResult = convertMarkdownToHTML(analysisResult);
+                            $('#analysisResult').html(formattedResult);
+                            $('#analysisResult').removeClass('hidden'); 
+                        } else {
+                            $('#analysisResult').removeClass('hidden');
+                            $('#analysisResult').html("<p>No result available.</p>");
+                        }
+                        analysisInProgress = false; 
+                        
+                    },
+                    error: function(xhr, status, error) {
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html("<p>Error during analysis.</p>");
+                        analysisInProgress = false;
+                    }
+                });
+            }
+
+            analyze();
             $('#showRegular').click(function() {
                 updateIframeContent(relationship);
+                analysisType = 'regular'; 
+                analyze(); 
             });
 
             $('#showArticulation').click(function() {
                 updateIframeContent(articulation);
+                analysisType = 'articulation'; 
+                analyze(); 
             });
 
             $('#showCommunity').click(function() {
                 updateIframeContent(communities);
+                analysisType = 'community'; 
+                analyze(); 
+            });
+            // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
+            $('#analyzeButton').click(function() {
+                if (analysisInProgress) {
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
+                } else {
+                    if (analysisResult) {
+                        var formattedResult = convertMarkdownToHTML(analysisResult);
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html(formattedResult);
+                    } else {
+                        $('#analysisResult').removeClass('hidden');
+                        $('#analysisResult').html("<p>No result available.</p>");
+                    }
+                }
             });
 
-            // Function to update the content of the iframe
+            // 頁面加載時顯示初始圖像
+            var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
+            var articulation = `{% filter escapejs %}{{ articulationPoint|safe }}{% endfilter %}`;
+            var communities = `{% filter escapejs %}{{ communities|safe }}{% endfilter %}`;
+
             function updateIframeContent(content) {
                 const frame = document.getElementById('picture');
                 frame.contentDocument.open();
                 frame.contentDocument.write(content);
                 frame.contentDocument.close();
             }
+
+            // 頁面加載時顯示 "Regular" 圖像
+            updateIframeContent(relationship);
+
+            
+            
         });
+        
     </script>
 </body>
 {% endblock %}

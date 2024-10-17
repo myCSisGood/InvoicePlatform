@@ -217,7 +217,7 @@
                     },
                     beforeSend: function() {
                         analysisInProgress = true;
-                        $('#analysisResult').html("<p>請點擊 Analyze ...</p>"); 
+                        $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>"); 
                     },
                     success: function(response) {
                         if (response.analysis) {

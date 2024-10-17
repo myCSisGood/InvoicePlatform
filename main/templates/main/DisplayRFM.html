@@ -36,9 +36,9 @@
                     <iframe id="picture" class="w-full h-full border-none"></iframe>
                 </div>
                 <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <a href="{% url 'main:displayOvertime' %}" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center text-sm">
-                        Overtime
-                    </a>
+                    <button id="analyzeButton" class="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-600 transition duration-200">
+                        Analyze
+                    </button>
                     <button id="saveDataBtn" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
@@ -121,19 +121,30 @@
                         Go
                     </button>
                 </form>
+            </div>
         </div>
+    
 
-        <div class="flex justify-between mt-4">
-            <button id="showRegular" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+        <div class="flex justify-between mt-4 space-x-2">
+            <button id="showRegular" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Regular
             </button>
-            <button id="showArticulation" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+            <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Articulation Points
             </button>
-            <button id="showCommunity" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-sm">
+            <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                 Show with Community
             </button>
         </div>
+
+        
+        <div id="analysisResult" class="hidden p-4 bg-blue-50 rounded-lg shadow-lg border border-blue-200 mt-4">
+            <h3 class="text-lg font-semibold text-blue-800">Analysis Result:</h3>
+            <p>Loading analysis...</p>
+        </div>
+        
+    </div>
+
     </div>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -210,7 +221,7 @@
                     },
                     beforeSend: function() {
                         analysisInProgress = true;
-                        $('#analysisResult').html("<p>請點擊 Analyze ...</p>"); 
+                        $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>"); 
                     },
                     success: function(response) {
                         if (response.analysis) {

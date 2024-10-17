@@ -502,6 +502,49 @@ def _displayPic(request, pictureType, displayType=None):
             segment,
             limit
         )
+
+        if pictureType == BUY_WITH:
+            options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+            return render(
+                request, 'Display.html', {
+                    'startTime': startTime,
+                    'endTime': endTime,
+                    'districtList': districtList,
+                    'selectedPath': request.session.get('selectedPath', ''),
+                    'displayType': displayType,
+                    'stores': storeCanBeChoose,
+                    'relationship': relationship,
+                    'articulationPoint': articulationPoint,
+                    'communities': communities,
+                    'options': options,
+                    'nodes': nodes,
+                    'edges': edges,
+                    'countyName': countyName,
+                    'smallTag': smallTag,
+                    'productList': productList,
+                    'limit': limit,
+                    "districtName": district,
+                    'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
+                }
+            )
+        elif pictureType in (RFM, RFM_WITH_PRODUCT):
+            options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+            return render(
+                request, 'DisplayRFM.html', {
+                    'startTime': startTime,
+                    'endTime': endTime,
+                    'districtList': districtList,
+                    'selectedPath': request.session.get('selectedPath', ''),
+                    'displayType': displayType,
+                    'stores': storeCanBeChoose,
+                    'relationship': relationship,
+                    'articulationPoint': articulationPoint,
+                    'communities': communities,
+                    'options': options,
+                    'nodes': nodes,
+                    'edges': edges,
+                }
+            )
     else:
         if pictureType in [BUY_WITH, RFM_WITH_PRODUCT, PRODUCT_IN_PATH]:
             messages.error(request, 'No data in your condition. Please try another one.')
@@ -509,48 +552,6 @@ def _displayPic(request, pictureType, displayType=None):
         if pictureType == RFM:
             messages.error(request, 'No data in your condition. Please try another one.')
             return _selectPathAndTime(request, pictureType)
-
-    if pictureType == BUY_WITH:
-        options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
-        print(countyName)
-        return render(
-            request, 'Display.html', {
-                'startTime': startTime,
-                'endTime': endTime,
-                'districtList': districtList,
-                'selectedPath': request.session.get('selectedPath', ''),
-                'displayType': displayType,
-                'stores': storeCanBeChoose,
-                'relationship': relationship,
-                'articulationPoint': articulationPoint,
-                'communities': communities,
-                'options': options,
-                'nodes': nodes,
-                'edges': edges,
-                'countyName': countyName,
-                'smallTag': smallTag,
-                'productList': productList,
-                'limit': limit,
-                "districtName": district,
-                'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
-            }
-        )
-    elif pictureType in (RFM, RFM_WITH_PRODUCT):
-        options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
-        return render(
-            request, 'DisplayRFM.html', {
-                'startTime': startTime,
-                'endTime': endTime,
-                'districtList': districtList,
-                'selectedPath': request.session.get('selectedPath', ''),
-                'displayType': displayType,
-                'stores': storeCanBeChoose,
-                'relationship': relationship,
-                'articulationPoint': articulationPoint,
-                'communities': communities,
-                'options': options,
-            }
-        )
 
 
 def _drawPic(
@@ -836,7 +837,7 @@ def displayBuyWithInPath(request):
     smallTag = request.session.get('smallTag', '')
     productList = request.session.get('productList', '')
     store = request.GET.get('store')
-
+    displayType = request.GET.get('displayType', 'Regular')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
     df = network.query(
         county=countyName,
@@ -849,13 +850,22 @@ def displayBuyWithInPath(request):
     )
     # network.execute_query()
     # network.analysis(limits=100)
+
     network.create_network()
     relationship, articulationPoint, communities = network.vis_all_graph()
+    options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+    nodes, edges = _getNodeAndEdge(countyName, smallTag, startTime, endTime, productList, store, limit=100)
     return render(
-        request, 'BuyWithInPath.html', {
+        request,
+        'BuyWithInPath.html',
+        {
             'relationship': relationship,
             'articulationPoint': articulationPoint,
             'communities': communities,
+            'options': options,
+            'nodes': nodes,
+            'edges': edges,
+            # 'displayType': displayType,
         }
     )
 
