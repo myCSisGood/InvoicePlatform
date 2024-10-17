@@ -119,6 +119,26 @@
                 });
             });
         });
+        $(document).ready(function() {
+            $('#saveDataBtn').click(function(e) {
+                e.preventDefault(); // 防止預設的跳轉行為
+                $.ajax({
+                    url: "{% url 'main:saveData' %}",
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function(response) {
+                        // 成功時顯示成功訊息
+                        alert(response.message);
+                    },
+                    error: function(xhr) {
+                        // 錯誤時顯示錯誤訊息
+                        alert(xhr.responseJSON.message);
+                    }
+                });
+            });
+        });
         
 
         var analysisResult = ""; 

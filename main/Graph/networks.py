@@ -9,6 +9,8 @@ import psycopg2
 import calendar
 import json
 from networkx.readwrite import json_graph
+import calendar
+import pandas as pd
 
 
 class ProductNetwork:
@@ -494,34 +496,46 @@ class ProductNetwork:
         condition = ["1=1"]
         params = []
 
-        if datetime_lower_bound:
-            condition.append(f"datetime >= %s")
-            params.append(datetime_lower_bound)
-        if datetime_upper_bound:
-            condition.append(f"datetime <= %s")
-            params.append(datetime_upper_bound)
+        # 日期下限
+        if datetime_lower_bound and datetime_lower_bound != 'None':
+            condition.append("datetime >= %s")
+            params.append(f"{datetime_lower_bound}-01")
 
+        # 日期上限
+        if datetime_upper_bound and datetime_upper_bound != 'None':
+            year, month = map(int, datetime_upper_bound.split('-'))
+            last_day = calendar.monthrange(year, month)[1]
+            condition.append("datetime <= %s")
+            params.append(f"{datetime_upper_bound}-{last_day}")
+
+        # 店鋪品牌名稱
         if store_brand_name:
             if isinstance(store_brand_name, list):
-                condition.append(f"store_brand_name IN %s")
+                condition.append("store_brand_name IN %s")
                 params.append(tuple(store_brand_name))
             else:
-                condition.append(f"store_brand_name = %s")
+                condition.append("store_brand_name = %s")
                 params.append(store_brand_name)
 
+        # 縣市
         if county:
-            condition.append(f"county = %s")
+            condition.append("county = %s")
             params.append(county)
+
+        # 區域
         if city_area:
-            condition.append(f"city_area = %s")
+            condition.append("city_area = %s")
             params.append(city_area)
 
+        # 商品標籤
         if item_tag:
-            condition.append(f"item_tag = %s")
+            condition.append("item_tag = %s")
             params.append(item_tag)
 
+        # 生成查詢條件
         query_condition = " AND ".join(condition)
 
+        # 查詢語句
         query = f"""
             SELECT 
                 item_name, 
@@ -539,15 +553,15 @@ class ProductNetwork:
         """
         params.append(limit)
 
-        self.cur.execute(query, params)
-
+        # 執行查詢
+        self.cur.execute(query, tuple(params))
         result = self.cur.fetchall()
 
+        # 轉換結果為 DataFrame
         df = pd.DataFrame(result)
 
         if not df.empty:
             df = df.rename(columns={0: "ITEM_NAME", 1: "TOTAL_QUANTITY", 2: "TOTAL_PROFIT"})
-
         return df
 
     def get_channel_with_item_tag(self, item_tag):
@@ -661,8 +675,9 @@ def compare_node(g1, g2):
     d = pd.DataFrame([], columns=['NODE', 'COUNTS'])
     d['NODE'] = node
     d['COUNTS'] = counts
-    d = d.sort_values(by=['COUNTS'], ascending=False)
-    d.to_csv('./graph1_compare_node.csv')
+    # d = d.sort_values(by=['COUNTS'], ascending=False)
+    d1 = d.sort_values(by=['COUNTS'], ascending=False)
+    # d.to_csv('./graph1_compare_node.csv')
 
     node = []
     counts = []
@@ -675,7 +690,8 @@ def compare_node(g1, g2):
     d['NODE'] = node
     d['COUNTS'] = counts
     d = d.sort_values(by=['COUNTS'], ascending=False)
-    d.to_csv('./graph2_compare_node.csv')
+    d2 = d.sort_values(by=['COUNTS'], ascending=False)
+    # d.to_csv('./graph2_compare_node.csv')
 
     node = []
     counts = []
@@ -688,7 +704,8 @@ def compare_node(g1, g2):
     d['NODE'] = node
     d['COUNTS'] = counts
     d = d.sort_values(by=['COUNTS'], ascending=False)
-    d.to_csv('./not_graph1_compare_node.csv')
+    d3 = d.sort_values(by=['COUNTS'], ascending=False)
+    # d.to_csv('./not_graph1_compare_node.csv')
 
     node = []
     counts = []
@@ -701,8 +718,9 @@ def compare_node(g1, g2):
     d['NODE'] = node
     d['COUNTS'] = counts
     d = d.sort_values(by=['COUNTS'], ascending=False)
-    d.to_csv('./not_graph2_compare_node.csv')
+    d4 = d.sort_values(by=['COUNTS'], ascending=False)
+    # d.to_csv('./not_graph2_compare_node.csv')
 
     g1_html = g1.show_compare(type='compare_node', common=intersection_df)
     g2_html = g2.show_compare(type='compare_node', common=intersection_df)
-    return g1_html, g2_html
+    return g1_html, g2_html, [d1, d2, d3, d4]

@@ -595,9 +595,15 @@ def _drawPic(
             # network.analysis(limits=100)
             network.create_network()
             data = json_graph.node_link_data(network.g)
+            if pictureType == RFM:
+                networkName = f'{countyName}/{segment}'
+            if pictureType == RFM_WITH_PRODUCT:
+                networkName = f'{countyName}/{segment}/{smallTag}'
+            if pictureType == BUY_WITH:
+                networkName = f'{countyName}/{smallTag}'
             request.session['network'] = {
                 'username': network.username,
-                'networkName': network.network_name,
+                'networkName': networkName,
                 'data': data,
                 'relationshipDF': network.relationship_df.to_json(orient='split')
             }
@@ -848,6 +854,20 @@ def displayBuyWithInPath(request):
         item_name=productList,
         limit=100
     )
+    if df is not None:
+        # network.execute_query()
+        # network.analysis(limits=100)
+        network.create_network()
+        data = json_graph.node_link_data(network.g)
+        networkName = f'{countyName}/{smallTag}/{store}'
+        request.session['network'] = {
+            'username': network.username,
+            'networkName': networkName,
+            'data': data,
+            'relationshipDF': network.relationship_df.to_json(orient='split')
+        }
+        relationship, articulationPoint, communities = network.vis_all_graph()
+
     # network.execute_query()
     # network.analysis(limits=100)
 
@@ -907,11 +927,15 @@ def loadPicture(request):
             network1.load(pictures[0].json, pictures[0].csv)
             network2 = ProductNetwork(username='test', network_name=pictures[1].name)
             network2.load(pictures[1].json, pictures[1].csv)
-            network1HTML, network2HTML = compare_node(network1, network2)
+            network1HTML, network2HTML, d1tod4 = compare_node(network1, network2)
             return render(
                 request, 'CompareGraph.html', {
                     'network1HTML': network1HTML,
                     'network2HTML': network2HTML,
+                    'd1': d1tod4[0],
+                    'd2': d1tod4[1],
+                    'd3': d1tod4[2],
+                    'd4': d1tod4[3],
                     'network1': network1,
                     'network2': network2
                 }
