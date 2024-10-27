@@ -18,10 +18,12 @@ from django.db import connection
 from main import PathList
 from decimal import Decimal
 import calendar
+import json
 from django.core.cache import cache
 from networkx.readwrite import json_graph
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 
 BUY_WITH = 1
@@ -886,6 +888,9 @@ def displayBuyWithInPath(request):
             'options': options,
             'nodes': nodes,
             'edges': edges,
+            'countyName': countyName,
+            'smallTag': smallTag,
+            'store': store
             # 'displayType': displayType,
         }
     )
@@ -946,3 +951,19 @@ def loadPicture(request):
             return HttpResponse("Error: You must select exactly two pictures.")
     else:
         return HttpResponse("Invalid request method.")
+
+
+def deleteGraph(request):
+    if request.method == "POST":
+        data = json.loads(request.body) # 從 JSON 中取得 `pictureId`
+        pictureId = data.get('pictureId')
+        print(f"Received delete request for picture ID: {pictureId}") # 檢查是否接收到 `pictureId`
+
+        try:
+            picture = NetworkGraph.objects.get(id=pictureId, user=request.user)
+            picture.delete()
+            return JsonResponse({"message": "Picture deleted successfully!"}, status=200)
+        except NetworkGraph.DoesNotExist:
+            return JsonResponse({"message": "Picture not found."}, status=404)
+    else:
+        return JsonResponse({"message": "Invalid request method."}, status=405)

@@ -157,8 +157,12 @@
 
     <script>
         $(document).ready(function() {
-            $('#saveDataBtn').click(function(e) {
+            $('#saveDataBtn').one('click', function(e) {
                 e.preventDefault(); // 防止預設的跳轉行為
+        
+                // 禁用按鈕，防止多次點擊
+                $(this).prop('disabled', true);
+        
                 $.ajax({
                     url: "{% url 'main:saveData' %}",
                     type: "POST",
@@ -166,12 +170,16 @@
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     success: function(response) {
-                        // 成功時顯示成功訊息
-                        alert(response.message);
+                        alert(response.message); // 成功時顯示成功訊息
                     },
                     error: function(xhr) {
-                        // 錯誤時顯示錯誤訊息
-                        alert(xhr.responseJSON.message);
+                        alert(xhr.responseJSON.message); // 錯誤時顯示錯誤訊息
+                    },
+                    complete: function() {
+                        // 請求完成後（無論成功或失敗）重新啟用按鈕並綁定事件
+                        $('#saveDataBtn').prop('disabled', false).one('click', function(e) {
+                            $(this).trigger('click');
+                        });
                     }
                 });
             });

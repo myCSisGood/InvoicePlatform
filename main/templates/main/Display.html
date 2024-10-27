@@ -153,8 +153,12 @@
 
     <script>
         $(document).ready(function() {
-            $('#saveDataBtn').click(function(e) {
+            $('#saveDataBtn').one('click', function(e) {
                 e.preventDefault(); // 防止預設的跳轉行為
+        
+                // 禁用按鈕，防止多次點擊
+                $(this).prop('disabled', true);
+        
                 $.ajax({
                     url: "{% url 'main:saveData' %}",
                     type: "POST",
@@ -162,12 +166,16 @@
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     success: function(response) {
-                        // 成功時顯示成功訊息
-                        alert(response.message);
+                        alert(response.message); // 成功時顯示成功訊息
                     },
                     error: function(xhr) {
-                        // 錯誤時顯示錯誤訊息
-                        alert(xhr.responseJSON.message);
+                        alert(xhr.responseJSON.message); // 錯誤時顯示錯誤訊息
+                    },
+                    complete: function() {
+                        // 請求完成後（無論成功或失敗）重新啟用按鈕並綁定事件
+                        $('#saveDataBtn').prop('disabled', false).one('click', function(e) {
+                            $(this).trigger('click');
+                        });
                     }
                 });
             });
@@ -205,59 +213,59 @@
 
 
 
-            // function analyze() {
-            //     $.ajax({
-            //         url: "{% url 'main:analyze' %}",
-            //         method: "POST",
-            //         data: {
-            //             'analysisType': analysisType, 
-            //             'nodes': nodes,
-            //             'edges': edges,
-            //             'csrfmiddlewaretoken': '{{ csrf_token }}'
-            //         },
-            //         beforeSend: function() {
-            //             analysisInProgress = true;
-            //             $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>"); 
-            //         },
-            //         success: function(response) {
-            //             if (response.analysis) {
-            //                 analysisResult = response.analysis;
+            function analyze() {
+                 $.ajax({
+                     url: "{% url 'main:analyze' %}",
+                     method: "POST",
+                     data: {
+                         'analysisType': analysisType, 
+                         'nodes': nodes,
+                         'edges': edges,
+                         'csrfmiddlewaretoken': '{{ csrf_token }}'
+                     },
+                     beforeSend: function() {
+                         analysisInProgress = true;
+                         $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>"); 
+                     },
+                     success: function(response) {
+                         if (response.analysis) {
+                             analysisResult = response.analysis;
                             
-            //                 var formattedResult = convertMarkdownToHTML(analysisResult);
-            //                 $('#analysisResult').html(formattedResult);
-            //                 $('#analysisResult').removeClass('hidden'); 
-            //             } else {
-            //                 $('#analysisResult').removeClass('hidden');
-            //                 $('#analysisResult').html("<p>No result available.</p>");
-            //             }
-            //             analysisInProgress = false; 
+                             var formattedResult = convertMarkdownToHTML(analysisResult);
+                             $('#analysisResult').html(formattedResult);
+                             $('#analysisResult').removeClass('hidden'); 
+                         } else {
+                             $('#analysisResult').removeClass('hidden');
+                             $('#analysisResult').html("<p>No result available.</p>");
+                         }
+                         analysisInProgress = false; 
                         
-            //         },
-            //         error: function(xhr, status, error) {
-            //             $('#analysisResult').removeClass('hidden');
-            //             $('#analysisResult').html("<p>Error during analysis.</p>");
-            //             analysisInProgress = false;
-            //         }
-            //     });
-            // }
+                     },
+                     error: function(xhr, status, error) {
+                         $('#analysisResult').removeClass('hidden');
+                         $('#analysisResult').html("<p>Error during analysis.</p>");
+                         analysisInProgress = false;
+                     }
+                 });
+             }
 
-            // analyze();
+             analyze();
             $('#showRegular').click(function() {
                 updateIframeContent(relationship);
                 analysisType = 'regular'; 
-                // analyze(); 
+                 analyze(); 
             });
 
             $('#showArticulation').click(function() {
                 updateIframeContent(articulation);
                 analysisType = 'articulation'; 
-                // analyze(); 
+                 analyze(); 
             });
 
             $('#showCommunity').click(function() {
                 updateIframeContent(communities);
                 analysisType = 'community'; 
-                // analyze(); 
+                 analyze(); 
             });
             // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
             $('#analyzeButton').click(function() {

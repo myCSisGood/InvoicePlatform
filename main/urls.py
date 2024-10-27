@@ -21,4 +21,5 @@ urlpatterns = [
     path('save_data/', views.saveData, name='saveData'),
     path('stored_picture/', views.getStoredPicture, name='getStoredPicture'),
     path('load_picture/', views.loadPicture, name='loadPicture'),
+    path('delete_graph/', views.deleteGraph, name='deleteGraph'),
 ]

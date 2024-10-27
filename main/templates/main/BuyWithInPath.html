@@ -4,13 +4,13 @@
 <body class="bg-gray-50 h-screen">
     <div class="container mx-auto py-4 h-full flex flex-col space-y-4">
 
-<!--         
+
         <div class="flex items-center justify-between bg-white shadow-md p-4 rounded-lg">
-            <h2 class="text-xl font-semibold text-gray-800">{{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</h2>
+            <h2 class="text-xl font-semibold text-gray-800">{{ countyName }} {{ smallTag }} {{store}}</h2>
             <button id="infoButton" class="ml-2 p-2 rounded-full text-blue-500 hover:text-blue-700 bg-gray-100 hover:bg-gray-200 shadow transition duration-300">
                 <ion-icon name="help-circle-outline" size="large"></ion-icon>
             </button>
-        </div> -->
+        </div> 
 
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow">
@@ -100,8 +100,12 @@
 
     <script>
         $(document).ready(function() {
-            $('#saveDataBtn').click(function(e) {
+            $('#saveDataBtn').one('click', function(e) {
                 e.preventDefault(); // 防止預設的跳轉行為
+        
+                // 禁用按鈕，防止多次點擊
+                $(this).prop('disabled', true);
+        
                 $.ajax({
                     url: "{% url 'main:saveData' %}",
                     type: "POST",
@@ -109,36 +113,21 @@
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     success: function(response) {
-                        // 成功時顯示成功訊息
-                        alert(response.message);
+                        alert(response.message); // 成功時顯示成功訊息
                     },
                     error: function(xhr) {
-                        // 錯誤時顯示錯誤訊息
-                        alert(xhr.responseJSON.message);
+                        alert(xhr.responseJSON.message); // 錯誤時顯示錯誤訊息
+                    },
+                    complete: function() {
+                        // 請求完成後（無論成功或失敗）重新啟用按鈕並綁定事件
+                        $('#saveDataBtn').prop('disabled', false).one('click', function(e) {
+                            $(this).trigger('click');
+                        });
                     }
                 });
             });
         });
-        $(document).ready(function() {
-            $('#saveDataBtn').click(function(e) {
-                e.preventDefault(); // 防止預設的跳轉行為
-                $.ajax({
-                    url: "{% url 'main:saveData' %}",
-                    type: "POST",
-                    data: {
-                        csrfmiddlewaretoken: '{{ csrf_token }}',
-                    },
-                    success: function(response) {
-                        // 成功時顯示成功訊息
-                        alert(response.message);
-                    },
-                    error: function(xhr) {
-                        // 錯誤時顯示錯誤訊息
-                        alert(xhr.responseJSON.message);
-                    }
-                });
-            });
-        });
+        
         
 
         var analysisResult = ""; 
