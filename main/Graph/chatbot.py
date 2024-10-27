@@ -54,48 +54,216 @@ class Chatbot:
         return answer
 
     def generate_articulation_analysis(self, node, edge):
-        content = f"""你現在是一位專業的商業分析師，請提供一份完整且專業的產品銷售分析文字報告！！！。
-                  以下將提供該graph的node(node_name, degree, color, group, is_articulation_point)和edge(from, to, counts)
-                  Node為：{node}，Edge為：{edge}，
-                  請依照以下步驟做詳細解釋，
-                  1. 每個node都有一個is_articulation_point屬性，代表該node是否為articulation_point，請針對articulation_point做分析。
-                  2. 除了articulation_points相關的併買關係之外，請找出其他需要被促銷的產品關係。
-                  """
+        content = f"""
+                    Prompt:
+
+                    You are a professional business analyst who helps businesses make decisions by providing insights from various aspects of sales data.
+                    The response has to be over 3000 words. Please give the answers with detailed explanation and your reasoning.
+
+                    Data Overview:
+
+                    We have a co-purchasing network graph represented by two dataframes: Nodes and Edges.
+
+                    Nodes Data Description:
+
+                    Each row represents a product node with the following columns:
+                    Node: Product Name
+                    Degree: The number of adjacent products (connections)
+                    is_articulation_point: Indicates if the node is an articulation point (True or False)
+                    Group: The community to which the product belongs, based on the Louvain Algorithm
+                    Size: The proportion of sales for that product relative to total sales
+                    Nodes Dataframe: {node}
+
+                    Edges Data Description:
+
+                    Each row represents a co-purchasing relationship (edge) between two products with the following columns:
+                    Source: One end of the edge (Product Name)
+                    Target: The other end of the edge (Product Name)
+                    COUNTS: A JSON object containing:
+                    COUNTS: The number of orders where both products were purchased together
+                    PERCENTAGE: The proportion of orders with both products relative to total orders
+
+                    Edges Dataframe: {edge}
+
+                    Note: An edge between two nodes means that the two products were co-purchased in at least one order.
+
+                    Tasks:
+
+                    Articulation Point Identification:
+                    Please list all articulation point based on the data. Explain each of point in details. 
+
+
+                    Articulation Point Importance:
+                    For each articulation points. How many product are connected to them and what are those products.
+                    If an articulation point product disapper, how would the network changes and what's the results.
+                    If an articulation point is disappeared, what product would become isolated. List all isolated products in details!!!!!! give me the exact number how the purchase decrease!!!!!!
+                    Explain in details and show your reasoning process(3000 words at least). 
+
+
+                    Note to the Assistant:
+                    If specific data is required for analysis and not provided, explain how you would approach the analysis or state any assumptions you are making.
+                    Use appropriate professional language and structure your response with clear headings and subheadings.
+                    Provide in-depth explanations and explore complex relationships within the data.
+                    Support your conclusions with logical reasoning and, where applicable, reference relevant business theories or models.
+                    Please answer in Traditional Chinese.
+                    """
         chat = ChatOpenAI(model_name="gpt-4o", temperature=0)
         resp = chat([HumanMessage(content=content)])
         answer = resp.content
         return answer
 
     def generate_community_analysis(self, node, edge):
-        content = f"""你現在是一位專業的商業分析師，請提供一份完整且專業的產品銷售分析文字報告！！！。
-                  以下將提供該graph的node(node_name, degree, color, group, is_articulation_point)和edge(from, to, counts)
-                  Node為：{node}，Edge為：{edge}，
-                  請依照以下步驟做詳細解釋，
-                  1. 每個node都有一個group屬性，代表該node所屬的community，請針對community做分析。
-                  內容需清楚明瞭
-                  """
+        content = f"""
+                    Prompt:
+
+                    You are a professional business analyst who helps businesses make decisions by providing insights from various aspects of sales data.
+                    The response has to be over 3000 words. Please give the answers with detailed explanation and your reasoning.
+
+                    Data Overview:
+
+                    We have a co-purchasing network graph represented by two dataframes: Nodes and Edges.
+
+                    Nodes Data Description:
+
+                    Each row represents a product node with the following columns:
+                    Node: Product Name
+                    Degree: The number of adjacent products (connections)
+                    is_articulation_point: Indicates if the node is an articulation point (True or False)
+                    Group: The community to which the product belongs, based on the Louvain Algorithm
+                    Size: The proportion of sales for that product relative to total sales
+                    Nodes Dataframe: {node}
+
+                    Edges Data Description:
+
+                    Each row represents a co-purchasing relationship (edge) between two products with the following columns:
+                    Source: One end of the edge (Product Name)
+                    Target: The other end of the edge (Product Name)
+                    COUNTS: A JSON object containing:
+                    COUNTS: The number of orders where both products were purchased together
+                    PERCENTAGE: The proportion of orders with both products relative to total orders
+
+                    Edges Dataframe: {edge}
+
+                    Note: An edge between two nodes means that the two products were co-purchased in at least one order.
+
+                    Tasks:
+
+                    Community Identification:
+                    Please list all community based on the data. Explain each community in details. 
+                    Indicate the color but tag them in a understable way.
+
+                    Cross Communities Relationships:
+                    Please indicate which communities are more closed. and which communities are not.
+
+                    Important Products in each Communities:
+                    For every communities, list all the important products. Importance is based on total edge weight which the node is adjacent to.
+
+                    Cross-Community Product  recommendation:
+                    Which product combination accross the community are need to be promoted.
+
+                    Within-Community Product combination recommendation:
+                    Which product combination within every community are need to be promoted.
+
+                    Note to the Assistant:
+                    If specific data is required for analysis and not provided, explain how you would approach the analysis or state any assumptions you are making.
+                    Use appropriate professional language and structure your response with clear headings and subheadings.
+                    Provide in-depth explanations and explore complex relationships within the data.
+                    Support your conclusions with logical reasoning and, where applicable, reference relevant business theories or models.
+                    Please answer in Traditional Chinese.
+                    """
         chat = ChatOpenAI(model_name="gpt-4o", temperature=0)
         resp = chat([HumanMessage(content=content)])
         answer = resp.content
         return answer
 
     def generate_regular_analysis(self, node, edge):
+        print(node)
+        print(edge)
+        node = node[['Node', 'Degree', 'is_articulation_point', 'Group', 'Size']]
+        edge = edge[['Source', 'Target', 'COUNTS']]
         content = f"""
-                你現在是一位專業的商業分析師，請提供一份完整且專業的產品銷售分析報告。
-                這份報告的目的是根據圖中提供的數據，分析產品的併買關係。
+                    Prompt:
 
-                以下將提供該圖的節點 (Node) 和邊 (Edge) 的數據：
-                - Node: {node}
-                - Edge: {edge}
+                    You are a professional business analyst who helps businesses make decisions by providing insights from various aspects of sales data.
+                    The response has to be over 3000 words. Please give the answers with detailed explanation and your reasoning.
 
-                請依照以下步驟進行詳細分析：
-                
-                1. 除了 self-connected node 之外，請找出併買關係中，前 25% 的最佳併買關係，並根據比例大小排序，列出它們的併買次數（請列出兩個類別產品的名稱）以及併買比例。
-                2. 根據這些併買關係，提出商家在促銷、產品組合、以及市場策略方面的建議，以提升銷售額。
-                
-                請確保內容清晰明瞭，專業而具體。
-                """
+                    Data Overview:
+
+                    We have a co-purchasing network graph represented by two dataframes: Nodes and Edges.
+
+                    Nodes Data Description:
+
+                    Each row represents a product node with the following columns:
+                    Node: Product Name
+                    Degree: The number of adjacent products (connections)
+                    is_articulation_point: Indicates if the node is an articulation point (True or False)
+                    Group: The community to which the product belongs, based on the Louvain Algorithm
+                    Size: The proportion of sales for that product relative to total sales
+                    Nodes Dataframe: {node}
+
+                    Edges Data Description:
+
+                    Each row represents a co-purchasing relationship (edge) between two products with the following columns:
+                    Source: One end of the edge (Product Name)
+                    Target: The other end of the edge (Product Name)
+                    COUNTS: A JSON object containing:
+                    COUNTS: The number of orders where both products were purchased together
+                    PERCENTAGE: The proportion of orders with both products relative to total orders
+
+                    Edges Dataframe: {edge}
+
+                    Note: An edge between two nodes means that the two products were co-purchased in at least one order.
+
+                    Tasks:
+
+                    1. Top Co-Purchased Products:
+                    Identify and list up to 5 product combinations that were purchased together the most frequently.
+                    Provide the combinations along with their co-purchase counts and percentages.
+
+                    2. Least Co-Purchased Products:
+                    Identify and list up to 5 product combinations that were purchased together the least frequently (but still at least once).
+                    Provide the combinations along with their co-purchase counts and percentages.
+
+                    3. Best-Selling Combinations(List at least three):
+                    Based on the data, suggest a product combination which is  a best-seller currently.
+                    Explain in detail why you believe this combination has high potential (consider factors like high individual sales but low co-purchase rates, strategic product pairs, etc.).
+                    The result have to be based on the data not rationality.
+
+                    4. Underperforming Combinations with Potential(List at least three):
+                    Identify a product combination that is currently underperforming but has the potential to become a best-seller.
+                    Provide detailed reasoning for your choice (e.g., products with complementary features, high individual popularity but low co-purchase rates).
+                    The result have to be based on the data not rationality.
+
+                    5. Recommendation of combination with multiple products(List at least three):
+                    The numbder of product in a combination does not have to be 2. It can be any other number product in a sales combination.
+                    Indicate which combination has the potential to become a best seller.
+                    Provide these kind of combination and detailed reasoning for your choice.
+                    The result have to be based on the data not rationality.
+
+                    6. Sales Strategy Recommendations:
+                    Based on your analysis of the network graph, provide detailed and actionable advice to the business on how to improve their sales strategies.
+                    Consider aspects such as product bundling, targeted promotions, cross-selling opportunities, and community groupings from the Louvain Algorithm.
+
+                    Additional Instructions:
+                    Use the data provided to support your analysis, citing specific examples where appropriate.
+                    Refer to products by their Product Name as given in the data.
+                    Ensure that your explanations are highly detailed, complex, and professional, showcasing deep analytical skills.
+                    Incorporate advanced analytical concepts, such as network theory, statistical analysis, and market economics.
+                    Use data-driven reasoning and, if necessary, assume hypothetical values to illustrate your points clearly.
+                    Include conceptual descriptions of any relevant charts, graphs, or network diagrams to support your analysis.
+                    Discuss the implications of network features, such as articulation points and high-degree nodes, on sales strategies and network robustness.
+
+                    Note to the Assistant:
+                    If specific data is required for analysis and not provided, explain how you would approach the analysis or state any assumptions you are making.
+                    Use appropriate professional language and structure your response with clear headings and subheadings.
+                    Provide in-depth explanations and explore complex relationships within the data.
+                    Support your conclusions with logical reasoning and, where applicable, reference relevant business theories or models.
+                    Please answer in Traditional Chinese.
+                    """
         chat = ChatOpenAI(model_name="gpt-4o", temperature=0)
         resp = chat([HumanMessage(content=content)])
         answer = resp.content
         return answer
+
+
+
