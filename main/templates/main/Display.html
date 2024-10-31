@@ -48,7 +48,7 @@
                         <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="">請選擇行政區</option>
                             {% for district in districtList %}
-                                <option value="{{ district }}">{{ district }}</option>
+                                <option value="{{ district }}" {% if district == districtName %}selected{% endif %}>{{ district }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -59,21 +59,20 @@
                         <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="" selected></option>
                             {% for store in stores %}
-                                <option value="{{ store }}">{{ store }}</option>
+                            <option value="{{ store }}" {% if store == path %}selected{% endif %}>{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
                     
                     <div>
-                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間{% if startTime %} ({{ startTime }}){% endif %}</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-
                     
                     <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
 
                     
@@ -322,7 +321,21 @@
                     startPicker.set('maxDate', dateStr); // 更新開始時間的最大值
                 }
             });
+        
+            // 檢查時間輸入框的值，並在提交表單時設為 null（如果未選擇）
+            document.getElementById("reviseForm").addEventListener("submit", function(event) {
+                const startTimeInput = document.getElementById("startTime");
+                const endTimeInput = document.getElementById("endTime");
+        
+                if (!startTimeInput.value) {
+                    startTimeInput.value = null; // 設定為 null
+                }
+                if (!endTimeInput.value) {
+                    endTimeInput.value = null; // 設定為 null
+                }
+            });
         });
+        
         
     </script>
 </body>

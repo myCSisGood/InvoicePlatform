@@ -58,42 +58,43 @@
                         <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="">請選擇行政區</option>
                             {% for district in districtList %}
-                                <option value="{{ district }}">{{ district }}</option>
+                                <option value="{{ district }}" {% if district == selectedDistrict %}selected{% endif %}>{{ district }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    
                     <div>
                         <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
                         <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="" selected></option>
                             {% for store in stores %}
-                            <option value="{{ store }}">{{ store }}</option>
+                                <option value="{{ store }}" {% if store == path %}selected{% endif %}>{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
                     <div>
                         <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     
                     <div>
                         <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <div>
-                        <label for="path" class="block text-lg font-medium text-gray-700">客群</label>
+                        <label for="segment" class="block text-lg font-medium text-gray-700">客群</label>
                         <select id="segment" name="segment" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="Champions">Champions</option>
-                            <option value="Loyal Accounts">Loyal Accounts</option>
-                            <option value="Low Spenders">Low Spenders</option>
-                            <option value="Potential Loyalist">Potential Loyalist</option>
-                            <option value="Promising">Promising</option>
-                            <option value="New Active Accounts">New Active Accounts</option>
-                            <option value="Need Attention">Need Attention</option>
-                            <option value="About to Sleep">About to Sleep</option>
-                            <option value="At Risk">At Risk</option>
-                            <option value="Lost">Lost</option>
+                            <option value="Champions" {% if segment == "Champions" %}selected{% endif %}>Champions</option>
+                            <option value="Loyal Accounts" {% if segment == "Loyal Accounts" %}selected{% endif %}>Loyal Accounts</option>
+                            <option value="Low Spenders" {% if segment == "Low Spenders" %}selected{% endif %}>Low Spenders</option>
+                            <option value="Potential Loyalist" {% if segment == "Potential Loyalist" %}selected{% endif %}>Potential Loyalist</option>
+                            <option value="Promising" {% if segment == "Promising" %}selected{% endif %}>Promising</option>
+                            <option value="New Active Accounts" {% if segment == "New Active Accounts" %}selected{% endif %}>New Active Accounts</option>
+                            <option value="Need Attention" {% if segment == "Need Attention" %}selected{% endif %}>Need Attention</option>
+                            <option value="About to Sleep" {% if segment == "About to Sleep" %}selected{% endif %}>About to Sleep</option>
+                            <option value="At Risk" {% if segment == "At Risk" %}selected{% endif %}>At Risk</option>
+                            <option value="Lost" {% if segment == "Lost" %}selected{% endif %}>Lost</option>
                         </select>
                     </div>
 
@@ -335,6 +336,8 @@
                 }
             });
         });
+       
+    </script>
         
     </script>
 </body>

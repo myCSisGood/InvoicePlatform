@@ -29,7 +29,7 @@
                         <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="">請選擇分析類別</option>
                             {% for rfm in rfms %}
-                                <option value="{{ rfm }}" {% if rfm == rfmType %}selected{% endif %}>{{ rfm }}</option>
+                                <option value="{{ rfm }}" {% if rfm == 'potential royalist' or rfm == rfmType %}selected{% endif %}>{{ rfm }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -46,6 +46,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // 監聽選擇框更改事件
+        document.getElementById("district").addEventListener("change", function() {
+            const selectedValue = this.value;
+
+            // 取得所有選項元素
+            const options = Array.from(this.options);
+
+            // 遍歷選項，隱藏已選中的選項
+            options.forEach(option => {
+                option.hidden = option.value === selectedValue;
+            });
+        });
+    </script>
 
 </body>
 {% endblock %}

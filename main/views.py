@@ -383,6 +383,10 @@ def _selectTag(request, pictureType):
 def _displayPathPic(request):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     district = request.session.get('selectedDistrict', '') # narrow down 才有
     smallTag = request.session.get('smallTag', '')
@@ -436,6 +440,10 @@ def _displayPathPic(request):
 def _displayPic(request, pictureType, displayType=None):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     if pictureType in (RFM_WITH_PRODUCT, RFM):
         segment = request.session.get('segment', 'Potential Loyalist')
@@ -461,8 +469,12 @@ def _displayPic(request, pictureType, displayType=None):
             countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
         )
     if request.method == 'POST':
-        startTime = request.POST.get('startTime')
-        endTime = request.POST.get('endTime')
+        startTime = request.POST.get('startTime', '')
+        endTime = request.POST.get('endTime', '')
+
+        # startTime = None if startTime == 'None' else startTime
+        # endTime = None if endTime == 'None' else endTime
+
         district = request.POST.get('district')
         storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')
@@ -545,6 +557,9 @@ def _displayPic(request, pictureType, displayType=None):
                     'options': options,
                     'nodes': nodes,
                     'edges': edges,
+                    'segment': segment,
+                    'selectedDistrict': district,
+                    'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
                 }
             )
     else:
@@ -758,6 +773,10 @@ def getDeeperInsight(request):
     option = request.GET.get('option')
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     storeTypeList = request.session.get('storeTypeList', '')
     district = request.session.get('selectedDistrict', '')
@@ -804,6 +823,7 @@ def drawRFMwithProduct(request):
 
     displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -840,6 +860,10 @@ def _displayRFM(request):
 def displayBuyWithInPath(request):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     #district = request.session.get('selectedDistrict', '') # narrow down 才有
     smallTag = request.session.get('smallTag', '')

@@ -110,10 +110,10 @@ class ProductNetwork:
     ):
         condition = ""
         tag = ""
-        if datetime_lower_bound and datetime_lower_bound != 'None':
+        if datetime_lower_bound:
             condition += f"AND datetime >= '{datetime_lower_bound}-01' "
 
-        if datetime_upper_bound and datetime_upper_bound != 'None':
+        if datetime_upper_bound:
             year, month = map(int, datetime_upper_bound.split('-'))
             # Get the last day of the month
             last_day = calendar.monthrange(year, month)[1]
