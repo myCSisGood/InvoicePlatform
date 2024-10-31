@@ -179,8 +179,8 @@ class Chatbot:
     def generate_regular_analysis(self, node, edge):
         print(node)
         print(edge)
-        node = node[['Node', 'Degree', 'is_articulation_point', 'Group', 'Size']]
-        edge = edge[['Source', 'Target', 'COUNTS']]
+        # node = node[['Node', 'Degree', 'is_articulation_point', 'Group', 'Size']]
+        # edge = edge[['Source', 'Target', 'COUNTS']]
         content = f"""
                     Prompt:
 
@@ -264,6 +264,3 @@ class Chatbot:
         resp = chat([HumanMessage(content=content)])
         answer = resp.content
         return answer
-
-
-

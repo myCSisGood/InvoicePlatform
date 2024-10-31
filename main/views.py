@@ -762,7 +762,6 @@ def getDeeperInsight(request):
     storeTypeList = request.session.get('storeTypeList', '')
     district = request.session.get('selectedDistrict', '')
     limit = request.session.get('limit', '')
-    print(type(limit))
     if not option:
         return redirect('/draw_buy_with/?step=display_picture')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
