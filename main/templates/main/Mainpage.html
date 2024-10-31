@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 
 <html lang="en">
 <head>
@@ -14,6 +15,18 @@
         margin-top: 56px; 
       }
     </style>
+    {# import for time %}
+    <link rel="stylesheet" href="{% static 'css/flatpickr.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/monthSelect.min.css' %}">
+    <script src="{% static 'js/flatpickr.min.js' %}"></script>
+    <script src="{% static 'js/monthSelect.min.js' %}"></script>
+    {# import for select menu #}
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <link href="{% static 'css/select2.min.css' %}" rel="stylesheet" />
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    
+    {% block head %}
+    {% endblock %}
 </head>
 <body class="bg-gray-100">
   

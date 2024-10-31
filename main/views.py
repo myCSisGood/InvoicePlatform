@@ -91,7 +91,7 @@ def uploadFile(request):
 
 # @login_required
 def getMainpage(request):
-    return render(request, 'Mainpage.html')
+    return render(request, 'Mainpage123.html')
 
 
 def getSmallTags(request):

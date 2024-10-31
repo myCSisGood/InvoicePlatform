@@ -1,102 +1,108 @@
 {% extends "Mainpage.html" %}
+{% load static %}
 
 {% block main %}
-<body class="bg-gray-100">
-    <div class="container mx-auto mt-6">
-        <div class="bg-white p-5 rounded shadow border border-gray-300">
-            <h2 class="text-2xl font-semibold mb-4">請選擇時間和通路</h2>
-            {% if pictureType == 1 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
-            {% elif pictureType == 3 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
-            {% elif pictureType == 4 %}
-            <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
-            {% endif %}
-            
-                {% csrf_token %}
-                <div class="flex justify-between mb-4">
-                    <div class="w-1/2 pr-2">
-                        <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ startTime }}">
-                    </div>
-                    <div class="w-1/2 pl-2">
-                        <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ endTime }}">
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
-                    <input type="text" id="pathFilter" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="搜尋通路...">
-                    <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" disabled selected>請選擇通路</option>
-                        <option value="超市、便利商店">超市、便利商店</option>
-                        <option value="購物中心">購物中心</option>
-                        <option value="餐廳">餐廳</option>
-                        <option value="大眾運輸">大眾運輸</option>
-                        <option value="線上商店">線上商店</option>
-                        <option value="通訊">通訊</option>
-                        <option value="家居用品">家居用品</option>
-                        <option value="美妝保養">美妝保養</option>
-                        <option value="其他">其他</option>
-                    </select>
-                </div>
-                {% if messages %}
-                <div class="mt-4">
-                    {% for message in messages %}
-                        <div class="p-4 rounded-md shadow mb-4 
-                            {% if message.tags == 'error' %}
-                                bg-red-100 text-red-700 border-l-4 border-red-500
-                            {% elif message.tags == 'success' %}
-                                bg-green-100 text-green-700 border-l-4 border-green-500
-                            {% elif message.tags == 'warning' %}
-                                bg-yellow-100 text-yellow-700 border-l-4 border-yellow-500
-                            {% else %}
-                                bg-blue-100 text-blue-700 border-l-4 border-blue-500
-                            {% endif %}
-                        ">
-                            <strong class="font-semibold">{{ message.tags|title }}:</strong> <span>{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            
-                {% if errorMessage %}
-                <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
-                {% else %}
-                <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">開始時間必須早於結束時間</div>
-                {% endif %}
-                <div class="flex justify-between">
-                    <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
-                        <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
-                    </button>
-                    <button type="submit" id="nextButton" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center text-sm">
-                        <ion-icon name="arrow-forward-outline" class="mr-1"></ion-icon>Next
-                    </button>
-                </div>
-            </form>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-12 rounded-lg shadow-lg w-full max-w-3xl mx-auto mt-10">
+        <!-- Progress Bar -->
+        {% if pictureType == 3 %}
+        <div class="mb-8">
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div class="bg-green-500 h-3 rounded-full" style="width: 50%;"></div>
+            </div>
+            <div class="flex justify-around text-base text-gray-500">
+                <span class="text-center w-1/2">Step 1: 選擇地區</span>
+                <span class="text-center w-1/2">Step 2: 選擇日期和通路</span>
+                
+            </div>
         </div>
+        {% else %}
+        <div class="mb-8">
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div class="bg-green-500 h-3 rounded-full" style="width: 33%;"></div>
+            </div>
+            <div class="flex justify-around text-base text-gray-500">
+                <span class="text-center w-1/3">Step 1: 選擇地區</span>
+                <span class="text-center w-1/3">Step 2: 選擇日期和通路</span>
+                <span class="text-center w-1/3">Step 3: 選擇產品分類</span>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- Title -->
+        <h2 class="text-4xl font-bold text-gray-800 mb-10 text-center">請選擇時間和通路</h2>
+
+        {% if pictureType == 1 %}
+        <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_path_time">
+        {% elif pictureType == 3 %}
+        <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_path_time">
+        {% elif pictureType == 4 %}
+        <form id="pathAndTimeForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_path_time">
+        {% endif %}
+            {% csrf_token %}
+
+            <!-- Date Selection -->
+            <div class="flex justify-between mb-8">
+                <div class="w-1/2 pr-4">
+                    <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
+                    <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="選擇開始時間" value="{{ startTime }}">
+                </div>
+                <div class="w-1/2 pl-4">
+                    <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
+                    <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="選擇結束時間" value="{{ endTime }}">
+                </div>
+            </div>
+
+            <!-- Store Selection -->
+            <div class="mb-8 relative">
+                <label for="store" class="block text-lg font-medium text-gray-700">請選擇通路</label>
+                <input type="text" id="pathFilter" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="搜尋通路...">
+                <select id="store" name="store" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" size="5" style="overflow-y: auto; display: none;">
+                    <option value="">所有通路</option>
+                    <option value="超市、便利商店">超市、便利商店</option>
+                    <option value="購物中心">購物中心</option>
+                    <option value="餐廳">餐廳</option>
+                    <option value="大眾運輸">大眾運輸</option>
+                    <option value="線上商店">線上商店</option>
+                    <option value="通訊">通訊</option>
+                    <option value="家居用品">家居用品</option>
+                    <option value="美妝保養">美妝保養</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <!-- Error Message -->
+            {% if errorMessage %}
+            <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
+            {% else %}
+            <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">開始時間必須早於結束時間</div>
+            {% endif %}
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between mt-10">
+                <button type="button" onclick="window.history.back()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-lg font-medium">
+                    <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>Back
+                </button>
+                <button type="submit" id="nextButton" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-lg font-medium">
+                    <ion-icon name="arrow-forward-outline" class="mr-2"></ion-icon>Next
+                </button>
+            </div>
+        </form>
     </div>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
-    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize flatpickr for start and end time with monthSelect plugin
             var startPicker = flatpickr("#start_time", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
-                    shorthand: true, 
-                    dateFormat: "Y-m", 
-                    altFormat: "F Y", 
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
                 })],
-                minDate: "2020-01", // 設定最小日期
-                maxDate: "2021-12", // 設定最大日期
+                minDate: "2020-01",
+                maxDate: "2021-12",
                 onValueUpdate: function(selectedDates, dateStr, instance) {
                     endPicker.set('minDate', dateStr);
                 }
@@ -105,24 +111,44 @@
             var endPicker = flatpickr("#end_time", {
                 locale: "zh_tw",
                 plugins: [new monthSelectPlugin({
-                    shorthand: true, 
-                    dateFormat: "Y-m", 
-                    altFormat: "F Y", 
+                    shorthand: true,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
                 })],
-                minDate: "2020-01", // 設定最小日期
-                maxDate: "2021-12", // 設定最大日期
+                minDate: "2020-01",
+                maxDate: "2021-12",
                 onValueUpdate: function(selectedDates, dateStr, instance) {
                     startPicker.set('maxDate', dateStr);
                 }
             });
 
+            // Filter store options based on input and show dropdown automatically
             $('#pathFilter').on('input', function() {
                 var filterValue = $(this).val().toLowerCase();
+                $('#store').show();  // 顯示下拉選單
                 $('#store option').each(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(filterValue) > -1);
+                    $(this).toggle($(this).text().toLowerCase().includes(filterValue));
                 });
             });
 
+            $('#pathFilter').on('focus', function() {
+                $('#store').show();  // 當點擊時顯示下拉選單
+            });
+
+            $('#pathFilter').on('blur', function() {
+                setTimeout(function() {
+                    $('#store').hide();  // 當失去焦點時隱藏下拉選單
+                }, 200);
+            });
+
+            // Update input field when option is selected
+            $('#store').on('change', function() {
+                var selectedText = $(this).find("option:selected").text();
+                $('#pathFilter').val(selectedText);
+                $('#store').hide();
+            });
+
+            // Form validation on submit
             $('#pathAndTimeForm').submit(function(event) {
                 var startTime = $('#start_time').val();
                 var endTime = $('#end_time').val();
@@ -136,4 +162,33 @@
         });
     </script>
 </body>
+
+<style>
+    
+    /* 控制下拉選單樣式，使其總是向下展開 */
+    .mb-8 .relative select {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 10;
+    }
+ 
+    #store {
+        font-size: 1.25rem; /* 調整字體大小 */
+        padding: 12px; /* 增加內部間距 */
+        border: 1px solid #D1D5DB;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        color: #374151;
+        width: 100%; /* 保持寬度一致 */
+        max-height: 200px; /* 設定最大高度，讓選項不超過一定範圍 */
+        overflow-y: auto; /* 垂直滾動 */
+    }
+
+    #store option {
+        padding: 10px; /* 增加選項的間距 */
+        font-size: 1.1rem; /* 調整選項字體大小 */
+    }
+</style>
 {% endblock %}
