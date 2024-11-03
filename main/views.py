@@ -367,7 +367,7 @@ def _selectTag(request, pictureType):
     bigTags = _filterBigTags(request)
     if not bigTags:
         return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
-    errorMessage = request.GET.get('errorMessage', '')
+    errorMessage = request.GET.get('error_message', '')
     return render(
         request, 'Tag.html', {
             'bigTags': bigTags,
@@ -559,6 +559,10 @@ def _displayPic(request, pictureType, displayType=None):
                     'edges': edges,
                     'segment': segment,
                     'selectedDistrict': district,
+                    'countyName': countyName,
+                    'smallTag': smallTag,
+                    'productList': productList,
+                    'limit': limit,
                     'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
                 }
             )
@@ -770,7 +774,7 @@ def displayOvertime(request):
 
 
 def getDeeperInsight(request):
-    option = request.GET.get('option')
+    option = request.GET.get('deeperInsightSearch')
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
 
@@ -779,6 +783,7 @@ def getDeeperInsight(request):
     endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     storeTypeList = request.session.get('storeTypeList', '')
+
     district = request.session.get('selectedDistrict', '')
     limit = request.session.get('limit', '')
     if not option:
@@ -795,7 +800,10 @@ def getDeeperInsight(request):
         limit=limit
     )
 
-    context = {'table': table}
+    context = {
+        "option": option,
+        'table': table,
+    }
     return render(request, 'DeeperInsight.html', context)
 
 

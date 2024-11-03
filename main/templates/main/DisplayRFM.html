@@ -1,87 +1,90 @@
 {% extends "Mainpage.html" %}
-
+{% load static %}
 {% block main %}
-<body class="bg-gray-50 h-screen">
-    <div class="container mx-auto py-4 h-full flex flex-col">
-        <div class="flex items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800 mr-2">Show with {{displayType}}</h2>
-            <button id="infoButton" class="ml-2 p-1 rounded-full text-blue-500 hover:text-blue-700 bg-white shadow hover:bg-gray-100">
-                <ion-icon name="help-circle-outline" size="medium"></ion-icon>
-            </button>
-        </div>
+<div class="h-screen pt-10">
+    <div class="container mx-auto py-4 h-full flex flex-col space-y-6 px-4">
 
-        <div id="infoModal" class="fixed z-50 inset-0 hidden overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <!-- Main Grid Layout with adjusted spacing for sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow border-t-0">
+            <!-- Left Section (Picture and Buttons) -->
+            <div class="lg:col-span-2 p-5 rounded-lg shadow-lg bg-white relative h-full flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <!-- Title with dynamic content -->
+                    <span>{{ countyName }} {{ selectedDistrict }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</span>
+                    
+                    <!-- Buttons beside the title -->
+                    <button id="showRegular" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition duration-200">
+                        Regular
+                    </button>
+                    <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
+                        Articulation Points
+                    </button>
+                    <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
+                        Community
+                    </button>
                 </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                    <div class="absolute top-0 right-0 pt-4 pr-4">
-                        <button id="closeModal" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <span class="sr-only">Close</span>
-                            <ion-icon name="close-outline" size="medium"></ion-icon>
-                        </button>
-                    </div>
-                    <div id="infoContent" class="mt-3 text-center sm:mt-5">
-                        Loading...
-                    </div>
+                
+                <!-- Main content area with iframe -->
+                <div class="flex justify-center mb-4 flex-grow overflow-auto">
+                    <iframe id="picture" class="w-full h-full border-none rounded-md"></iframe>
                 </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow overflow-hidden">
-            <div class="lg:col-span-2 p-4 rounded-lg shadow-lg border border-gray-200 bg-white relative h-full flex flex-col">
-                <div class="flex justify-center mt-2 mb-2 flex-grow overflow-auto">
-                    <iframe id="picture" class="w-full h-full border-none"></iframe>
-                </div>
-                <div class="absolute bottom-4 right-4 flex space-x-2">
-                    <button id="analyzeButton" class="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-600 transition duration-200">
+            
+                <!-- Analyze and Save Buttons -->
+                <div class="absolute bottom-4 right-4 flex space-x-3">
+                    <button id="analyzeButton" class="px-4 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-red-600 transition duration-200">
                         Analyze
                     </button>
-                    <button id="saveDataBtn" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-600 transition duration-200 flex items-center">
+                    <button id="saveDataBtn" class="px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
                 </div>
             </div>
-
-            <div class="flex flex-col space-y-4 h-full overflow-auto">
-                <form method="POST" class="bg-white p-4 rounded-lg shadow-lg flex flex-col space-y-4">
+            
+            <!-- Right Section (Revise Form and Deeper Insight) -->
+            <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                <form method="POST" class="flex flex-col space-y-4">
                     {% csrf_token %}
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Revise</h3>
-                    <div class="mt-4">
-                        <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300)</label>
-                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="輸入限制數字">
-                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Revise</h4>
+
                     <div>
-                        <label for="district" class="block text-lg font-medium text-gray-700">行政區</label>
-                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">請選擇行政區</option>
+                        <label for="limit" class="block text-lg font-medium text-gray-700">Limit (1-300){% if limit %} ({{ limit }}){% endif %}</label>
+                        <input type="number" id="limit" name="limit" min="1" max="300" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="輸入限制數字">
+                    </div>
+                
+                    <!-- District Selection Menu with Filter -->
+                    <div>
+                        <label for="district" class="block text-lg font-medium text-gray-700">{{ countyName }}行政區</label>
+                        <select id="district" name="district" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value=""></option>
                             {% for district in districtList %}
-                                <option value="{{ district }}" {% if district == selectedDistrict %}selected{% endif %}>{{ district }}</option>
+                                <option value="{{ district }}">{{ district }}</option>
                             {% endfor %}
                         </select>
                     </div>
+
                     
                     <div>
                         <label for="path" class="block text-lg font-medium text-gray-700">通路</label>
-                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <select id="store" name="store" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="" selected></option>
                             {% for store in stores %}
-                                <option value="{{ store }}" {% if store == path %}selected{% endif %}>{{ store }}</option>
+                                <option value="{{ store }}">{{ store }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div>
-                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
                     
                     <div>
-                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime|default_if_none:'' }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間{% if startTime %} ({{ startTime }}){% endif %}</label>
+                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
+
+                    
+                    <div>
+                        <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
+                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
                     <div>
                         <label for="segment" class="block text-lg font-medium text-gray-700">客群</label>
                         <select id="segment" name="segment" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -97,67 +100,57 @@
                             <option value="Lost" {% if segment == "Lost" %}selected{% endif %}>Lost</option>
                         </select>
                     </div>
-
-                    <div class="flex justify-between">
-                        <a href="{% url 'main:drawBuyWith' %}?select_area" class="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center text-sm">
-                            Draw Another Picture
-                        </a>
-                        <button type="submit" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center text-sm">
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-3 py-1 bg-blue-500 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-600 transition duration-200">
                             Submit
                         </button>
                     </div>
                 </form>
 
                 <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
-                    <div>
-                        <label for="newOption" class="block text-lg font-medium text-gray-700 text-left">Choose one to see deeper</label>
-                        <select id="newOption" name="option" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">Deeper Insight</option>
-                            {% for option in options %}
-                                <option value="{{ option }}">{{ option }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="relative">
+                        <label for="deeperInsightSearch" class="block text-lg font-medium text-gray-700">Deeper Insight</label>
+                        <input type="text" id="deeperInsightSearch" placeholder="請選擇選項" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" onfocus="toggleDropdown(true)" oninput="filterOptions()">
+                        <input type="hidden" name="deeperInsightSearch" id="hiddenDeeperInsightSearch">
+
+                        <!-- 下拉選單，初始狀態隱藏 -->
+                        <div id="deeperInsightDropdown" class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                            <ul id="deeperInsightOptions">
+                                {% for option in options %}
+                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('{{ option }}')">{{ option }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                     <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
                         Go
                     </button>
                 </form>
             </div>
+            </div>
+            
+            <!-- Analysis Result Section - Spanning Both Columns -->
+            <div id="analysisResult" class="lg:col-span-3 p-4 bg-blue-50 rounded-lg shadow-lg border border-blue-200 mt-4">
+                <h3 class="text-lg font-semibold text-blue-800">Analysis Result:</h3>
+                <p>Loading analysis...</p>
+            </div>
         </div>
-    
-
-        <div class="flex justify-between mt-4 space-x-2">
-            <button id="showRegular" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
-                Show with Regular
-            </button>
-            <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
-                Show with Articulation Points
-            </button>
-            <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
-                Show with Community
-            </button>
-        </div>
-
-        
-        <div id="analysisResult" class="hidden p-4 bg-blue-50 rounded-lg shadow-lg border border-blue-200 mt-4">
-            <h3 class="text-lg font-semibold text-blue-800">Analysis Result:</h3>
-            <p>Loading analysis...</p>
-        </div>
-        
     </div>
+</div>
 
-    </div>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 
     <script>
         $(document).ready(function() {
+            const buttons = document.querySelectorAll("#showRegular, #showArticulation, #showCommunity");
+            function handleActiveButton(event) {
+                buttons.forEach(button => {
+                    button.classList.remove("bg-green-500", "text-white");
+                    button.classList.add("bg-gray-300", "text-gray-700");
+                });
+                event.currentTarget.classList.add("bg-green-500", "text-white");
+            }
+            buttons.forEach(button => button.addEventListener("click", handleActiveButton));
             $('#saveDataBtn').one('click', function(e) {
                 e.preventDefault(); // 防止預設的跳轉行為
         
@@ -335,6 +328,61 @@
                     startPicker.set('maxDate', dateStr); // 更新開始時間的最大值
                 }
             });
+            function toggleDropdown(show) {
+        const dropdown = document.getElementById("deeperInsightDropdown");
+        if (show) {
+            dropdown.classList.remove("hidden");
+        } else {
+            setTimeout(() => dropdown.classList.add("hidden"), 300); // 延遲時間以允許選項點擊
+        }
+    }
+
+    // 選擇選項並更新輸入框
+    function selectOption(option) {
+        document.getElementById("deeperInsightSearch").value = option;
+        document.getElementById("hiddenDeeperInsightSearch").value = option;
+        toggleDropdown(false);
+    }
+
+    // 篩選選項
+    function filterOptions() {
+        const searchValue = document.getElementById("deeperInsightSearch").value.toLowerCase();
+        const options = document.getElementById("deeperInsightOptions").getElementsByTagName("li");
+
+        let anyVisible = false; // 用來追蹤是否有顯示的選項
+
+        for (let i = 0; i < options.length; i++) {
+            const optionText = options[i].textContent.toLowerCase();
+            if (optionText.includes(searchValue)) {
+                options[i].style.display = "block";
+                anyVisible = true;
+            } else {
+                options[i].style.display = "none";
+            }
+        }
+
+        // 若有任何符合搜尋條件的選項，則顯示下拉選單
+        if (searchValue === "" || anyVisible) {
+            toggleDropdown(true);
+        } else {
+            toggleDropdown(false);
+        }
+    }
+
+    // 點擊輸入框顯示下拉選單
+    document.getElementById("deeperInsightSearch").addEventListener("focus", function() {
+        toggleDropdown(true);
+    });
+
+    // 點擊範圍外隱藏下拉選單
+    document.addEventListener("click", function(event) {
+        const searchInput = document.getElementById("deeperInsightSearch");
+        const dropdown = document.getElementById("deeperInsightDropdown");
+
+        if (!dropdown.contains(event.target) && event.target !== searchInput) {
+            toggleDropdown(false);
+        }
+    });
         });
        
     </script>
