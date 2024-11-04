@@ -202,9 +202,9 @@ def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStore
 
     # Add GROUP BY and HAVING clauses
     query += f"""
-        GROUP BY store_brand_name
-        HAVING COUNT(*) > {minStoreCount}
+        GROUP BY store_brand_name   
     """
+    # HAVING COUNT(*) > {minStoreCount}
 
     # Execute query
     with connection.cursor() as cursor:

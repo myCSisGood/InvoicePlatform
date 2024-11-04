@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pyvis.network import Network
 import os
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.schema import (HumanMessage)
 
@@ -31,6 +32,7 @@ class Chatbot:
         chat = ChatOpenAI(model_name="gpt-4o", temperature=0)
         resp = chat([HumanMessage(content=content)])
         answer = resp.content
+
         return answer
 
     def generate_category_analysis(self, node, edge):

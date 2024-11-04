@@ -17,7 +17,7 @@
                         Regular
                     </button>
                     <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
-                        Articulation Points
+                        Articulation 
                     </button>
                     <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                         Community
@@ -76,13 +76,13 @@
                     
                     <div>
                         <label for="startTime" class="block text-lg font-medium text-gray-700">開始時間{% if startTime %} ({{ startTime }}){% endif %}</label>
-                        <input type="text" id="startTime" name="startTime" value="{{ startTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="startTime" name="startTime"  class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
                     
                     <div>
                         <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
-                        <input type="text" id="endTime" name="endTime" value="{{ endTime }}" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="endTime" name="endTime"  class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
                     
@@ -173,7 +173,7 @@
             .replace(/^##### (.*$)/gim, '<li class="list-disc list-inside">$1</li>')   // 轉換五級標題為無序列表
             .replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold text-blue-800 mb-2">$1</h4>') // 四級標題，帶有底部空間
             .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-blue-800 mb-3">$1</h3>')   // 三級標題，帶有更大的底部空間
-            .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，帶有更大的底部空間
+            .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，
             .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-blue-900 mb-6">$1</h1>')     // 一級標題，帶有更多的空間
             
             // 粗體和斜體處理
@@ -230,36 +230,36 @@
         $('#showRegular').click(function() {
             updateIframeContent(relationship);
             analysisType = 'regular'; 
-            analyze(); 
+            // analyze(); 
         });
 
         $('#showArticulation').click(function() {
             updateIframeContent(articulation);
             analysisType = 'articulation'; 
-            analyze(); 
+            // analyze(); 
         });
 
         $('#showCommunity').click(function() {
             updateIframeContent(communities);
             analysisType = 'community'; 
-            analyze(); 
+            // analyze(); 
         });
         // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
-        // $('#analyzeButton').click(function() {
-        //     if (analysisInProgress) {
-        //         $('#analysisResult').removeClass('hidden');
-        //         $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
-        //     } else {
-        //         if (analysisResult) {
-        //             var formattedResult = convertMarkdownToHTML(analysisResult);
-        //             $('#analysisResult').removeClass('hidden');
-        //             $('#analysisResult').html(formattedResult);
-        //         } else {
-        //             $('#analysisResult').removeClass('hidden');
-        //             $('#analysisResult').html("<p>No result available.</p>");
-        //         }
-        //     }
-        // });
+        $('#analyzeButton').click(function() {
+            if (analysisInProgress) {
+                $('#analysisResult').removeClass('hidden');
+                $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
+            } else {
+                if (analysisResult) {
+                    var formattedResult = convertMarkdownToHTML(analysisResult);
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html(formattedResult);
+                } else {
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html("<p>No result available.</p>");
+                }
+            }
+        });
 
         // 頁面加載時顯示初始圖像
         var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
@@ -281,7 +281,7 @@
     });
     document.addEventListener("DOMContentLoaded", function() {
         var startPicker = flatpickr("#startTime", {
-            locale: "zh_tw",
+            locale: "zh-tw",
             plugins: [new monthSelectPlugin({
                 shorthand: true,
                 dateFormat: "Y-m",
@@ -295,7 +295,7 @@
         });
     
         var endPicker = flatpickr("#endTime", {
-            locale: "zh_tw",
+            locale: "zh-tw",
             plugins: [new monthSelectPlugin({
                 shorthand: true,
                 dateFormat: "Y-m",
