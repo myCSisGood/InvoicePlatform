@@ -449,14 +449,13 @@ def _displayPic(request, pictureType, displayType=None):
         segment = request.session.get('segment', 'Potential Loyalist')
     else:
         segment = request.session.get('segment', '')
-
     district = request.session.get('selectedDistrict', '') # narrow down 才有
     storeType = request.session.get('storeType', '')
     storeTypeList = request.session.get('storeTypeList', '')
     smallTag = request.session.get('smallTag', '')
     productList = request.session.get('productList', '')
     limit = request.session.get('limit', '')
-
+    excludeDiscounts = False
     districtList = _filterDistrict(countyName)
     storesToQuery = storeTypeList
     # stores = _filterStores(districtName)
@@ -479,6 +478,7 @@ def _displayPic(request, pictureType, displayType=None):
         storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')
         limit = request.POST.get('limit')
+        excludeDiscounts = True if request.POST.get("excludeDiscounts") == 'on' else None
         # districtName = District.objects.get(id=districtId).name
         request.session['startTime'] = startTime
         request.session['endTime'] = endTime
@@ -487,6 +487,7 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['store'] = storesToQuery
         request.session['segment'] = segment
         request.session['limit'] = limit
+        request.session['limexcludeDiscountsit'] = excludeDiscounts
         # request.session['selectedPath'] = pathId
 
     result = _drawPic(
@@ -500,7 +501,8 @@ def _displayPic(request, pictureType, displayType=None):
         storesToQuery,
         district, #narrow down
         segment,
-        limit
+        limit,
+        excludedDiscounts=excludeDiscounts
     )
 
     if result is not None:
@@ -514,7 +516,8 @@ def _displayPic(request, pictureType, displayType=None):
             storesToQuery,
             district, #narrow down
             segment,
-            limit
+            limit,
+            excludeDiscounts
         )
 
         if pictureType == BUY_WITH:
@@ -586,7 +589,8 @@ def _drawPic(
     storeTypeList=None,
     districtName=None,
     segment=None,
-    limit=None
+    limit=None,
+    excludedDiscounts=None,
 ):
     if pictureType == PRODUCT_IN_PATH:
         network = ProductNetwork(username='admin', network_name='通路')
@@ -609,7 +613,8 @@ def _drawPic(
             store_brand_name=storeTypeList,
             item_name=productList,
             segment=segment,
-            limit=limit
+            limit=limit,
+            excludedDiscounts=excludedDiscounts
         )
         if df is not None:
             # network.execute_query()
@@ -643,7 +648,8 @@ def _getNodeAndEdge(
     storeTypeList=None,
     districtName=None,
     segment=None,
-    limit=None
+    limit=None,
+    excludeDiscounts=None
 ):
 
     if not limit:
@@ -659,7 +665,8 @@ def _getNodeAndEdge(
         store_brand_name=storeTypeList,
         item_name=productList,
         segment=segment,
-        limit=limit
+        limit=limit,
+        excludedDiscounts=excludeDiscounts
     )
     # network.execute_query()
     # network.analysis(limits=100)
@@ -844,25 +851,6 @@ def drawRFMwithProduct(request):
         return _displayPic(request, pictureType, displayType)
 
     return redirect('/rfm_with_product/?step=select_area')
-
-
-def _displayRFM(request):
-    rfms = [
-        "Champions", "Loyal Accounts", "Low Spenders", "Potential Loyalist", "Promising", "New Active Accounts",
-        "Need Attention", "About to Sleep", "At Risk", "Lost"
-    ]
-
-    if request.method == "POST":
-        rfmType = request.POST.get('district', 'Potential Loyalist')
-    else:
-        rfmType = 'Potential Loyalist'
-
-    context = {
-        'rfmType': rfmType,
-        'rfms': rfms,
-    }
-
-    return render(request, 'RFM.html', context)
 
 
 def displayBuyWithInPath(request):

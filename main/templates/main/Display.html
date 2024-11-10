@@ -84,6 +84,11 @@
                         <label for="endTime" class="block text-lg font-medium text-gray-700">結束時間{% if endTime %} ({{ endTime }}){% endif %}</label>
                         <input type="text" id="endTime" name="endTime"  class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
+                    <!-- 新增的 checkbox 選項 -->
+                    <div class="flex items-center">
+                        <input id="excludeDiscounts" name="excludeDiscounts" type="checkbox" class="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="excludeDiscounts" class="ml-3 block text-lg font-medium text-gray-700">去除包含優惠的資料</label>
+                    </div>
 
                     
                     <div class="flex justify-end">

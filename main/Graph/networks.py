@@ -106,14 +106,15 @@ class ProductNetwork:
         county=None,
         city_area=None,
         segment=None,
-        limit=100
+        limit=100,
+        excludedDiscounts=None
     ):
         condition = ""
         tag = ""
-        if datetime_lower_bound:
+        if datetime_lower_bound and datetime_lower_bound != 'None':
             condition += f"AND datetime >= '{datetime_lower_bound}-01' "
 
-        if datetime_upper_bound:
+        if datetime_upper_bound and datetime_upper_bound != 'None':
             year, month = map(int, datetime_upper_bound.split('-'))
             # Get the last day of the month
             last_day = calendar.monthrange(year, month)[1]
@@ -148,7 +149,6 @@ class ProductNetwork:
             # self.type = item_tag
             self.temp_condition = condition
             condition += f"AND item_tag = '{item_tag}' "
-
         # tag2 = f"AND (a_item_tag = '{item_tag}' or b_item_tag = '{item_tag}' ) "
 
         #if not query:
@@ -176,7 +176,9 @@ class ProductNetwork:
                         FROM 
                             public.{self.country_dict[county]} t
                         JOIN 
-                            INV_NUMBERS i ON t.inv_num = i.inv_num
+                            INV_NUMBERS i ON t.inv_num = i.inv_num    
+                        WHERE 1=1
+                            {"AND t.a_item_tag != '優惠活動/折扣/集點' AND t.b_item_tag != '優惠活動/折扣/集點'" if excludedDiscounts else ""}
                         GROUP BY 
                             t.a_item_tag, 
                             t.b_item_tag 
