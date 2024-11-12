@@ -10,18 +10,19 @@
             <div class="lg:col-span-2 p-5 rounded-lg shadow-lg bg-white relative h-full flex flex-col">
                 <div class="flex items-center space-x-4">
                     <!-- Title with dynamic content -->
-                    <span>{{ countyName }} {{ districtName }} {{ smallTag }} {% if store %} in {{ store }}{% endif %}</span>
+                    <span>{{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</span>
                     
                     <!-- Buttons beside the title -->
                     <button id="showRegular" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition duration-200">
                         Regular
                     </button>
                     <button id="showArticulation" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
-                        Articulation Points
+                        Articulation 
                     </button>
                     <button id="showCommunity" class="px-3 py-1 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 transition duration-200">
                         Community
                     </button>
+                    
                 </div>
                 
                 <!-- Main content area with iframe -->
@@ -37,32 +38,53 @@
                     <button id="saveDataBtn" class="px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-green-600 transition duration-200 flex items-center">
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
+                    
+
                 </div>
+                <div id="messageBox" class="hidden px-3 py-2 rounded-md mt-4 max-w-xs mx-auto text-center text-sm"></div>
+
             </div>
             
-            
+            <!-- Right Section (Revise Form and Deeper Insight) -->
             <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                
-
-                <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
-                    <div class="relative">
-                        <label for="deeperInsightSearch" class="block text-lg font-medium text-gray-700">Deeper Insight</label>
-                        <input type="text" id="deeperInsightSearch" placeholder="請選擇選項" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" onfocus="toggleDropdown(true)" oninput="filterOptions()">
-                        <input type="hidden" name="deeperInsightSearch" id="hiddenDeeperInsightSearch">
-
-                        <!-- 下拉選單，初始狀態隱藏 -->
-                        <div id="deeperInsightDropdown" class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
-                            <ul id="deeperInsightOptions">
-                                {% for option in options %}
-                                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('{{ option }}')">{{ option }}</li>
-                                {% endfor %}
-                            </ul>
+                <!-- <div class="lg:col-span-2 p-5 rounded-lg shadow-lg bg-white relative h-full flex flex-col"> -->
+                    <form method="GET" action="{% url 'main:getDeeperInsight' %}" class="flex flex-col space-y-4">
+                        <div class="relative">
+                            <label for="deeperInsightSearch" class="block text-lg font-medium text-gray-700">Deeper Insight</label>
+                            <input type="text" id="deeperInsightSearch" placeholder="請選擇選項" class="mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" onfocus="toggleDropdown(true)" oninput="filterOptions()">
+                            <input type="hidden" name="deeperInsightSearch" id="hiddenDeeperInsightSearch">
+    
+                            <!-- 下拉選單，初始狀態隱藏 -->
+                            <div id="deeperInsightDropdown" class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+                                <ul id="deeperInsightOptions">
+                                    {% for option in options %}
+                                        <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectOption('{{ option }}')">{{ option }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
-                        Go
+                        <button type="submit" class="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center text-sm w-24 ml-auto">
+                            Go
+                        </button>
+                    </form>
+                 <!-- Button to Show/Hide Title List -->
+                {% if productList %}
+      
+            
+                    <button id="viewTitleListButton" class="px-2 py-1 bg-blue-500 text-white text-sm font-medium rounded hover:bg-blue-600 transition duration-200">
+                        Selected Products]itle List
                     </button>
-                </form>
+            
+                    <!-- Title List (Hidden by default) -->
+                    <div id="titleListContainer" class="hidden mb-6">
+                        {% for n in productList %}
+                            <p class="text-sm ml-4">{{ forloop.counter }}. {{ n }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                {% endif %}
+                
+                </div>
             </div>
             </div>
             
@@ -97,13 +119,29 @@
                     csrfmiddlewaretoken: '{{ csrf_token }}',
                 },
                 success: function(response) {
-                    // 成功時顯示成功訊息
-                    alert(response.message);
+                    var messageBox = document.getElementById("messageBox");
+                    messageBox.classList.remove("hidden");
+                    messageBox.classList.add("bg-green-100", "text-green-700", "border", "border-green-300");
+                    messageBox.innerHTML = `<p>${response.message}</p>`;
+
+                    setTimeout(function() {
+                        messageBox.classList.add("hidden");
+                        messageBox.innerHTML = ""; 
+                    }, 5000);
                 },
                 error: function(xhr) {
-                    // 錯誤時顯示錯誤訊息
-                    alert(xhr.responseJSON.message);
+                    
+                    var messageBox = document.getElementById("messageBox");
+                    messageBox.classList.remove("hidden");
+                    messageBox.classList.add("bg-red-100", "text-red-700", "border", "border-red-300");
+                    messageBox.innerHTML = `<p>${xhr.responseJSON.message}</p>`;
+
+                    setTimeout(function() {
+                        messageBox.classList.add("hidden");
+                        messageBox.innerHTML = "";
+                    }, 5000);
                 }
+
             });
         });
     });
@@ -124,7 +162,7 @@
             .replace(/^##### (.*$)/gim, '<li class="list-disc list-inside">$1</li>')   // 轉換五級標題為無序列表
             .replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold text-blue-800 mb-2">$1</h4>') // 四級標題，帶有底部空間
             .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-blue-800 mb-3">$1</h3>')   // 三級標題，帶有更大的底部空間
-            .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，帶有更大的底部空間
+            .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-blue-900 mb-4">$1</h2>')    // 二級標題，
             .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-extrabold text-blue-900 mb-6">$1</h1>')     // 一級標題，帶有更多的空間
             
             // 粗體和斜體處理
@@ -181,36 +219,36 @@
         $('#showRegular').click(function() {
             updateIframeContent(relationship);
             analysisType = 'regular'; 
-            analyze(); 
+            // analyze(); 
         });
 
         $('#showArticulation').click(function() {
             updateIframeContent(articulation);
             analysisType = 'articulation'; 
-            analyze(); 
+            // analyze(); 
         });
 
         $('#showCommunity').click(function() {
             updateIframeContent(communities);
             analysisType = 'community'; 
-            analyze(); 
+            // analyze(); 
         });
         // 當用戶點擊 "Analyze" 按鈕時顯示格式化的分析結果
-        // $('#analyzeButton').click(function() {
-        //     if (analysisInProgress) {
-        //         $('#analysisResult').removeClass('hidden');
-        //         $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
-        //     } else {
-        //         if (analysisResult) {
-        //             var formattedResult = convertMarkdownToHTML(analysisResult);
-        //             $('#analysisResult').removeClass('hidden');
-        //             $('#analysisResult').html(formattedResult);
-        //         } else {
-        //             $('#analysisResult').removeClass('hidden');
-        //             $('#analysisResult').html("<p>No result available.</p>");
-        //         }
-        //     }
-        // });
+        $('#analyzeButton').click(function() {
+            if (analysisInProgress) {
+                $('#analysisResult').removeClass('hidden');
+                $('#analysisResult').html("<h3 class='text-lg font-semibold text-blue-800'>Analysis Result:</h3><p>Loading...</p>");
+            } else {
+                if (analysisResult) {
+                    var formattedResult = convertMarkdownToHTML(analysisResult);
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html(formattedResult);
+                } else {
+                    $('#analysisResult').removeClass('hidden');
+                    $('#analysisResult').html("<p>No result available.</p>");
+                }
+            }
+        });
 
         // 頁面加載時顯示初始圖像
         var relationship = `{% filter escapejs %}{{ relationship|safe }}{% endfilter %}`;
@@ -230,7 +268,7 @@
         
         
     });
-
+    
     function toggleDropdown(show) {
         const dropdown = document.getElementById("deeperInsightDropdown");
         if (show) {
@@ -285,6 +323,10 @@
         if (!dropdown.contains(event.target) && event.target !== searchInput) {
             toggleDropdown(false);
         }
+    });
+    document.getElementById('viewTitleListButton').addEventListener('click', function() {
+        const titleListContainer = document.getElementById('titleListContainer');
+        titleListContainer.classList.toggle('hidden');
     });
 </script>
 

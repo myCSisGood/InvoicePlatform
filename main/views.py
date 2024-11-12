@@ -111,6 +111,7 @@ def getProducts(request):
             FROM test 
             WHERE item_tag = %s 
             GROUP BY item_name
+            ORDER BY COUNT(*) DESC
         """, [smallTag]
         )
         rows = cursor.fetchall()
@@ -189,9 +190,15 @@ def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStore
         query += f"""WHERE a_item_tag = '{itemTag}'"""
         if product:
             if isinstance(product, list):
-                query += f" AND a_item_name IN {tuple(product)}"
+                # 如果列表中只有一個元素，手動構建單元素元組的格式
+                if len(product) == 1:
+                    query += f" AND a_item_name = '{product[0]}'"
+                else:
+                    query += f" AND a_item_name IN {tuple(product)}"
             else:
-                query += f""" AND a_item_name = '{product}'"""
+                # 單個項目時直接用單元素元組的格式
+                query += f" AND a_item_name = '{product}'"
+
         if storeList:
             stores = tuple(storeList)
             query += f" AND store_brand_name IN {stores}"
@@ -323,10 +330,8 @@ def _selectPathAndTime(request, pictureType):
         )
     else:
         return render(
-            request,
-            'PathAndTime.html',
-            {
-                # 'stores': stores,
+            request, 'PathAndTime.html', {
+                'stores': storeType,
                 'startTime': selectedStartTime,
                 'endTime': selectedEndTime,
                 'pictureType': pictureType,
@@ -367,7 +372,8 @@ def _selectTag(request, pictureType):
     bigTags = _filterBigTags(request)
     if not bigTags:
         return redirect('/draw_buy_with/?step=select_path_time&error_message=此區間無資料，請重新選擇。')
-    errorMessage = request.GET.get('error_message', '')
+    # errorMessage = request.GET.get('error_message', '')
+    errorMessage = request.session.pop('error_message', '')
     return render(
         request, 'Tag.html', {
             'bigTags': bigTags,
@@ -395,7 +401,8 @@ def _displayPathPic(request):
     orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
     df = _drawPic(request, countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime, productList=productList)
     if df is not None:
-        # Sort the dataframe based on the selected option
+        # Sort the dataframe
+        # based on the selected option
         df = df.sort_values(by=orderBy, ascending=False)
 
         dfDict = {
@@ -420,12 +427,11 @@ def _displayPathPic(request):
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
 
-        title = productList if productList else smallTag
-
+        # title = productList if productList else smallTag
         return render(
             request, 'ProductInPath.html', {
                 'df': dfDict,
-                'title': title,
+                'title': smallTag,
                 'titleList': productList,
                 'top_10_stores': topStores,
                 'top_10_quantities': topValues,
@@ -506,6 +512,7 @@ def _displayPic(request, pictureType, displayType=None):
     )
 
     if result is not None:
+
         relationship, articulationPoint, communities, df = result
         nodes, edges = _getNodeAndEdge(
             countyName,
@@ -522,6 +529,7 @@ def _displayPic(request, pictureType, displayType=None):
 
         if pictureType == BUY_WITH:
             options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+
             return render(
                 request, 'Display.html', {
                     'startTime': startTime,
@@ -571,6 +579,8 @@ def _displayPic(request, pictureType, displayType=None):
             )
     else:
         if pictureType in [BUY_WITH, RFM_WITH_PRODUCT, PRODUCT_IN_PATH]:
+            # error_message = request.session.pop('error_message', 'No data in your condition. Please try another one.')
+
             messages.error(request, 'No data in your condition. Please try another one.')
             return _selectTag(request, pictureType)
         if pictureType == RFM:
@@ -604,39 +614,53 @@ def _drawPic(
             #limit default value
             limit = 100
         network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-        df = network.query(
-            county=countyName,
-            city_area=districtName,
-            item_tag=smallTag,
-            datetime_lower_bound=startTime,
-            datetime_upper_bound=endTime,
-            store_brand_name=storeTypeList,
-            item_name=productList,
-            segment=segment,
-            limit=limit,
-            excludedDiscounts=excludedDiscounts
-        )
-        if df is not None:
-            # network.execute_query()
-            # network.analysis(limits=100)
-            network.create_network()
-            data = json_graph.node_link_data(network.g)
-            if pictureType == RFM:
-                networkName = f'{countyName}/{segment}'
-            if pictureType == RFM_WITH_PRODUCT:
-                networkName = f'{countyName}/{segment}/{smallTag}'
-            if pictureType == BUY_WITH:
-                networkName = f'{countyName}/{smallTag}'
-            request.session['network'] = {
-                'username': network.username,
-                'networkName': networkName,
-                'data': data,
-                'relationshipDF': network.relationship_df.to_json(orient='split')
-            }
-            relationship, articulationPoint, communities = network.vis_all_graph()
-            return relationship, articulationPoint, communities, df
-        else:
+        try:
+            df = network.query(
+                county=countyName,
+                city_area=districtName,
+                item_tag=smallTag,
+                datetime_lower_bound=startTime,
+                datetime_upper_bound=endTime,
+                store_brand_name=storeTypeList,
+                item_name=productList,
+                segment=segment,
+                limit=limit,
+                excludedDiscounts=excludedDiscounts
+            )
+            if df is not None:
+                # network.execute_query()
+                # network.analysis(limits=100)
+                network.create_network()
+                data = json_graph.node_link_data(network.g)
+                if pictureType == RFM:
+                    networkName = f'{countyName}/{segment}'
+                elif pictureType == RFM_WITH_PRODUCT:
+                    networkName = f'{countyName}/{segment}/{smallTag}'
+                elif pictureType == BUY_WITH:
+                    networkName = f'{countyName}/{smallTag}'
+                request.session['network'] = {
+                    'username': network.username,
+                    'networkName': networkName,
+                    'data': data,
+                    'relationshipDF': network.relationship_df.to_json(orient='split')
+                }
+                relationship, articulationPoint, communities = network.vis_all_graph()
+                return relationship, articulationPoint, communities, df
+            else:
+                request.session['error_message'] = 'No data in your condition. Please try another one.'
+                return None
+
+        except (psycopg2.ProgrammingError, ValueError) as e:
+            # 將錯誤訊息存入 session
+            request.session['error_message'] = 'No data in your condition. Please try another one.'
             return None
+
+            # 根據 pictureType 返回適當的處理函數
+        #     if pictureType in [BUY_WITH, RFM_WITH_PRODUCT, PRODUCT_IN_PATH]:
+        #         return _selectTag(request, pictureType)
+        #     elif pictureType == RFM:
+        #         return _selectPathAndTime(request, pictureType)
+        # return None
 
 
 def _getNodeAndEdge(
@@ -693,8 +717,13 @@ def drawBuyWith(request):
     displayType = request.GET.get('displayType', 'Regular')
     step = request.GET.get('step', 'select_area')
     pictureType = BUY_WITH
-    if step == 'select_area':
+    clearSession = request.GET.get('clearSession', 'False') == 'True'
+
+    if clearSession:
         _clearSession(request)
+
+    if step == 'select_area':
+
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -728,8 +757,12 @@ def showInfo(request):
 def drawPath(request):
     step = request.GET.get('step', 'select_area')
     pictureType = PRODUCT_IN_PATH
-    if step == 'select_area':
+    clearSession = request.GET.get('clearSession', 'False') == 'True'
+
+    if clearSession:
         _clearSession(request)
+
+    if step == 'select_area':
         response = _selectArea(request, pictureType)
 
     elif step == 'select_time':
@@ -784,7 +817,7 @@ def getDeeperInsight(request):
     option = request.GET.get('deeperInsightSearch')
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
-
+    # productList = request.session.get('productList', '')
     # 檢查是否為字串 'None'，並將其轉為 NoneType
     startTime = None if startTime == 'None' else startTime
     endTime = None if endTime == 'None' else endTime
@@ -817,10 +850,12 @@ def getDeeperInsight(request):
 def drawRFM(request):
     step = request.GET.get('step', 'select_area')
     pictureType = RFM
+    clearSession = request.GET.get('clearSession', 'False') == 'True'
 
+    if clearSession:
+        _clearSession(request)
     displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
-        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -837,8 +872,12 @@ def drawRFMwithProduct(request):
     pictureType = RFM_WITH_PRODUCT
 
     displayType = request.GET.get('displayType', 'Regular')
-    if step == 'select_area':
+    clearSession = request.GET.get('clearSession', 'False') == 'True'
+
+    if clearSession:
         _clearSession(request)
+
+    if step == 'select_area':
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -909,7 +948,8 @@ def displayBuyWithInPath(request):
             'edges': edges,
             'countyName': countyName,
             'smallTag': smallTag,
-            'store': store
+            'store': store,
+            'productList': productList
             # 'displayType': displayType,
         }
     )

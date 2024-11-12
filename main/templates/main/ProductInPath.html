@@ -6,12 +6,23 @@
         <!-- Chart and Sorting Options -->
         <div class="bg-white p-4 rounded-lg shadow-md mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">
-
-                {% if titleList %}               
-                    {% for n in titleList %}{{ forloop.counter }}. {{ n }}<br>{% endfor %}
-                {% else %}
-                    {{ title }}
-                {% endif %}
+           {{ title }}
+    
+            <!-- Button to Show/Hide Title List -->
+            {% if titleList %}
+           
+                <button id="viewTitleListButton" class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200 focus:outline-none">
+                    Selected Products]itle List
+                </button>
+            
+            
+            <!-- Title List (Hidden by default) -->
+            <div id="titleListContainer" class="hidden mb-6">
+                {% for n in titleList %}
+                    <p>{{ forloop.counter }}. {{ n }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
                 
 
 
@@ -200,6 +211,10 @@
             const labelText = 'Total Quantity';
             initializeChart(labels, quantities, labelText);
         };
+        document.getElementById('viewTitleListButton').addEventListener('click', function() {
+            const titleListContainer = document.getElementById('titleListContainer');
+            titleListContainer.classList.toggle('hidden');
+        });
     </script>
 </body>
-{% endblock %}
+{% endblock %} 

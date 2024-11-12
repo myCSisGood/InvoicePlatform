@@ -36,32 +36,41 @@
             <div class="mb-6">
                 <label for="bigTag" class="block text-lg font-medium text-gray-700">選擇分類</label>
                 <select id="bigTag" name="bigTag" class="mt-2 block w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm select2">
+                    <option value="" disabled selected>請選擇分類</option> <!-- 添加提示選項 -->
                     {% for tag in bigTags %}
                         <option value="{{ tag }}">{{ tag }}</option>
                     {% endfor %}
                 </select>
             </div>
+            
 
             <!-- Subcategory Selection -->
             <div class="mb-6">
                 <label for="smallTag" class="block text-lg font-medium text-gray-700">選擇子分類</label>
                 <select id="smallTag" name="smallTag" class="mt-2 block w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm select2">
-                    <option value="">請先選擇分類</option>
+                    <option value="">請先選擇分類</option> 
                 </select>
             </div>
+            
 
             <!-- Product Search -->
             <div class="mb-6">
                 <label for="productFilter" class="block text-lg font-medium text-gray-700">搜尋並選擇產品</label>
                 <input type="text" id="productFilter" class="mt-2 block w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm focus:outline-none" placeholder="搜尋產品...">
-                <ul id="productResults" class="bg-white border border-gray-300 mt-2 max-h-48 overflow-auto"></ul>
-            </div>
+                
+                
 
+                <ul id="productResults" class="bg-white border border-gray-300 mt-2 max-h-48 overflow-auto"></ul>
+                <div id="smallTagWarning" class="text-red-500 text-sm mt-2" style="display: none;">請先選擇小分類</div> <!-- 新增提示訊息 -->
+            </div>
+            
+            
             <!-- 已選產品 -->
             <div class="mb-6">
                 <label class="block text-lg font-medium text-gray-700">已選擇的產品</label>
                 <ul id="selectedProducts" class="list-disc pl-5"></ul>
             </div>
+            
 
             {% if errorMessage %}
             <div class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
@@ -72,9 +81,21 @@
 
             <!-- Navigation Buttons -->
             <div class="flex justify-between mt-10">
-                <button type="button" onclick="window.history.back()" class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-lg font-medium">
-                    <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>Back
-                </button>
+                
+                <a 
+                    {% if pictureType == 1 %}
+                        href="{% url 'main:drawBuyWith' %}?step=select_path_time"
+                    {% elif pictureType == 2 %}
+                        href="{% url 'main:drawPath' %}?step=select_time"
+                    {% elif pictureType == 3 %}
+                        href="{% url 'main:drawRFM' %}?step=select_path_time"
+                    {% elif pictureType == 4 %}
+                        href="{% url 'main:drawRFMwithProduct' %}?step=select_path_time"
+                    {% endif %}
+                    class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 flex items-center text-lg font-medium">
+                <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>Back
+                </a>
+
                 <button type="submit" id="submitBtn" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center text-lg font-medium">
                     <ion-icon name="save-outline" class="mr-2"></ion-icon>Save
                 </button>
@@ -91,43 +112,71 @@ $(document).ready(function() {
         placeholder: "請選擇或搜尋",
         allowClear: true
     });
-
+    $('#smallTag').select2({
+        placeholder: "請先選擇分類",
+        language: {
+            noResults: function() {
+                return "請先選擇分類";  // 自訂提示訊息
+            }
+        },
+        escapeMarkup: function(markup) {
+            return markup;
+        }
+    });
     var selectedProducts = [];
     var totalProductCount = 0;
-
+    $('#selectAllProducts').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('.productCheckbox').each(function() {
+            $(this).prop('checked', isChecked).trigger('change');
+        });
+    });
+    $('#productResults').on('change', '.productCheckbox', function() {
+        if (!$(this).is(':checked')) {
+            $('#selectAllProducts').prop('checked', false);
+        } else if ($('.productCheckbox:checked').length === $('.productCheckbox').length) {
+            $('#selectAllProducts').prop('checked', true);
+        }
+    });
     // 顯示累計數量的元素
     $('#selectedProducts').after('<div id="totalProductCount" class="mt-4 text-lg font-semibold">總資料數量: 0</div>');
 
     // 當大類選擇發生變更時，自動獲取對應的小類
     $('#bigTag').change(function() {
         var bigtag = $(this).val();
-        $.ajax({
-            url: '{% url "main:getSmallTags" %}',
-            data: { 'bigtag': bigtag },
-            success: function(data) {
-                var smallTagSelect = $('#smallTag');
-                smallTagSelect.empty();
-                smallTagSelect.append('<option value="">請選擇子分類</option>');
-                $.each(data.smallTags, function(index, value) {
-                    smallTagSelect.append('<option value="' + value.name + '">' + value.name + '</option>');
-                });
-                smallTagSelect.val('{{ smallTag }}');
-                $('#submitBtn').prop('disabled', true)
-                    .removeClass('bg-green-500 text-white hover:bg-green-600')
-                    .addClass('bg-gray-300 text-gray-500 cursor-not-allowed');
-            }
-        });
+        if (bigtag) {
+            $.ajax({
+                url: '{% url "main:getSmallTags" %}',
+                data: { 'bigtag': bigtag },
+                success: function(data) {
+                    var smallTagSelect = $('#smallTag');
+                    smallTagSelect.empty();  // 清空當前選項
+                    smallTagSelect.append('<option value="">請選擇子分類</option>');
+                    $.each(data.smallTags, function(index, value) {
+                        smallTagSelect.append('<option value="' + value.name + '">' + value.name + '</option>');
+                    });
+                    $('#smallTag').val(null).trigger('change');  // 重設選項
+                }
+            });
+        } else {
+            $('#smallTag').empty().append('<option value="">請先選擇分類</option>');  // 若未選擇大分類，恢復提示選項
+        }
+        $('#bigTagWarning').hide();
+        
     });
 
     // 當點擊「搜尋產品」的輸入框時，檢查是否選擇了大分類
     $('#productFilter').on('focus', function() {
-        var bigTag = $('#bigTag').val(); 
-        if (!bigTag) {
-            alert("請先選擇大分類"); // 提示訊息
+        var smallTag = $('#smallTag').val(); 
+        if (!smallTag) {
+            $('#smallTagWarning').show(); // 顯示提示訊息
             return; // 停止執行後續步驟
         }
+        $('#smallTagWarning').hide(); // 隱藏提示訊息（如果已選擇小分類）
+    
 
-        var smallTag = $('#smallTag').val(); // 根據已選小類進行產品過濾
+        
+
         if (!smallTag) {
             $('#productResults').empty();
             return;
@@ -141,6 +190,15 @@ $(document).ready(function() {
 
                 // 顯示篩選結果，使用 checkbox
                 $('#productResults').empty();
+                if (!$('#selectAllProducts').length && filteredProducts.length > 0) {
+                    $('#productResults').before(`
+                        <div class="flex items-center mt-2">
+                            <input type="checkbox" id="selectAllProducts" class="mr-2">
+                            <label for="selectAllProducts" class="text-lg font-medium text-gray-700">全選</label>
+                        </div>
+                    `);
+                }
+
                 filteredProducts.forEach(function(product) {
                     $('#productResults').append(`
                         <li class="p-2">
@@ -150,6 +208,19 @@ $(document).ready(function() {
                     `);
                 });
 
+                $('#selectAllProducts').on('change', function() {
+                    var isChecked = $(this).is(':checked');
+                    $('.productCheckbox').each(function() {
+                        $(this).prop('checked', isChecked).trigger('change');
+                    });
+                });
+                $('#productResults').on('change', '.productCheckbox', function() {
+                    if (!$(this).is(':checked')) {
+                        $('#selectAllProducts').prop('checked', false);
+                    } else if ($('.productCheckbox:checked').length === $('.productCheckbox').length) {
+                        $('#selectAllProducts').prop('checked', true);
+                    }
+                });
                 // 當用戶選擇產品時，將其加入到已選列表中
                 $('.productCheckbox').on('change', function() {
                     var product = $(this).data('product');
@@ -239,6 +310,9 @@ $(document).ready(function() {
                 .removeClass('bg-green-500 text-white hover:bg-green-600')
                 .addClass('bg-gray-300 text-gray-500 cursor-not-allowed');
         }
+        
+        $('#smallTagWarning').hide(); // 當選擇小分類時自動隱藏提示訊息
+        
     });
 });
 </script>

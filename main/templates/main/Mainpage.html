@@ -65,10 +65,10 @@
         </button>
         <ul id="drawMenu" class="hidden mt-1 bg-green-600 text-white rounded shadow-lg">
           <li class="px-4 py-2 hover:bg-green-500">
-            <a href="{% url 'main:drawPath' %}">Sales Channel Analysis</a>
+            <a href="{% url 'main:drawPath' %}?clearSession=True">Sales Channel Analysis</a>
           </li>
           <li class="px-4 py-2 hover:bg-green-500">
-            <a href="{% url 'main:drawBuyWith' %}">Co-Purchase Analysis</a>
+            <a href="{% url 'main:drawBuyWith' %}?clearSession=True">Co-Purchase Analysis</a>
           </li>
         </ul>
       </li>
@@ -79,10 +79,10 @@
         </button>
         <ul id="rfmMenu" class="hidden mt-1 bg-green-600 text-white rounded shadow-lg">
           <li class="px-4 py-2 hover:bg-green-500">
-            <a href="{% url 'main:drawRFM' %}">General Analysis</a>
+            <a href="{% url 'main:drawRFM' %}?clearSession=True">General Analysis</a>
           </li>
           <li class="px-4 py-2 hover:bg-green-500">
-            <a href="{% url 'main:drawRFMwithProduct' %}">Tag-Specific Analysis</a>
+            <a href="{% url 'main:drawRFMwithProduct' %}?clearSession=True">Tag-Specific Analysis</a>
           </li>
         </ul>
       </li>

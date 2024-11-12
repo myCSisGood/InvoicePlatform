@@ -121,7 +121,11 @@ class ProductNetwork:
             condition += f"AND datetime <= '{datetime_upper_bound}-{last_day}'"
         if item_name:
             if isinstance(item_name, list):
-                condition += f" AND item_name IN {tuple(item_name)}"
+                if len(item_name) == 1:
+                    condition += f" AND item_name = '{item_name[0]}'"
+                else:
+                    # Use `IN` for multiple items
+                    condition += f" AND item_name IN {tuple(item_name)}"
             else:
                 condition += f"AND item_name = '{item_name}'"
         if unit_price_lower_bound:
@@ -189,13 +193,22 @@ class ProductNetwork:
         )
         print(q)
         try:
+            # 執行查詢
             self.cur.execute(q)
         except psycopg2.Error as e:
             print(f"Error executing query: {e}")
+            return None
 
-        #print(len(self.cur.fetchall()))
-        df = pd.DataFrame(self.cur.fetchall())
-
+        try:
+            # 獲取查詢結果並轉換為 DataFrame
+            results = self.cur.fetchall()
+            if not results:
+                print("The result of this query contains no data")
+                return None
+            df = pd.DataFrame(results)
+        except Exception as e:
+            print(f"Error converting query result to DataFrame: {e}")
+            return None
         if df.shape[0] == 0:
             print("The result of this query contains no data")
             return None
@@ -582,17 +595,29 @@ class ProductNetwork:
         return df
 
     def get_channel_with_item_name(self, item_name):
+        # self.cur.execute(
+        #     f"""
+        #     SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS,
+        #         (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count,
+        #         SUM(amount)/COUNT(item_name) AS profit_per_sales
+        #     FROM test
+        #     WHERE item_name IN {tuple(item_name)} AND store_brand_name IS NOT NULL
+        #     GROUP BY store_brand_name
+        #     ORDER BY SUM(amount) DESC
+        #     """
+        # )
         self.cur.execute(
-            f"""
+            """
             SELECT store_brand_name, SUM(quantity) as TOTAL_QUANTITY, SUM(amount) as TOTAL_PROFITS, 
                 (SUM(amount)/SUM(quantity)) as profit_per_unit, COUNT(item_name) AS number_of_sales_count, 
                 SUM(amount)/COUNT(item_name) AS profit_per_sales
             FROM test
-            WHERE item_name IN {tuple(item_name)} AND store_brand_name IS NOT NULL
+            WHERE item_name IN %s AND store_brand_name IS NOT NULL
             GROUP BY store_brand_name
             ORDER BY SUM(amount) DESC
-            """
+            """, (tuple(item_name),)
         )
+
         df = pd.DataFrame(self.cur.fetchall())
         print(df)
         df = df.rename(

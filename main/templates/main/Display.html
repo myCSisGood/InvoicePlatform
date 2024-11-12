@@ -11,7 +11,10 @@
                 <div class="flex items-center space-x-4">
                     <!-- Title with dynamic content -->
                     <span>{{ countyName }} {{ districtName }} {{ smallTag }} {% if path %} in {{ path }}{% endif %}</span>
-                    
+        
+    
+            
+
                     <!-- Buttons beside the title -->
                     <button id="showRegular" class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition duration-200">
                         Regular
@@ -28,7 +31,21 @@
                 <div class="flex justify-center mb-4 flex-grow overflow-auto">
                     <iframe id="picture" class="w-full h-full border-none rounded-md"></iframe>
                 </div>
-            
+                {% if productList %}
+                <!-- 靠左顯示的按鈕 -->
+                <div class="relative mt-4 ml-4">
+                    <button id="viewTitleListButton" onclick="toggleTitleList()" class="px-4 py-2 text-xs bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-200 focus:outline-none shadow-md">
+                        Selected Products
+                    </button>
+                </div>
+                
+                <!-- Title List (隱藏並在按鈕下方顯示) -->
+                <div id="titleListContainer" class="hidden mt-2 ml-4 max-w-md p-4 bg-white rounded-lg shadow-md border border-gray-200">
+                    {% for n in productList %}
+                        <p class="text-sm text-gray-700">{{ forloop.counter }}. {{ n }}</p>
+                    {% endfor %}
+                </div>
+                 {% endif %}
                 <!-- Analyze and Save Buttons -->
                 <div class="absolute bottom-4 right-4 flex space-x-3">
                     <button id="analyzeButton" class="px-4 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-red-600 transition duration-200">
@@ -38,6 +55,8 @@
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
                 </div>
+                <div id="messageBox" class="hidden px-3 py-2 rounded-md mt-4 max-w-xs mx-auto text-center text-sm"></div>
+
             </div>
             
             <!-- Right Section (Revise Form and Deeper Insight) -->
@@ -151,13 +170,29 @@
                     csrfmiddlewaretoken: '{{ csrf_token }}',
                 },
                 success: function(response) {
-                    // 成功時顯示成功訊息
-                    alert(response.message);
+                    var messageBox = document.getElementById("messageBox");
+                    messageBox.classList.remove("hidden");
+                    messageBox.classList.add("bg-green-100", "text-green-700", "border", "border-green-300");
+                    messageBox.innerHTML = `<p>${response.message}</p>`;
+
+                    setTimeout(function() {
+                        messageBox.classList.add("hidden");
+                        messageBox.innerHTML = ""; 
+                    }, 5000);
                 },
                 error: function(xhr) {
-                    // 錯誤時顯示錯誤訊息
-                    alert(xhr.responseJSON.message);
+                    
+                    var messageBox = document.getElementById("messageBox");
+                    messageBox.classList.remove("hidden");
+                    messageBox.classList.add("bg-red-100", "text-red-700", "border", "border-red-300");
+                    messageBox.innerHTML = `<p>${xhr.responseJSON.message}</p>`;
+
+                    setTimeout(function() {
+                        messageBox.classList.add("hidden");
+                        messageBox.innerHTML = "";
+                    }, 5000);
                 }
+
             });
         });
     });
@@ -367,6 +402,10 @@
         if (!dropdown.contains(event.target) && event.target !== searchInput) {
             toggleDropdown(false);
         }
+    });
+    document.getElementById('viewTitleListButton').addEventListener('click', function() {
+        const titleListContainer = document.getElementById('titleListContainer');
+        titleListContainer.classList.toggle('hidden');
     });
 </script>
 

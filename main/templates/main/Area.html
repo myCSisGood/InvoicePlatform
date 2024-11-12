@@ -37,23 +37,23 @@
         <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8 text-center">選擇地區</h2>
 
         {% if pictureType == 1 %}
-        <form id="areaForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area">
+        <form id="areaForm" method="POST" action="{% url 'main:drawBuyWith' %}?step=select_area" autocomplete="off">
         {% elif pictureType == 2 %}
-        <form id="areaForm" method="POST" action="{% url 'main:drawPath' %}?step=select_area">
+        <form id="areaForm" method="POST" action="{% url 'main:drawPath' %}?step=select_area" autocomplete="off">
         {% elif pictureType == 3 %}
-        <form id="areaForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_area">
+        <form id="areaForm" method="POST" action="{% url 'main:drawRFM' %}?step=select_area" autocomplete="off">
         {% elif pictureType == 4 %}
-        <form id="areaForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_area">
+        <form id="areaForm" method="POST" action="{% url 'main:drawRFMwithProduct' %}?step=select_area" autocomplete="off">
         {% endif %}
             {% csrf_token %}
 
             <!-- County Selection with Search -->
             <div class="mb-8 relative">
                 <label for="county" class="block text-lg font-medium text-gray-700">縣/市</label>
-                <input type="text" id="countyFilter" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="搜尋縣/市...">
+                <input type="text" id="countyFilter" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" placeholder="搜尋縣/市..." value="{{selectedCounty}}">
                 <select id="county" name="county" class="mt-2 block w-full py-3 px-4 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-lg" size="5" style="overflow-y: auto; display: none;">
                     {% for county in counties %}
-                        <option value="{{ county.name }}">{{ county.name }}</option>
+                        <option value="{{ county.name }}" {% if selectedCounty == county.name %}selected{% endif %}>{{ county.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -76,6 +76,18 @@
     <script>
           $(document).ready(function() {
             // Filter county options based on input and show dropdown automatically
+            $('#errorMessage').hide();
+            var selectedCounty = $('#county').val();
+
+            if (selectedCounty) {
+                $('#nextButton').prop('disabled', false)
+                    .removeClass('bg-gray-300 text-gray-500')
+                    .addClass('bg-green-500 text-white');
+            } else {
+                $('#nextButton').prop('disabled', true)
+                    .removeClass('bg-green-500 text-white')
+                    .addClass('bg-gray-300 text-gray-500');
+            }
             $('#countyFilter').on('input', function() {
                 var filterValue = $(this).val().toLowerCase();
                 $('#county').show();
@@ -88,11 +100,11 @@
                 $('#county').show();
             });
 
-            $('#countyFilter').on('blur', function() {
-                setTimeout(function() {
-                    $('#county').hide();
-                }, 200);
-            });
+            // $('#countyFilter').on('blur', function() {
+            //     setTimeout(function() {
+            //         $('#county').hide();
+            //     }, 200);
+            // });
 
             $('#county').on('change', function() {
                 var selectedText = $(this).find("option:selected").text();
@@ -106,7 +118,7 @@
                     $('#nextButton').prop('disabled', true)
                         .removeClass('bg-green-500 text-white')
                         .addClass('bg-gray-300 text-gray-500');
-                    $('#errorMessage').show();
+                    $('#errorMessage').show(); // 只有當選擇為空時顯示錯誤訊息
                 } else {
                     $('#nextButton').prop('disabled', false)
                         .removeClass('bg-gray-300 text-gray-500')

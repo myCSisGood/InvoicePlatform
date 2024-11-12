@@ -57,7 +57,7 @@
       <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <!-- Sales Channel Analysis Card -->
-        <a href="{% url 'main:drawPath' %}" class="card p-6 rounded-lg block">
+        <a href="{% url 'main:drawPath' %}?clearSession=True" class="card p-6 rounded-lg block">
           <div class="flex items-center space-x-3 text-green-600">
             <ion-icon name="create-outline" class="text-2xl"></ion-icon>
             <h2 class="text-xl font-semibold">Sales Channel Analysis</h2>
@@ -66,7 +66,7 @@
         </a>
 
         <!-- Co-Purchase Analysis Card -->
-        <a href="{% url 'main:drawBuyWith' %}" class="card p-6 rounded-lg block">
+        <a href="{% url 'main:drawBuyWith' %}?clearSession=True" class="card p-6 rounded-lg block">
           <div class="flex items-center space-x-3 text-green-600">
             <ion-icon name="create-outline" class="text-2xl"></ion-icon>
             <h2 class="text-xl font-semibold">Co-Purchase Analysis</h2>
@@ -75,7 +75,7 @@
         </a>
 
         <!-- General RFM Analysis Card -->
-        <a href="{% url 'main:drawRFM' %}" class="card p-6 rounded-lg block">
+        <a href="{% url 'main:drawRFM' %}?clearSession=True" class="card p-6 rounded-lg block">
           <div class="flex items-center space-x-3 text-yellow-600">
             <ion-icon name="analytics-outline" class="text-3xl"></ion-icon>
             <h2 class="text-xl font-semibold">General RFM Analysis</h2>
@@ -84,7 +84,7 @@
         </a>
 
         <!-- Tag-Specific RFM Analysis Card -->
-        <a href="{% url 'main:drawRFMwithProduct' %}" class="card p-6 rounded-lg block">
+        <a href="{% url 'main:drawRFMwithProduct' %}?clearSession=True" class="card p-6 rounded-lg block">
           <div class="flex items-center space-x-3 text-yellow-600">
             <ion-icon name="analytics-outline" class="text-3xl"></ion-icon>
             <h2 class="text-xl font-semibold">Tag-Specific RFM Analysis</h2>

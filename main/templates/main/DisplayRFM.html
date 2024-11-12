@@ -38,6 +38,8 @@
                         <ion-icon name="save-outline" class="mr-1"></ion-icon>Save
                     </button>
                 </div>
+                <div id="messageBox" class="hidden px-3 py-2 rounded-md mt-4 max-w-xs mx-auto text-center text-sm"></div>
+
             </div>
             
             <!-- Right Section (Revise Form and Deeper Insight) -->
@@ -167,11 +169,29 @@
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     success: function(response) {
-                        alert(response.message); // 成功時顯示成功訊息
+                        var messageBox = document.getElementById("messageBox");
+                        messageBox.classList.remove("hidden");
+                        messageBox.classList.add("bg-green-100", "text-green-700", "border", "border-green-300");
+                        messageBox.innerHTML = `<p>${response.message}</p>`;
+
+                        setTimeout(function() {
+                            messageBox.classList.add("hidden");
+                            messageBox.innerHTML = ""; 
+                        }, 5000);
                     },
                     error: function(xhr) {
-                        alert(xhr.responseJSON.message); // 錯誤時顯示錯誤訊息
+                        
+                        var messageBox = document.getElementById("messageBox");
+                        messageBox.classList.remove("hidden");
+                        messageBox.classList.add("bg-red-100", "text-red-700", "border", "border-red-300");
+                        messageBox.innerHTML = `<p>${xhr.responseJSON.message}</p>`;
+
+                        setTimeout(function() {
+                            messageBox.classList.add("hidden");
+                            messageBox.innerHTML = "";
+                        }, 5000);
                     },
+
                     complete: function() {
                         // 請求完成後（無論成功或失敗）重新啟用按鈕並綁定事件
                         $('#saveDataBtn').prop('disabled', false).one('click', function(e) {
