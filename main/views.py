@@ -2,11 +2,14 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.template.loader import render_to_string
 from django.utils.dateparse import parse_date
 from .forms import UploadFileForm
 from django.http import HttpResponse
 from .models import UploadedFile, NetworkGraph
+from django.urls import reverse
 from .Bert.test import BertModel
+import uuid
 from .models import County, District, ItemBigTag, ItemSmallTag
 from django.http import JsonResponse
 import io
@@ -892,6 +895,13 @@ def drawRFMwithProduct(request):
     return redirect('/rfm_with_product/?step=select_area')
 
 
+def displayBuyWithInPathNetworks(request, uu_ID):
+    renderedHtml = cache.get(uu_ID)
+
+    if renderedHtml:
+        return HttpResponse(renderedHtml)
+
+
 def displayBuyWithInPath(request):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
@@ -928,6 +938,8 @@ def displayBuyWithInPath(request):
             'relationshipDF': network.relationship_df.to_json(orient='split')
         }
         relationship, articulationPoint, communities = network.vis_all_graph()
+    else:
+        return JsonResponse({'status': 'error', 'message': 'No data in your condition. Please try another one.'})
 
     # network.execute_query()
     # network.analysis(limits=100)
@@ -936,8 +948,7 @@ def displayBuyWithInPath(request):
     relationship, articulationPoint, communities = network.vis_all_graph()
     options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
     nodes, edges = _getNodeAndEdge(countyName, smallTag, startTime, endTime, productList, store, limit=100)
-    return render(
-        request,
+    renderedHtml = render_to_string(
         'BuyWithInPath.html',
         {
             'relationship': relationship,
@@ -953,6 +964,13 @@ def displayBuyWithInPath(request):
             # 'displayType': displayType,
         }
     )
+    uu_ID = str(uuid.uuid4()) # 生成唯一 ID 用于识别缓存内容
+
+    # 将 HTML 内容存入缓存，设定一个过期时间（例如 300 秒）
+    cache.set(uu_ID, renderedHtml, timeout=300)
+
+    redirect_url = reverse('main:displayBuyWithInPathNetworks', kwargs={'uu_ID': uu_ID})
+    return JsonResponse({'status': 'success', 'redirect_url': redirect_url})
 
 
 def saveData(request):

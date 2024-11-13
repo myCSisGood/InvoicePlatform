@@ -142,7 +142,24 @@
                         if (elements.length > 0) {
                             const index = elements[0].index;
                             const storeName = labels[index];
-                            window.location.href = `/buy_with_in_path/?store=${encodeURIComponent(storeName)}`;
+                            $.ajax({
+                                url: `/buy_with_in_path/?store=${encodeURIComponent(storeName)}`,
+                                type: 'GET',
+                                success: function(response) {
+                                    if (response.status === 'error') {
+                                        alert(response.message);
+                                    } else if (response.redirect_url) {
+                                        // 設定延遲以確保前端處理無阻
+                                        setTimeout(() => {
+                                            window.location.href = response.redirect_url;
+                                        }, 100);  // 可以調整時間，避免快速跳轉
+                                    }
+                                },
+                                error: function() {
+                                    alert('An error occurred. Please try again.');
+                                }
+                            });
+                            {% comment %} window.location.href = `/buy_with_in_path/?store=${encodeURIComponent(storeName)}`; {% endcomment %}
                         }
                     }
                 }

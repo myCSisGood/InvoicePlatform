@@ -18,6 +18,11 @@ urlpatterns = [
     path('analysis/', views.analyze, name='analyze'),
     path('display_overtime/', views.displayOvertime, name='displayOvertime'),
     path('buy_with_in_path/', views.displayBuyWithInPath, name='displayBuyWithInPath'),
+    path(
+        'buy_with_in_path_networks/<uuid:uu_ID>/',
+        views.displayBuyWithInPathNetworks,
+        name='displayBuyWithInPathNetworks'
+    ),
     path('save_data/', views.saveData, name='saveData'),
     path('stored_picture/', views.getStoredPicture, name='getStoredPicture'),
     path('load_picture/', views.loadPicture, name='loadPicture'),
