@@ -83,10 +83,10 @@ class ProductNetwork:
         self.directory = None
 
         self.conn = psycopg2.connect(
-            database="InvoicePlatform",
+            database="postgres",
             user="postgres",
             password="0000",
-            host="localhost",
+            host="127.0.0.1",
             port="5432",
         )
         self.cur = self.conn.cursor()
@@ -150,8 +150,8 @@ class ProductNetwork:
 
         self.temp_condition = condition
         if item_tag:
-            # self.type = item_tag
-            self.temp_condition = condition
+            self.type = item_tag
+            #self.temp_condition = condition
             condition += f"AND item_tag = '{item_tag}' "
         # tag2 = f"AND (a_item_tag = '{item_tag}' or b_item_tag = '{item_tag}' ) "
 
@@ -500,7 +500,9 @@ class ProductNetwork:
 
     def get_item_name(
         self,
+        small_tag,
         item_tag,
+        product_list,
         datetime_lower_bound=None,
         datetime_upper_bound=None,
         store_brand_name=None,
@@ -543,22 +545,59 @@ class ProductNetwork:
         # 生成查詢條件
         query_condition = " AND ".join(condition)
 
-        # 查詢語句
-        query = f"""
+
+        print(item_tag)
+        print(small_tag)
+        print(product_list)
+        
+        if item_tag == small_tag:
+            
+            query = f"""
+            WITH INV_NUMBERS AS (
+                        SELECT DISTINCT inv_num 
+                        FROM test 
+                        WHERE  {query_condition}
+                        )
             SELECT 
                 item_name, 
                 SUM(quantity) as TOTAL_QUANTITY, 
                 SUM(amount) as TOTAL_PROFIT
             FROM 
                 test
+            JOIN
+                INV_NUMBERS i ON test.inv_num = i.inv_num
             WHERE 
-                {query_condition}
+                1=1 AND item_name IN {tuple(product_list)}
             GROUP BY 
                 item_name
             ORDER BY 
                 SUM(amount) DESC
             LIMIT {limit};
         """
+        # 查詢語句
+        else:
+            query = f"""
+                WITH INV_NUMBERS AS (
+                            SELECT DISTINCT inv_num 
+                            FROM test 
+                            WHERE  {query_condition}
+                            )
+                SELECT 
+                    item_name, 
+                    SUM(quantity) as TOTAL_QUANTITY, 
+                    SUM(amount) as TOTAL_PROFIT
+                FROM 
+                    test
+                JOIN
+                    INV_NUMBERS i ON test.inv_num = i.inv_num
+                WHERE 
+                    {query_condition}
+                GROUP BY 
+                    item_name
+                ORDER BY 
+                    SUM(amount) DESC
+                LIMIT {limit};
+            """
         print(query)
         self.cur.execute(query)
         result = self.cur.fetchall()

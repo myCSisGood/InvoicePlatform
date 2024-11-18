@@ -133,8 +133,9 @@ def getDistrict(request):
 
 def _selectArea(request, pictureType):
     counties = County.objects.all()
+    print(counties)
     selectedCounty = request.session.get('selectedCounty', '')
-    errorMessage = ""
+    errorMessage = "No"
 
     if request.method == 'POST':
         county = request.POST.get('county')
@@ -789,24 +790,151 @@ def drawPath(request):
 
 def analyze(request):
     if request.method == 'POST':
-        nodes = request.POST.get('nodes', '')
-        edges = request.POST.get('edges', '')
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
         analysisType = request.POST.get('analysisType', '')
+    
         if not nodes or not edges:
             return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
 
-        # print('Nodes:', nodes)
-        # print('Edges:', edges)
+        print('Nodes:', nodes)
+        print('Edges:', edges)
 
         chatbot = Chatbot()
 
         if analysisType == 'regular':
-            result = chatbot.generate_regular_analysis(nodes, edges)
-            result += chatbot.generate_slogan(nodes, edges)
+            result = chatbot.generate_regular_analysis_q1(nodes, edges)
+            #result += chatbot.generate_slogan(nodes, edges)
         elif analysisType == 'articulation':
-            result = chatbot.generate_articulation_analysis(nodes, edges)
+            result = chatbot.generate_articulation_analysis_q1(nodes, edges)
         else:
-            result = chatbot.generate_community_analysis(nodes, edges)
+            result = chatbot.generate_community_analysis_q1(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def analyzeq1(request):
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
+        analysisType = request.POST.get('analysisType', '')
+    
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis_q2(nodes, edges)
+            #result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result = chatbot.generate_articulation_analysis_q2(nodes, edges)
+        else:
+            result = chatbot.generate_community_analysis_q2(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def analyzeq2(request):
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
+        analysisType = request.POST.get('analysisType', '')
+    
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis_q3(nodes, edges)
+            #result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result =  '功能研發中^^'
+        else:
+            result = chatbot.generate_community_analysis_q3(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def analyzeq3(request):
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
+        analysisType = request.POST.get('analysisType', '')
+    
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis_q4(nodes, edges)
+            #result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result =  '功能研發中^^'
+        else:
+            result = chatbot.generate_community_analysis_q4(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def analyzeq4(request):
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
+        analysisType = request.POST.get('analysisType', '')
+    
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis_q5(nodes, edges)
+            #result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            #result = chatbot.generate_articulation_analysis(nodes, edges)
+            result = '功能研發中^^'
+        else:
+            result = chatbot.generate_community_analysis_q5(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def analyzeq5(request):
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes')
+        edges = request.POST.get('edges')
+        analysisType = request.POST.get('analysisType', '')
+    
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        print('Nodes:', nodes)
+        print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            #result = chatbot.generate_regular_analysis_q5(nodes, edges)
+            result = chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result =  '功能研發中^^'
+        else:
+            result =  '功能研發中^^'
 
         return JsonResponse({'analysis': result})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
@@ -826,7 +954,8 @@ def getDeeperInsight(request):
     endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     storeTypeList = request.session.get('storeTypeList', '')
-
+    small_tag = request.session.get('smallTag', '')
+    product_list = request.session.get('productList', '')
     district = request.session.get('selectedDistrict', '')
     limit = request.session.get('limit', '')
     if not option:
@@ -834,7 +963,9 @@ def getDeeperInsight(request):
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
 
     table = network.get_item_name(
+        small_tag = small_tag,
         item_tag=option,
+        product_list=product_list,
         datetime_lower_bound=startTime,
         datetime_upper_bound=endTime,
         store_brand_name=storeTypeList,
