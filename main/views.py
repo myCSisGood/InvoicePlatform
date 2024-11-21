@@ -897,9 +897,23 @@ def drawRFMwithProduct(request):
 
 def displayBuyWithInPathNetworks(request, uu_ID):
     renderedHtml = cache.get(uu_ID)
-
-    if renderedHtml:
-        return HttpResponse(renderedHtml)
+    return render(
+        request,
+        'BuyWithInPath.html',
+        {
+            'relationship': renderedHtml['relationship'],
+            'articulationPoint': renderedHtml['articulationPoint'],
+            'communities': renderedHtml['communities'],
+            'options': renderedHtml['options'],
+            'nodes': renderedHtml['nodes'],
+            'edges': renderedHtml['edges'],
+            'countyName': renderedHtml['countyName'],
+            'smallTag': renderedHtml['smallTag'],
+            'store': renderedHtml['store'],
+            'productList': renderedHtml['productList'],
+            # 'displayType': displayType,
+        }
+    )
 
 
 def displayBuyWithInPath(request):
@@ -965,9 +979,21 @@ def displayBuyWithInPath(request):
         }
     )
     uu_ID = str(uuid.uuid4()) # 生成唯一 ID 用于识别缓存内容
+    html = {
+        'relationship': relationship,
+        'articulationPoint': articulationPoint,
+        'communities': communities,
+        'options': options,
+        'nodes': nodes,
+        'edges': edges,
+        'countyName': countyName,
+        'smallTag': smallTag,
+        'store': store,
+        'productList': productList
+    }
 
     # 将 HTML 内容存入缓存，设定一个过期时间（例如 300 秒）
-    cache.set(uu_ID, renderedHtml, timeout=300)
+    cache.set(uu_ID, html, timeout=300)
 
     redirect_url = reverse('main:displayBuyWithInPathNetworks', kwargs={'uu_ID': uu_ID})
     return JsonResponse({'status': 'success', 'redirect_url': redirect_url})

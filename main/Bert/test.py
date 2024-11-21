@@ -6,6 +6,8 @@ import numpy as np
 import tensorflow as tf
 import platform
 import os
+import io
+from django.core.files.storage import FileSystemStorage
 
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, 'final_model.h5')
@@ -37,3 +39,19 @@ class BertModel():
         decodedLabels = self.labelEncoder.inverse_transform(predictedLabels)
         df['item_tag'] = decodedLabels
         return df
+
+
+if __name__ == '__main__':
+    df = pd.read_csv('/Users/willa/Desktop/Graduation/user_1w_with_RFM_and_cleaned.csv')
+    print(len(df))
+    empty_items = df[df['item_name'].isnull()]
+    print(empty_items)
+    if not empty_items.empty:
+        df = df[~(df['item_name'].isnull())]
+    print(len(df))
+    df.to_csv('/Users/willa/Desktop/Graduation/user_1w_with_RFM_and_cleaned.csv', index=False)
+
+    # b = BertModel()
+    # df = b.addItemTag(df)
+    # buffer = io.StringIO()
+    # df.to_csv('output.csv', index=False)
