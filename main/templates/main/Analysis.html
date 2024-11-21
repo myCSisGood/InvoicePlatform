@@ -1,48 +1,20 @@
 {% extends "Mainpage.html" %}
 
 {% block main %}
-<body class="bg-gray-50 h-screen">
+<div class="container mx-auto py-4">
+    <h1 class="text-2xl font-bold text-gray-800">Analysis Result</h1>
 
-    <div class="container mx-auto py-4 h-full flex flex-col">
-        <div class="flex items-center mb-4">
-            <h1 class="text-3xl font-bold text-gray-800">Analysis and Insights</h1>
+    {% if analysis %}
+        <!-- 如果有分析結果，顯示結果 -->
+        <div class="mt-4 p-4 bg-green-100 border border-green-400 rounded-lg">
+            <h2 class="text-lg font-semibold text-green-700">Analysis Output:</h2>
+            <p class="text-green-600">{{ analysis }}</p>
         </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">前 25% 併買關係</h3>
-            <p>Analysis and insights for 前 25% 併買關係.</p>
+    {% else %}
+        <!-- 如果沒有結果，顯示錯誤訊息 -->
+        <div class="mt-4 p-4 bg-red-100 border border-red-400 rounded-lg">
+            <p class="text-red-600">{{ error|default:"No analysis result available." }}</p>
         </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">營業建議</h3>
-            <p>Analysis and insights for 營業建議.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Community 分析</h3>
-            <p>Analysis and insights for Community 分析.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Articulation point分析</h3>
-            <p>Analysis and insights for Articulation point分析.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Eigenvector Centrality 分析</h3>
-            <p>Analysis and insights for Eigenvector Centrality 分析.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">行銷建議</h3>
-            <p>Analysis and insights for 行銷建議.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">結論</h3>
-            <p>Conclusion and summary.</p>
-        </div>
-    </div>
-
-</body>
+    {% endif %}
+</div>
 {% endblock %}

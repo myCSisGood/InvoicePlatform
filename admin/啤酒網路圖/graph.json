@@ -1,0 +1,913 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "item_tag": "",
+      "id": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1"
+    },
+    {
+      "item_tag": "",
+      "id": "\u512a\u60e0\u6d3b\u52d5/\u6298\u6263/\u96c6\u9ede"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u9bae\u852c\u83dc"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u9bae\u6c34\u679c"
+    },
+    {
+      "item_tag": "",
+      "id": "\u706b\u934b\u6599"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "item_tag": "",
+      "id": "\u9e7d/\u8f9b\u9999\u6599"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef"
+    },
+    {
+      "item_tag": "",
+      "id": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u8c6c\u8089"
+    },
+    {
+      "item_tag": "",
+      "id": "\u885b\u751f\u68c9"
+    },
+    {
+      "item_tag": "",
+      "id": "\u71b1\u72d7/\u9999\u8178"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5305\u88dd/\u63d0\u888b/\u6e05\u6f54\u888b"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6c96\u6ce1\u6996\u7269/\u9ea5\u7247"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u725b\u8089"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u96de\u8089"
+    },
+    {
+      "item_tag": "",
+      "id": "\u9bae\u5976"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u9eb5\u689d"
+    },
+    {
+      "item_tag": "",
+      "id": "\u86cb\u6372/\u593e\u5fc3\u9905/\u86cb\u9ec3\u6d3e"
+    },
+    {
+      "item_tag": "",
+      "id": "\u751f\u9bae\u6d77\u7522"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6fd5\u5dfe"
+    },
+    {
+      "item_tag": "",
+      "id": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0"
+    },
+    {
+      "item_tag": "",
+      "id": "\u885b\u751f\u7d19/\u9762\u7d19"
+    },
+    {
+      "item_tag": "",
+      "id": "\u73fe\u6c96\u5496\u5561"
+    },
+    {
+      "item_tag": "",
+      "id": "\u852c\u679c\u6c41/\u8336"
+    },
+    {
+      "item_tag": "",
+      "id": "\u8d77\u58eb/\u4e73\u916a"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5564\u9152"
+    },
+    {
+      "item_tag": "",
+      "id": "\u7da0\u8336"
+    },
+    {
+      "item_tag": "",
+      "id": "\u78b3\u9178\u98f2\u6599"
+    },
+    {
+      "item_tag": "",
+      "id": "\u512a\u916a\u4e73/\u512a\u683c"
+    },
+    {
+      "item_tag": "",
+      "id": "\u9c48\u9b5a\u7d72/\u6d77\u9bae\u9165"
+    },
+    {
+      "item_tag": "",
+      "id": "\u9bae\u86cb"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6599\u7406\u584a/\u5305/\u7f50"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6795\u982d"
+    },
+    {
+      "item_tag": "",
+      "id": "\u8607\u6253\u9905/\u714e\u9905/\u65b9\u584a\u9165"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6a61\u76ae\u64e6"
+    },
+    {
+      "item_tag": "",
+      "id": "\u53e3\u7f69"
+    },
+    {
+      "item_tag": "",
+      "id": "\u4fdd\u9bae\u76d2/\u7f50"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6d74\u5ec1\u6e05\u6f54/\u758f\u901a\u5291"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5de7\u514b\u529b"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6703\u54e1\u8cbb/\u8a02\u95b1\u8cbb"
+    },
+    {
+      "item_tag": "",
+      "id": "\u71c8\u6ce1/\u71c8\u7ba1/\u5d01\u71c8"
+    },
+    {
+      "item_tag": "",
+      "id": "\u96de\u6599\u7406"
+    },
+    {
+      "item_tag": "",
+      "id": "\u4e00\u6b21\u6027\u96fb\u6c60"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5805\u679c/\u7a40\u7269\u98f2"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5176\u4ed6\u98f2\u6599"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5976\u916a/\u5e03\u4e01/\u679c\u51cd"
+    },
+    {
+      "item_tag": "",
+      "id": "\u6cbe\u62cc\u91ac"
+    },
+    {
+      "item_tag": "",
+      "id": "\u5976\u8336"
+    },
+    {
+      "item_tag": "",
+      "id": "\u70d8\u7119\u7c89"
+    },
+    {
+      "item_tag": "",
+      "id": "\u4ed9\u8349/\u611b\u7389/\u8c46\u82b1"
+    }
+  ],
+  "links": [
+    {
+      "COUNTS": 158,
+      "PERCENTAGE": 5.944319036869826,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u512a\u60e0\u6d3b\u52d5/\u6298\u6263/\u96c6\u9ede"
+    },
+    {
+      "COUNTS": 96,
+      "PERCENTAGE": 3.611738148984198,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u751f\u9bae\u852c\u83dc"
+    },
+    {
+      "COUNTS": 64,
+      "PERCENTAGE": 2.407825432656132,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u706b\u934b\u6599"
+    },
+    {
+      "COUNTS": 57,
+      "PERCENTAGE": 2.144469525959368,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "COUNTS": 54,
+      "PERCENTAGE": 2.0316027088036117,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef"
+    },
+    {
+      "COUNTS": 52,
+      "PERCENTAGE": 1.9563581640331076,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "COUNTS": 49,
+      "PERCENTAGE": 1.8434913468773513,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u751f\u9bae\u6c34\u679c"
+    },
+    {
+      "COUNTS": 41,
+      "PERCENTAGE": 1.5425131677953348,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5305\u88dd/\u63d0\u888b/\u6e05\u6f54\u888b"
+    },
+    {
+      "COUNTS": 30,
+      "PERCENTAGE": 1.1286681715575622,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6fd5\u5dfe"
+    },
+    {
+      "COUNTS": 30,
+      "PERCENTAGE": 1.1286681715575622,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u86cb\u6372/\u593e\u5fc3\u9905/\u86cb\u9ec3\u6d3e"
+    },
+    {
+      "COUNTS": 28,
+      "PERCENTAGE": 1.0534236267870578,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u751f\u8c6c\u8089"
+    },
+    {
+      "COUNTS": 28,
+      "PERCENTAGE": 1.0534236267870578,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u9bae\u5976"
+    },
+    {
+      "COUNTS": 26,
+      "PERCENTAGE": 0.9781790820165538,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u885b\u751f\u7d19/\u9762\u7d19"
+    },
+    {
+      "COUNTS": 23,
+      "PERCENTAGE": 0.8653122648607976,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u73fe\u6c96\u5496\u5561"
+    },
+    {
+      "COUNTS": 23,
+      "PERCENTAGE": 0.8653122648607976,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u852c\u679c\u6c41/\u8336"
+    },
+    {
+      "COUNTS": 22,
+      "PERCENTAGE": 0.8276899924755455,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0"
+    },
+    {
+      "COUNTS": 21,
+      "PERCENTAGE": 0.7900677200902935,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u7da0\u8336"
+    },
+    {
+      "COUNTS": 21,
+      "PERCENTAGE": 0.7900677200902935,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u78b3\u9178\u98f2\u6599"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u512a\u916a\u4e73/\u512a\u683c"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u885b\u751f\u68c9"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u9e7d/\u8f9b\u9999\u6599"
+    },
+    {
+      "COUNTS": 18,
+      "PERCENTAGE": 0.6772009029345373,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u9bae\u86cb"
+    },
+    {
+      "COUNTS": 17,
+      "PERCENTAGE": 0.6395786305492852,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u751f\u9eb5\u689d"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u4fdd\u9bae\u76d2/\u7f50"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6d74\u5ec1\u6e05\u6f54/\u758f\u901a\u5291"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5de7\u514b\u529b"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6703\u54e1\u8cbb/\u8a02\u95b1\u8cbb"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u751f\u9bae\u6d77\u7522"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u4e00\u6b21\u6027\u96fb\u6c60"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6599\u7406\u584a/\u5305/\u7f50"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5564\u9152"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5805\u679c/\u7a40\u7269\u98f2"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5176\u4ed6\u98f2\u6599"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5976\u916a/\u5e03\u4e01/\u679c\u51cd"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u6cbe\u62cc\u91ac"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u81a0\u5e36/\u9ecf\u8cbc\u7528\u54c1",
+      "target": "\u5976\u8336"
+    },
+    {
+      "COUNTS": 29,
+      "PERCENTAGE": 1.09104589917231,
+      "item_tag": "",
+      "source": "\u512a\u60e0\u6d3b\u52d5/\u6298\u6263/\u96c6\u9ede",
+      "target": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "COUNTS": 25,
+      "PERCENTAGE": 0.9405568096313018,
+      "item_tag": "",
+      "source": "\u512a\u60e0\u6d3b\u52d5/\u6298\u6263/\u96c6\u9ede",
+      "target": "\u751f\u9bae\u852c\u83dc"
+    },
+    {
+      "COUNTS": 18,
+      "PERCENTAGE": 0.6772009029345373,
+      "item_tag": "",
+      "source": "\u512a\u60e0\u6d3b\u52d5/\u6298\u6263/\u96c6\u9ede",
+      "target": "\u9e7d/\u8f9b\u9999\u6599"
+    },
+    {
+      "COUNTS": 80,
+      "PERCENTAGE": 3.0097817908201656,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u751f\u9bae\u6c34\u679c"
+    },
+    {
+      "COUNTS": 63,
+      "PERCENTAGE": 2.3702031602708806,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u706b\u934b\u6599"
+    },
+    {
+      "COUNTS": 54,
+      "PERCENTAGE": 2.0316027088036117,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u9e7d/\u8f9b\u9999\u6599"
+    },
+    {
+      "COUNTS": 49,
+      "PERCENTAGE": 1.8434913468773513,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u751f\u8c6c\u8089"
+    },
+    {
+      "COUNTS": 42,
+      "PERCENTAGE": 1.580135440180587,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "COUNTS": 38,
+      "PERCENTAGE": 1.4296463506395787,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u751f\u725b\u8089"
+    },
+    {
+      "COUNTS": 37,
+      "PERCENTAGE": 1.3920240782543265,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u751f\u96de\u8089"
+    },
+    {
+      "COUNTS": 33,
+      "PERCENTAGE": 1.2415349887133182,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u9bae\u5976"
+    },
+    {
+      "COUNTS": 30,
+      "PERCENTAGE": 1.1286681715575622,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u751f\u9bae\u6d77\u7522"
+    },
+    {
+      "COUNTS": 23,
+      "PERCENTAGE": 0.8653122648607976,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u8d77\u58eb/\u4e73\u916a"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u78b3\u9178\u98f2\u6599"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u5305\u88dd/\u63d0\u888b/\u6e05\u6f54\u888b"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u9bae\u86cb"
+    },
+    {
+      "COUNTS": 18,
+      "PERCENTAGE": 0.6772009029345373,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u6599\u7406\u584a/\u5305/\u7f50"
+    },
+    {
+      "COUNTS": 17,
+      "PERCENTAGE": 0.6395786305492852,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u5564\u9152"
+    },
+    {
+      "COUNTS": 17,
+      "PERCENTAGE": 0.6395786305492852,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "COUNTS": 16,
+      "PERCENTAGE": 0.601956358164033,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u71c8\u6ce1/\u71c8\u7ba1/\u5d01\u71c8"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u86cb\u6372/\u593e\u5fc3\u9905/\u86cb\u9ec3\u6d3e"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u96de\u6599\u7406"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0"
+    },
+    {
+      "COUNTS": 12,
+      "PERCENTAGE": 0.4514672686230248,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u852c\u83dc",
+      "target": "\u4ed9\u8349/\u611b\u7389/\u8c46\u82b1"
+    },
+    {
+      "COUNTS": 37,
+      "PERCENTAGE": 1.3920240782543265,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "COUNTS": 28,
+      "PERCENTAGE": 1.0534236267870578,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "COUNTS": 26,
+      "PERCENTAGE": 0.9781790820165538,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u706b\u934b\u6599"
+    },
+    {
+      "COUNTS": 18,
+      "PERCENTAGE": 0.6772009029345373,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u885b\u751f\u68c9"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u53e3\u7f69"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u9e7d/\u8f9b\u9999\u6599"
+    },
+    {
+      "COUNTS": 14,
+      "PERCENTAGE": 0.5267118133935289,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u9bae\u5976"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u751f\u8c6c\u8089"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u5805\u679c/\u7a40\u7269\u98f2"
+    },
+    {
+      "COUNTS": 12,
+      "PERCENTAGE": 0.4514672686230248,
+      "item_tag": "",
+      "source": "\u751f\u9bae\u6c34\u679c",
+      "target": "\u751f\u725b\u8089"
+    },
+    {
+      "COUNTS": 47,
+      "PERCENTAGE": 1.7682468021068474,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u885b\u751f\u68c9"
+    },
+    {
+      "COUNTS": 47,
+      "PERCENTAGE": 1.7682468021068474,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef"
+    },
+    {
+      "COUNTS": 41,
+      "PERCENTAGE": 1.5425131677953348,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u71b1\u72d7/\u9999\u8178"
+    },
+    {
+      "COUNTS": 38,
+      "PERCENTAGE": 1.4296463506395787,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u6c96\u6ce1\u6996\u7269/\u9ea5\u7247"
+    },
+    {
+      "COUNTS": 22,
+      "PERCENTAGE": 0.8276899924755455,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u885b\u751f\u7d19/\u9762\u7d19"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u9c48\u9b5a\u7d72/\u6d77\u9bae\u9165"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u6d0b\u828b\u985e\u96f6\u98df"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u706b\u934b\u6599",
+      "target": "\u6795\u982d"
+    },
+    {
+      "COUNTS": 31,
+      "PERCENTAGE": 1.1662904439428141,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u86cb\u6372/\u593e\u5fc3\u9905/\u86cb\u9ec3\u6d3e"
+    },
+    {
+      "COUNTS": 21,
+      "PERCENTAGE": 0.7900677200902935,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef"
+    },
+    {
+      "COUNTS": 21,
+      "PERCENTAGE": 0.7900677200902935,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u78b3\u9178\u98f2\u6599"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u9eb5\u5305/\u6f22\u5821/\u86cb\u7cd5"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0"
+    },
+    {
+      "COUNTS": 16,
+      "PERCENTAGE": 0.601956358164033,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u8607\u6253\u9905/\u714e\u9905/\u65b9\u584a\u9165"
+    },
+    {
+      "COUNTS": 16,
+      "PERCENTAGE": 0.601956358164033,
+      "item_tag": "",
+      "source": "\u6d0b\u828b\u985e\u96f6\u98df",
+      "target": "\u6a61\u76ae\u64e6"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u9e7d/\u8f9b\u9999\u6599",
+      "target": "\u70d8\u7119\u7c89"
+    },
+    {
+      "COUNTS": 32,
+      "PERCENTAGE": 1.203912716328066,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u751f\u9eb5\u689d"
+    },
+    {
+      "COUNTS": 27,
+      "PERCENTAGE": 1.0158013544018059,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0"
+    },
+    {
+      "COUNTS": 19,
+      "PERCENTAGE": 0.7148231753197893,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u86cb\u6372/\u593e\u5fc3\u9905/\u86cb\u9ec3\u6d3e"
+    },
+    {
+      "COUNTS": 17,
+      "PERCENTAGE": 0.6395786305492852,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u6599\u7406\u584a/\u5305/\u7f50"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u852c\u679c\u6c41/\u8336"
+    },
+    {
+      "COUNTS": 15,
+      "PERCENTAGE": 0.5643340857787811,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u5564\u9152"
+    },
+    {
+      "COUNTS": 12,
+      "PERCENTAGE": 0.4514672686230248,
+      "item_tag": "",
+      "source": "\u6ce1\u9eb5/\u5feb\u716e\u9eb5/\u6c96\u6ce1\u98ef",
+      "target": "\u5805\u679c/\u7a40\u7269\u98f2"
+    },
+    {
+      "COUNTS": 22,
+      "PERCENTAGE": 0.8276899924755455,
+      "item_tag": "",
+      "source": "\u751f\u9eb5\u689d",
+      "target": "\u5564\u9152"
+    },
+    {
+      "COUNTS": 20,
+      "PERCENTAGE": 0.7524454477050414,
+      "item_tag": "",
+      "source": "\u751f\u9eb5\u689d",
+      "target": "\u6599\u7406\u584a/\u5305/\u7f50"
+    },
+    {
+      "COUNTS": 18,
+      "PERCENTAGE": 0.6772009029345373,
+      "item_tag": "",
+      "source": "\u751f\u9eb5\u689d",
+      "target": "\u852c\u679c\u6c41/\u8336"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u751f\u9eb5\u689d",
+      "target": "\u5805\u679c/\u7a40\u7269\u98f2"
+    },
+    {
+      "COUNTS": 13,
+      "PERCENTAGE": 0.4890895410082769,
+      "item_tag": "",
+      "source": "\u51b0\u6dc7\u6dcb/\u51b0\u68d2/\u5249\u51b0",
+      "target": "\u78b3\u9178\u98f2\u6599"
+    }
+  ]
+}

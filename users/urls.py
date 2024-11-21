@@ -21,7 +21,7 @@ from . import views
 app_name = 'users'
 urlpatterns = [
     path('', views.getHomePage, name='getHomePage'),
-    path('register/', views.signUp, name='register'),
+    path('signup/', views.signUp, name='signup'),
     path('login/', views.logIn, name='login'),
     path('logout/', views.logOut, name='logout'),
     path('password/update', views.changePassword, name='resetPassword'),

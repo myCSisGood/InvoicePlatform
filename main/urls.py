@@ -17,4 +17,9 @@ urlpatterns = [
     path('deeper_insight/', views.getDeeperInsight, name='getDeeperInsight'),
     path('analysis/', views.analyze, name='analyze'),
     path('display_overtime/', views.displayOvertime, name='displayOvertime'),
+    path('buy_with_in_path/', views.displayBuyWithInPath, name='displayBuyWithInPath'),
+    path('save_data/', views.saveData, name='saveData'),
+    path('stored_picture/', views.getStoredPicture, name='getStoredPicture'),
+    path('load_picture/', views.loadPicture, name='loadPicture'),
+    path('delete_graph/', views.deleteGraph, name='deleteGraph'),
 ]

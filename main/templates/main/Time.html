@@ -11,13 +11,18 @@
                 <div class="flex justify-between mb-4">
                     <div class="w-1/2 pr-2">
                         <label for="start_time" class="block text-lg font-medium text-gray-700">開始時間</label>
-                        <input type="text" id="start_time" name="start_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="start_time" name="startTime" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <div class="w-1/2 pl-2">
                         <label for="end_time" class="block text-lg font-medium text-gray-700">結束時間</label>
-                        <input type="text" id="end_time" name="end_time" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input type="text" id="end_time" name="endTime" class="datetimepicker mt-2 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                 </div>
+                {% if errorMessage %}
+                    <div id="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
+                {% else %}
+                    <div id="errorMessage" class="text-red-500 text-sm mb-4" style="display: none;">開始時間必須早於結束時間</div>
+                {% endif %}
                 <div class="flex justify-between">
                     <button type="button" onclick="window.history.back()" class="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center text-sm">
                         <ion-icon name="arrow-back-outline" class="mr-1"></ion-icon>Back
@@ -47,6 +52,8 @@
                     dateFormat: "Y-m", 
                     altFormat: "F Y", 
                 })],
+                minDate: "2020-01", // 設定最小日期
+                maxDate: "2021-12", // 設定最大日期
             });
         });
     </script>

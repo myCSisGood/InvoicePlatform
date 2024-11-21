@@ -5,20 +5,26 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.dateparse import parse_date
 from .forms import UploadFileForm
 from django.http import HttpResponse
-from .models import UploadedFile
+from .models import UploadedFile, NetworkGraph
 from .Bert.test import BertModel
 from .models import County, District, ItemBigTag, ItemSmallTag
 from django.http import JsonResponse
 import io
 import pandas as pd
-from .Graph.networks import ProductNetwork
+from .Graph.networks import ProductNetwork, saveJson, compare_node
 from .Graph.chatbot import Chatbot
-import networks
 import psycopg2
 from django.db import connection
 from main import PathList
-from django.http import JsonResponse
 from decimal import Decimal
+import calendar
+import json
+from django.core.cache import cache
+from networkx.readwrite import json_graph
+from datetime import datetime
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 BUY_WITH = 1
 PRODUCT_IN_PATH = 2
@@ -50,6 +56,7 @@ COUNTRY_DICT = {
 }
 
 
+@login_required
 def uploadFile(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -82,7 +89,7 @@ def uploadFile(request):
     return render(request, 'UploadFile.html', {'form': form})
 
 
-    ###行政區太多會往上跑的問題待修正
+# @login_required
 def getMainpage(request):
     return render(request, 'Mainpage.html')
 
@@ -113,7 +120,6 @@ def getProducts(request):
     return JsonResponse({'products': products})
 
 
-###行政區太多會往上跑的問題待修正###
 def getDistrict(request):
     county = request.GET.get('county')
     districts = District.objects.filter(county__name=county)
@@ -171,37 +177,42 @@ def _selectArea(request, pictureType):
 
 def _filterDistrictsStore(countyName, storeList, itemTag, product=None, minStoreCount=10):
     county = COUNTRY_DICT[countyName]
-    stores = tuple(storeList)
 
-    # Base SQL query with necessary joins
+    # Base SQL query initialization
     query = f"""
         SELECT store_brand_name, COUNT(*) as store_count
         FROM {county}
-        WHERE store_brand_name IN {stores}
-        AND a_item_tag = %s
     """
 
-    # If a product is provided, add a condition to filter by product
-    if product:
-        if isinstance(product, list):
-            query += f" AND a_item_name IN {tuple(product)}"
-        else:
-            query += f" AND  a_item_name = {product}"
+    # Add condition for store list if provided
+    if itemTag:
+        query += f"""WHERE a_item_tag = '{itemTag}'"""
+        if product:
+            if isinstance(product, list):
+                query += f" AND a_item_name IN {tuple(product)}"
+            else:
+                query += f""" AND a_item_name = '{product}'"""
+        if storeList:
+            stores = tuple(storeList)
+            query += f" AND store_brand_name IN {stores}"
+    else:
+        if storeList:
+            stores = tuple(storeList)
+            query += f" WHERE store_brand_name IN {stores}"
 
-    query += """
+    # Add GROUP BY and HAVING clauses
+    query += f"""
         GROUP BY store_brand_name
-        HAVING COUNT(*) > %s
+        HAVING COUNT(*) > {minStoreCount}
     """
 
-    # Prepare parameters for query execution
-    params = [itemTag]
-    params.append(minStoreCount)
-
+    # Execute query
     with connection.cursor() as cursor:
-        cursor.execute(query, params) # Pass the parameters dynamically
+        cursor.execute(query) # Pass the parameters dynamically
         result = cursor.fetchall()
 
-    existingStores = [row[0] for row in result] # Get store_brand_name from result
+    # Extract store_brand_name from the result
+    existingStores = [row[0] for row in result]
 
     return existingStores
 
@@ -218,35 +229,37 @@ def _filterBigTags(request):
     districtName = request.session.get('districtName', '')
     selectedStartTime = request.session.get('startTime', '')
     selectedEndTime = request.session.get('endTime', '')
-    # selectedStore = request.session.get('store', '')
     storeTypeList = request.session.get('storeTypeList', '')
+    county = COUNTRY_DICT[countyName]
+    query = f"SELECT DISTINCT a_item_tag FROM {county}"
+    params = []
 
-    query = "SELECT DISTINCT item_tag FROM test WHERE county = %s"
-    params = [countyName]
+    hasCondition = False # 标记是否已经添加了第一个条件
 
-    # if districtName:
-    #     query += " AND city_area = %s"
-    #     params.append(districtName)
-
+    # 动态构建查询条件
     if selectedStartTime:
-        query += " AND datetime >= %s::date"
-        params.append(f"{selectedStartTime}-01")
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" datetime >= '{selectedStartTime}-01'"
+        hasCondition = True # 第一个条件已添加
 
     if selectedEndTime:
-        query += " AND datetime < (%s::date + interval '1 month')"
-        params.append(f"{selectedEndTime}-01")
+        year, month = map(int, selectedEndTime.split('-'))
+        lastDay = calendar.monthrange(year, month)[1]
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" datetime <= '{selectedEndTime}-{lastDay}'"
+        hasCondition = True # 标记已添加条件
 
     if storeTypeList:
-        # 使用 IN 语句匹配列表中的任意值
-        query += " AND store_brand_name IN %s"
-        params.append(tuple(storeTypeList))
+        query += " WHERE" if not hasCondition else " AND"
+        query += f" store_brand_name IN {tuple(storeTypeList)}"
+        hasCondition = True # 标记已添加条件
 
     with connection.cursor() as cursor:
         cursor.execute(query, params)
         rows = cursor.fetchall()
 
     smallTags = [row[0] for row in rows]
-    ###暫時反向尋找，之後建立大標籤之欄位###
+    # 暫時反向尋找，之後建立大標籤之欄位
     bigTags = ItemSmallTag.objects.filter(name__in=smallTags).values_list('bigTag__name', flat=True).distinct()
     bigTagsList = list(bigTags)
     return bigTagsList
@@ -264,8 +277,8 @@ def _selectPathAndTime(request, pictureType):
     errorMessage = request.GET.get('error_message', '')
 
     if request.method == 'POST':
-        startTime = request.POST.get('start_time')
-        endTime = request.POST.get('end_time')
+        startTime = request.POST.get('startTime')
+        endTime = request.POST.get('endTime')
         storeType = request.POST.get('store')
         storeTypeList = PathList.getStoreList(storeType)
         request.session['startTime'] = startTime
@@ -273,11 +286,20 @@ def _selectPathAndTime(request, pictureType):
         request.session['storeType'] = storeType
         request.session['storeTypeList'] = storeTypeList
 
-        startDate = parse_date(startTime)
-        endDate = parse_date(endTime)
-
-        if startDate and endDate and startDate >= endDate:
-            errorMessage = "開始時間必須早於結束時間"
+        # startDate = parse_date(startTime)
+        # endDate = parse_date(endTime)
+        if startTime and endTime:
+            if startTime >= endTime:
+                errorMessage = "開始時間必須早於結束時間"
+            else:
+                if pictureType == BUY_WITH:
+                    return redirect('/draw_buy_with/?step=select_tag')
+                elif pictureType == PRODUCT_IN_PATH:
+                    return redirect('/draw_product_in_path/?step=select_tag')
+                elif pictureType == RFM:
+                    return redirect('/rfm/?step=display_picture')
+                elif pictureType == RFM_WITH_PRODUCT:
+                    return redirect('/rfm_with_product/?step=select_tag')
         else:
             if pictureType == BUY_WITH:
                 return redirect('/draw_buy_with/?step=select_tag')
@@ -326,10 +348,11 @@ def _selectTag(request, pictureType):
         if selectedProducts:
             # 將逗號分隔的產品列表轉為 Python 列表
             productList = selectedProducts.split(',')
+            request.session['productList'] = productList
         # product = request.POST.get('product')
         request.session['bigTag'] = bigTag
         request.session['smallTag'] = smallTag
-        request.session['productList'] = productList
+
         if not smallTag:
             errorMessage = '請選擇子分類'
             return redirect(f'/draw_buy_with/?step=select_tag&error_message={errorMessage}')
@@ -360,55 +383,67 @@ def _selectTag(request, pictureType):
 def _displayPathPic(request):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     district = request.session.get('selectedDistrict', '') # narrow down 才有
     smallTag = request.session.get('smallTag', '')
-    product = request.session.get('product', '')
+    productList = request.session.get('productList', '')
+    # product = request.session.get('product', '')
     orderBy = request.GET.get('order_by', 'TOTAL_QUANTITY') # Get order by parameter
-    df = _drawPic(countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime)
+    df = _drawPic(request, countyName, smallTag, PRODUCT_IN_PATH, startTime, endTime, productList=productList)
+    if df is not None:
+        # Sort the dataframe based on the selected option
+        df = df.sort_values(by=orderBy, ascending=False)
 
-    # Sort the dataframe based on the selected option
-    df = df.sort_values(by=orderBy, ascending=False)
-
-    from decimal import Decimal
-    dfDict = {
-        key: [float(value) if isinstance(value, Decimal) else value for value in values]
-        for key, values in df.to_dict(orient='list').items()
-    }
-    # Prepare the data for top 10 stores
-    topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
-    sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
-
-    topStores = [store for store, _ in sortedList[:10]]
-    topValues = [value for _, value in sortedList[:10]]
-
-    data = list(
-        zip(
-            dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
-            dfDict.get('PROFIT_PER_UNIT', []), dfDict.get('NUMBER_OF_SALESRECORD', []),
-            dfDict.get('PROFIT_PER_SALES', [])
-        )
-    )
-
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
-
-    title = product if product else smallTag
-
-    return render(
-        request, 'ProductInPath.html', {
-            'df': dfDict,
-            'title': title,
-            'top_10_stores': topStores,
-            'top_10_quantities': topValues,
-            'data': data,
+        dfDict = {
+            key: [float(value) if isinstance(value, Decimal) else value for value in values]
+            for key, values in df.to_dict(orient='list').items()
         }
-    )
+
+        topList = list(zip(dfDict['STORE_NAME'], dfDict[orderBy]))
+        sortedList = sorted(topList, key=lambda x: x[1], reverse=True)
+
+        topStores = [store for store, _ in sortedList[:10]]
+        topValues = [value for _, value in sortedList[:10]]
+
+        data = list(
+            zip(
+                dfDict.get('STORE_NAME', []), dfDict.get('TOTAL_QUANTITY', []), dfDict.get('TOTAL_PROFIT', []),
+                dfDict.get('PROFIT_PER_UNIT', []), dfDict.get('NUMBER_OF_SALESRECORD', []),
+                dfDict.get('PROFIT_PER_SALES', [])
+            )
+        )
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'top_10_stores': topStores, 'top_10_quantities': topValues, 'data': data})
+
+        title = productList if productList else smallTag
+
+        return render(
+            request, 'ProductInPath.html', {
+                'df': dfDict,
+                'title': title,
+                'titleList': productList,
+                'top_10_stores': topStores,
+                'top_10_quantities': topValues,
+                'data': data,
+            }
+        )
+    else:
+        messages.error(request, 'No data in your condition. Please try another one.')
+        return _selectTag(request, PRODUCT_IN_PATH)
 
 
 def _displayPic(request, pictureType, displayType=None):
     startTime = request.session.get('startTime', '')
     endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
     countyName = request.session.get('selectedCounty', '')
     if pictureType in (RFM_WITH_PRODUCT, RFM):
         segment = request.session.get('segment', 'Potential Loyalist')
@@ -430,10 +465,16 @@ def _displayPic(request, pictureType, displayType=None):
             countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
         )
     else:
-        storeCanBeChoose = None
+        storeCanBeChoose = _filterDistrictsStore(
+            countyName=countyName, storeList=storeTypeList, itemTag=smallTag, product=productList
+        )
     if request.method == 'POST':
-        startTime = request.POST.get('start_time')
-        endTime = request.POST.get('end_time')
+        startTime = request.POST.get('startTime', '')
+        endTime = request.POST.get('endTime', '')
+
+        # startTime = None if startTime == 'None' else startTime
+        # endTime = None if endTime == 'None' else endTime
+
         district = request.POST.get('district')
         storesToQuery = request.POST.get('store')
         segment = request.POST.get('segment')
@@ -448,7 +489,8 @@ def _displayPic(request, pictureType, displayType=None):
         request.session['limit'] = limit
         # request.session['selectedPath'] = pathId
 
-    relationship, articulationPoint, communities, df = _drawPic(
+    result = _drawPic(
+        request,
         countyName,
         smallTag,
         pictureType,
@@ -460,40 +502,77 @@ def _displayPic(request, pictureType, displayType=None):
         segment,
         limit
     )
-    if pictureType == BUY_WITH:
-        options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
 
-        return render(
-            request, 'Display.html', {
-                'startTime': startTime,
-                'endTime': endTime,
-                'districtList': districtList,
-                'selectedPath': request.session.get('selectedPath', ''),
-                'displayType': displayType,
-                'stores': storeCanBeChoose,
-                'relationship': relationship,
-                'articulationPoint': articulationPoint,
-                'communities': communities,
-                'options': options,
-            }
+    if result is not None:
+        relationship, articulationPoint, communities, df = result
+        nodes, edges = _getNodeAndEdge(
+            countyName,
+            smallTag,
+            startTime,
+            endTime,
+            productList,
+            storesToQuery,
+            district, #narrow down
+            segment,
+            limit
         )
-    elif pictureType in (RFM, RFM_WITH_PRODUCT):
-        return render(
-            request, 'DisplayRFM.html', {
-                'startTime': startTime,
-                'endTime': endTime,
-                'districtList': districtList,
-                'selectedPath': request.session.get('selectedPath', ''),
-                'displayType': displayType,
-                'stores': storeCanBeChoose,
-                'relationship': relationship,
-                'articulationPoint': articulationPoint,
-                'communities': communities,
-            }
-        )
+
+        if pictureType == BUY_WITH:
+            options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+            return render(
+                request, 'Display.html', {
+                    'startTime': startTime,
+                    'endTime': endTime,
+                    'districtList': districtList,
+                    'selectedPath': request.session.get('selectedPath', ''),
+                    'displayType': displayType,
+                    'stores': storeCanBeChoose,
+                    'relationship': relationship,
+                    'articulationPoint': articulationPoint,
+                    'communities': communities,
+                    'options': options,
+                    'nodes': nodes,
+                    'edges': edges,
+                    'countyName': countyName,
+                    'smallTag': smallTag,
+                    'productList': productList,
+                    'limit': limit,
+                    "districtName": district,
+                    'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
+                }
+            )
+        elif pictureType in (RFM, RFM_WITH_PRODUCT):
+            options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+            return render(
+                request, 'DisplayRFM.html', {
+                    'startTime': startTime,
+                    'endTime': endTime,
+                    'districtList': districtList,
+                    'selectedPath': request.session.get('selectedPath', ''),
+                    'displayType': displayType,
+                    'stores': storeCanBeChoose,
+                    'relationship': relationship,
+                    'articulationPoint': articulationPoint,
+                    'communities': communities,
+                    'options': options,
+                    'nodes': nodes,
+                    'edges': edges,
+                    'segment': segment,
+                    'selectedDistrict': district,
+                    'path': storesToQuery if not isinstance(storesToQuery, list) <= 1 else storeType,
+                }
+            )
+    else:
+        if pictureType in [BUY_WITH, RFM_WITH_PRODUCT, PRODUCT_IN_PATH]:
+            messages.error(request, 'No data in your condition. Please try another one.')
+            return _selectTag(request, pictureType)
+        if pictureType == RFM:
+            messages.error(request, 'No data in your condition. Please try another one.')
+            return _selectPathAndTime(request, pictureType)
 
 
 def _drawPic(
+    request,
     countyName,
     smallTag,
     pictureType,
@@ -528,11 +607,75 @@ def _drawPic(
             segment=segment,
             limit=limit
         )
-        # network.execute_query()
-        # network.analysis(limits=100)
-        network.create_network()
-        relationship, articulationPoint, communities = network.vis_all_graph()
-        return relationship, articulationPoint, communities, df
+        if df is not None:
+            # network.execute_query()
+            # network.analysis(limits=100)
+            network.create_network()
+            data = json_graph.node_link_data(network.g)
+            if pictureType == RFM:
+                networkName = f'{countyName}/{segment}'
+            if pictureType == RFM_WITH_PRODUCT:
+                networkName = f'{countyName}/{segment}/{smallTag}'
+            if pictureType == BUY_WITH:
+                networkName = f'{countyName}/{smallTag}'
+            request.session['network'] = {
+                'username': network.username,
+                'networkName': networkName,
+                'data': data,
+                'relationshipDF': network.relationship_df.to_json(orient='split')
+            }
+            relationship, articulationPoint, communities = network.vis_all_graph()
+            return relationship, articulationPoint, communities, df
+        else:
+            return None
+
+
+def _getNodeAndEdge(
+    countyName,
+    smallTag,
+    startTime=None,
+    endTime=None,
+    productList=None,
+    storeTypeList=None,
+    districtName=None,
+    segment=None,
+    limit=None
+):
+
+    if not limit:
+        #limit default value
+        limit = 100
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    df = network.query(
+        county=countyName,
+        city_area=districtName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        item_name=productList,
+        segment=segment,
+        limit=limit
+    )
+    # network.execute_query()
+    # network.analysis(limits=100)
+    network.create_network()
+    network.vis_all_graph()
+    nodes = network.get_nodes()
+    edges = network.get_edges()
+    return nodes, edges
+
+
+def _clearSession(request):
+    userSessionKeys = ['_auth_user_id', '_auth_user_backend', '_auth_user_hash']
+
+    userSessionData = {key: request.session.get(key) for key in userSessionKeys}
+
+    request.session.clear()
+
+    for key, value in userSessionData.items():
+        if value:
+            request.session[key] = value
 
 
 def drawBuyWith(request):
@@ -540,7 +683,7 @@ def drawBuyWith(request):
     step = request.GET.get('step', 'select_area')
     pictureType = BUY_WITH
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -575,7 +718,7 @@ def drawPath(request):
     step = request.GET.get('step', 'select_area')
     pictureType = PRODUCT_IN_PATH
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         response = _selectArea(request, pictureType)
 
     elif step == 'select_time':
@@ -588,10 +731,8 @@ def drawPath(request):
         response = _displayPathPic(request)
 
     else:
-        # If the step is not recognized, handle it by redirecting to a safe default
         response = redirect('/draw_product_in_path/?step=select_area')
 
-    # Log or print the type of response for debugging purposes
     if response is None:
         print(f"drawPath returned None for step: {step}")
         return HttpResponse("An error occurred: No valid response was generated.", status=500)
@@ -600,7 +741,28 @@ def drawPath(request):
 
 
 def analyze(request):
-    return render(request, 'Analysis.html')
+    if request.method == 'POST':
+        nodes = request.POST.get('nodes', '')
+        edges = request.POST.get('edges', '')
+        analysisType = request.POST.get('analysisType', '')
+        if not nodes or not edges:
+            return JsonResponse({'error': 'Missing nodes or edges'}, status=400)
+
+        # print('Nodes:', nodes)
+        # print('Edges:', edges)
+
+        chatbot = Chatbot()
+
+        if analysisType == 'regular':
+            result = chatbot.generate_regular_analysis(nodes, edges)
+            result += chatbot.generate_slogan(nodes, edges)
+        elif analysisType == 'articulation':
+            result = chatbot.generate_articulation_analysis(nodes, edges)
+        else:
+            result = chatbot.generate_community_analysis(nodes, edges)
+
+        return JsonResponse({'analysis': result})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 def displayOvertime(request):
@@ -609,11 +771,30 @@ def displayOvertime(request):
 
 def getDeeperInsight(request):
     option = request.GET.get('option')
-    print(option)
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
+    countyName = request.session.get('selectedCounty', '')
+    storeTypeList = request.session.get('storeTypeList', '')
+    district = request.session.get('selectedDistrict', '')
+    limit = request.session.get('limit', '')
     if not option:
-        return redirect('main:some_fallback_url')
+        return redirect('/draw_buy_with/?step=display_picture')
     network = ProductNetwork(username='admin', network_name='啤酒網路圖')
-    table = network.get_item_name(option)
+
+    table = network.get_item_name(
+        item_tag=option,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=storeTypeList,
+        county=countyName,
+        city_area=district,
+        limit=limit
+    )
+
     context = {'table': table}
     return render(request, 'DeeperInsight.html', context)
 
@@ -624,7 +805,7 @@ def drawRFM(request):
 
     displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
-        request.session.clear()
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -642,6 +823,7 @@ def drawRFMwithProduct(request):
 
     displayType = request.GET.get('displayType', 'Regular')
     if step == 'select_area':
+        _clearSession(request)
         return _selectArea(request, pictureType)
 
     elif step == 'select_path_time':
@@ -673,3 +855,138 @@ def _displayRFM(request):
     }
 
     return render(request, 'RFM.html', context)
+
+
+def displayBuyWithInPath(request):
+    startTime = request.session.get('startTime', '')
+    endTime = request.session.get('endTime', '')
+
+    # 檢查是否為字串 'None'，並將其轉為 NoneType
+    startTime = None if startTime == 'None' else startTime
+    endTime = None if endTime == 'None' else endTime
+    countyName = request.session.get('selectedCounty', '')
+    #district = request.session.get('selectedDistrict', '') # narrow down 才有
+    smallTag = request.session.get('smallTag', '')
+    productList = request.session.get('productList', '')
+    store = request.GET.get('store')
+    displayType = request.GET.get('displayType', 'Regular')
+    network = ProductNetwork(username='admin', network_name='啤酒網路圖')
+    df = network.query(
+        county=countyName,
+        item_tag=smallTag,
+        datetime_lower_bound=startTime,
+        datetime_upper_bound=endTime,
+        store_brand_name=store,
+        item_name=productList,
+        limit=100
+    )
+    if df is not None:
+        # network.execute_query()
+        # network.analysis(limits=100)
+        network.create_network()
+        data = json_graph.node_link_data(network.g)
+        networkName = f'{countyName}/{smallTag}/{store}'
+        request.session['network'] = {
+            'username': network.username,
+            'networkName': networkName,
+            'data': data,
+            'relationshipDF': network.relationship_df.to_json(orient='split')
+        }
+        relationship, articulationPoint, communities = network.vis_all_graph()
+
+    # network.execute_query()
+    # network.analysis(limits=100)
+
+    network.create_network()
+    relationship, articulationPoint, communities = network.vis_all_graph()
+    options = set(df['ELEMENT1']).union(set(df['ELEMENT2']))
+    nodes, edges = _getNodeAndEdge(countyName, smallTag, startTime, endTime, productList, store, limit=100)
+    return render(
+        request,
+        'BuyWithInPath.html',
+        {
+            'relationship': relationship,
+            'articulationPoint': articulationPoint,
+            'communities': communities,
+            'options': options,
+            'nodes': nodes,
+            'edges': edges,
+            'countyName': countyName,
+            'smallTag': smallTag,
+            'store': store
+            # 'displayType': displayType,
+        }
+    )
+
+
+def saveData(request):
+    if request.method == "POST":
+        # 從 session 中取得 network
+        network = request.session.get('network')
+        if network:
+            NetworkGraph.objects.create(
+                name=network['networkName'],
+                json=network['data'],
+                user=request.user,
+                csv=network['relationshipDF'],
+            )
+            return JsonResponse({"message": "Data saved successfully!"}, status=200)
+        else:
+            return JsonResponse({"message": "Data saved error, no network found!"}, status=400)
+    else:
+        return JsonResponse({"message": "Invalid request method."}, status=405)
+
+
+def getStoredPicture(request):
+    savedPictures = NetworkGraph.objects.filter(user=request.user)
+    if savedPictures:
+        return render(request, 'SavedPicture.html', {'pictures': savedPictures})
+    else:
+        message = "You have no saved pictures."
+        return render(request, 'SavedPicture.html', {'message': message})
+
+
+def loadPicture(request):
+    if request.method == "POST":
+        selectedPictures = request.POST.getlist('selectedPictures')
+
+        if len(selectedPictures) == 2:
+            pictures = NetworkGraph.objects.filter(id__in=selectedPictures)
+            network1 = ProductNetwork(username='test', network_name=pictures[0].name)
+            network1.load(pictures[0].json, pictures[0].csv)
+            network2 = ProductNetwork(username='test', network_name=pictures[1].name)
+            network2.load(pictures[1].json, pictures[1].csv)
+            network1HTML, network2HTML, d1tod4 = compare_node(network1, network2)
+            return render(
+                request, 'CompareGraph.html', {
+                    'network1HTML': network1HTML,
+                    'network2HTML': network2HTML,
+                    'd1': d1tod4[0],
+                    'd2': d1tod4[1],
+                    'd3': d1tod4[2],
+                    'd4': d1tod4[3],
+                    'network1': network1,
+                    'network2': network2
+                }
+            )
+
+        else:
+            return HttpResponse("Error: You must select exactly two pictures.")
+    else:
+        return HttpResponse("Invalid request method.")
+
+
+def deleteGraph(request):
+    if request.method == "POST":
+        data = json.loads(request.body) # 從 JSON 中取得 `pictureId`
+        pictureId = data.get('pictureId')
+        print(f"Received delete request for picture ID: {pictureId}") # 檢查是否接收到 `pictureId`
+
+        try:
+            picture = NetworkGraph.objects.get(id=pictureId, user=request.user)
+            picture.delete()
+            return JsonResponse({"message": "Picture deleted successfully!"}, status=200)
+        except NetworkGraph.DoesNotExist:
+            return JsonResponse({"message": "Picture not found."}, status=404)
+    else:
+        return JsonResponse({"message": "Invalid request method."}, status=405)

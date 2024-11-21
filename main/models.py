@@ -37,3 +37,14 @@ class ItemSmallTag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class NetworkGraph(models.Model):
+    name = models.CharField(max_length=500)
+    json = models.JSONField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    createdTime = models.DateTimeField(auto_now_add=True)
+    csv = models.JSONField()
+
+    def __str__(self):
+        return self.name
