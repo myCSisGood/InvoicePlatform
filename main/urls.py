@@ -16,6 +16,11 @@ urlpatterns = [
     path('info/', views.showInfo, name='showInfo'),
     path('deeper_insight/', views.getDeeperInsight, name='getDeeperInsight'),
     path('analysis/', views.analyze, name='analyze'),
+    path('analysisq1/', views.analyzeq1, name='analyzeq1'),
+    path('analysisq2/', views.analyzeq2, name='analyzeq2'),
+    path('analysisq3/', views.analyzeq3, name='analyzeq3'),
+    path('analysisq4/', views.analyzeq4, name='analyzeq4'),
+    path('analysisq5/', views.analyzeq5, name='analyzeq5'),
     path('display_overtime/', views.displayOvertime, name='displayOvertime'),
     path('buy_with_in_path/', views.displayBuyWithInPath, name='displayBuyWithInPath'),
     path(
