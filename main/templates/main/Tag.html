@@ -125,19 +125,8 @@ $(document).ready(function() {
     });
     var selectedProducts = [];
     var totalProductCount = 0;
-    $('#selectAllProducts').on('change', function() {
-        var isChecked = $(this).is(':checked');
-        $('.productCheckbox').each(function() {
-            $(this).prop('checked', isChecked).trigger('change');
-        });
-    });
-    $('#productResults').on('change', '.productCheckbox', function() {
-        if (!$(this).is(':checked')) {
-            $('#selectAllProducts').prop('checked', false);
-        } else if ($('.productCheckbox:checked').length === $('.productCheckbox').length) {
-            $('#selectAllProducts').prop('checked', true);
-        }
-    });
+    
+    
     // 顯示累計數量的元素
     $('#selectedProducts').after('<div id="totalProductCount" class="mt-4 text-lg font-semibold">總資料數量: 0</div>');
 
@@ -190,14 +179,7 @@ $(document).ready(function() {
 
                 // 顯示篩選結果，使用 checkbox
                 $('#productResults').empty();
-                if (!$('#selectAllProducts').length && filteredProducts.length > 0) {
-                    $('#productResults').before(`
-                        <div class="flex items-center mt-2">
-                            <input type="checkbox" id="selectAllProducts" class="mr-2">
-                            <label for="selectAllProducts" class="text-lg font-medium text-gray-700">全選</label>
-                        </div>
-                    `);
-                }
+                
 
                 filteredProducts.forEach(function(product) {
                     $('#productResults').append(`
@@ -208,19 +190,8 @@ $(document).ready(function() {
                     `);
                 });
 
-                $('#selectAllProducts').on('change', function() {
-                    var isChecked = $(this).is(':checked');
-                    $('.productCheckbox').each(function() {
-                        $(this).prop('checked', isChecked).trigger('change');
-                    });
-                });
-                $('#productResults').on('change', '.productCheckbox', function() {
-                    if (!$(this).is(':checked')) {
-                        $('#selectAllProducts').prop('checked', false);
-                    } else if ($('.productCheckbox:checked').length === $('.productCheckbox').length) {
-                        $('#selectAllProducts').prop('checked', true);
-                    }
-                });
+                
+            
                 // 當用戶選擇產品時，將其加入到已選列表中
                 $('.productCheckbox').on('change', function() {
                     var product = $(this).data('product');
