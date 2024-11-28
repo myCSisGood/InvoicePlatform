@@ -83,7 +83,7 @@ class ProductNetwork:
         self.directory = None
 
         self.conn = psycopg2.connect(
-            database="postgres",
+            database="InvoicePlatform",
             user="postgres",
             password="0000",
             host="127.0.0.1",
@@ -545,13 +545,12 @@ class ProductNetwork:
         # 生成查詢條件
         query_condition = " AND ".join(condition)
 
-
         print(item_tag)
         print(small_tag)
         print(product_list)
-        
+
         if item_tag == small_tag:
-            
+
             query = f"""
             WITH INV_NUMBERS AS (
                         SELECT DISTINCT inv_num 

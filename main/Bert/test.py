@@ -8,6 +8,7 @@ import platform
 import os
 import io
 from django.core.files.storage import FileSystemStorage
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, 'final_model.h5')
@@ -42,16 +43,26 @@ class BertModel():
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('/Users/willa/Desktop/Graduation/user_1w_with_RFM_and_cleaned.csv')
-    print(len(df))
-    empty_items = df[df['item_name'].isnull()]
-    print(empty_items)
-    if not empty_items.empty:
-        df = df[~(df['item_name'].isnull())]
-    print(len(df))
-    df.to_csv('/Users/willa/Desktop/Graduation/user_1w_with_RFM_and_cleaned.csv', index=False)
+    print(datetime.now())
+    df = pd.read_csv('/Users/willa/Downloads/New_Taipei_part5.csv')
+    b = BertModel()
+    df = b.addItemTag(df)
+    buffer = io.StringIO()
+    df.to_csv('/Users/willa/Downloads/New_Taipei_part5_complete.csv', index=False)
+    print(datetime.now())
 
-    # b = BertModel()
-    # df = b.addItemTag(df)
-    # buffer = io.StringIO()
-    # df.to_csv('output.csv', index=False)
+    print(datetime.now())
+    df = pd.read_csv('/Users/willa/Downloads/New_Taipei_part6.csv')
+    b = BertModel()
+    df = b.addItemTag(df)
+    buffer = io.StringIO()
+    df.to_csv('/Users/willa/Downloads/New_Taipei_part6_complete.csv', index=False)
+    print(datetime.now())
+
+    print(datetime.now())
+    df = pd.read_csv('/Users/willa/Downloads/New_Taipei_part7.csv')
+    b = BertModel()
+    df = b.addItemTag(df)
+    buffer = io.StringIO()
+    df.to_csv('/Users/willa/Downloads/New_Taipei_part7_complete.csv', index=False)
+    print(datetime.now())
